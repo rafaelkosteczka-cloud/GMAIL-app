@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APP-Gmail — Regras e Método</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,700;0,800;1,400;1,800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #16222f;
+      --muted: #5f7a8c;
+      --brand: #0f766e;
+      --brand-light: #ccfbf1;
+      --gold: #f4b942;
+      --coral: #f56b5c;
+      --line: rgba(22,34,47,.12);
+      --shadow: 0 24px 64px rgba(22,34,47,.13);
+      --bg-morning: #fefcf8;
+      --bg-tension: #ffffff;
+      --bg-heavy:   #f0ede8;
+      --bg-pivot:   #f0fdfa;
+      --bg-proof:   #fdfaf4;
+      --bg-clear:   #ffffff;
+      --bg-deep:    #f8fafc;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink); overflow: hidden; }
+
+    /* ── Animations ─────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(36px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.93) translateY(18px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .anim { opacity: 0; }
+    .anim.go { animation: fadeInUp 0.72s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .anim.anim-scale.go { animation: fadeInScale 0.72s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+    /* ── Progress ───────────────────────────────── */
+    #prog { position: fixed; top: 0; left: 0; height: 3px; background: var(--brand); width: 0%; transition: width .42s ease; z-index: 100; }
+    #counter { position: fixed; top: 18px; right: 22px; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: rgba(22,34,47,.35); z-index: 100; font-variant-numeric: tabular-nums; }
+
+    /* ── Deep-dive marker ───────────────────────── */
+    #deepbadge {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(22,34,47,.32); z-index: 100; display: none; white-space: nowrap;
+    }
+
+    /* ── Nav ────────────────────────────────────── */
+    .nav { position: fixed; bottom: 26px; right: 22px; z-index: 100; display: flex; gap: 10px; }
+    .nav button {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1.5px solid var(--line); background: rgba(255,255,255,.92); color: var(--ink);
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s, box-shadow .15s, transform .12s;
+      box-shadow: 0 2px 12px rgba(22,34,47,.08);
+    }
+    .nav button:hover { background: #fff; box-shadow: 0 4px 20px rgba(22,34,47,.14); transform: translateY(-1px); }
+    .nav button:disabled { opacity: .3; cursor: default; transform: none; }
+
+    /* ── Slides ─────────────────────────────────── */
+    #stage { position: relative; width: 100%; height: 100%; }
+    .slide {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 60px 48px; opacity: 0; pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity .45s ease, transform .45s ease, background-color .45s ease;
+    }
+    .slide.active { opacity: 1; pointer-events: all; transform: scale(1); }
+    .slide.s-morning { background-color: var(--bg-morning); }
+    .slide.s-tension { background-color: var(--bg-tension); }
+    .slide.s-heavy   { background-color: var(--bg-heavy); }
+    .slide.s-pivot   { background-color: var(--bg-pivot); }
+    .slide.s-proof   { background-color: var(--bg-proof); }
+    .slide.s-clear   { background-color: var(--bg-clear); }
+    .slide.s-deep    { background-color: var(--bg-deep); }
+
+    /* ── Layout ─────────────────────────────────── */
+    .cols { display: grid; gap: 52px; align-items: center; width: 100%; max-width: 960px; }
+    .cols-2    { grid-template-columns: 1fr 1fr; }
+    .cols-hero { grid-template-columns: 1fr 460px; }
+    .center-col { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; max-width: 760px; }
+    .left-col { display: flex; flex-direction: column; }
+
+    /* ── Typography ──────────────────────────────── */
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    h1 { font-size: clamp(40px, 5.5vw, 68px); font-weight: 800; line-height: 1.08; letter-spacing: -.03em; color: var(--ink); }
+    h2 { font-size: clamp(26px, 3.4vw, 42px); font-weight: 800; line-height: 1.12; letter-spacing: -.025em; color: var(--ink); }
+    .sub { margin-top: 18px; font-size: 16px; line-height: 1.65; color: var(--muted); max-width: 540px; }
+    .accent { color: var(--brand); }
+    .hdivider { width: 48px; height: 3px; border-radius: 999px; background: var(--brand); margin: 18px 0; }
+    .tension-num { font-size: clamp(60px, 9vw, 110px); font-weight: 800; letter-spacing: -.04em; color: var(--coral); line-height: 1; }
+    .tension-label { font-size: 13px; font-weight: 600; color: var(--coral); opacity: .78; margin-top: 4px; }
+    .micro-list { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .micro-item { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+    /* ── Gmail mockup ────────────────────────────── */
+    .gw { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--line); background: #fff; width: 100%; max-width: 440px; flex-shrink: 0; }
+    .gw-chrome { padding: 10px 14px; background: #f6f8fc; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+    .gw-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .gw-dot.r { background: #ff6059; } .gw-dot.y { background: #febc30; } .gw-dot.g { background: #2ac95b; }
+    .gw-url { flex: 1; background: rgba(22,34,47,.05); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--muted); margin-left: 4px; }
+    .gw-body { display: flex; }
+    .gw-sb { width: 56px; background: #f6f8fc; border-right: 1px solid var(--line); padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .gw-sb-item { width: 36px; height: 36px; border-radius: 8px; background: rgba(22,34,47,.06); }
+    .gw-sb-item.active { background: var(--brand-light); }
+    .gw-main { flex: 1; min-height: 0; }
+    .gw-search { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    .gw-search-bar { background: rgba(22,34,47,.05); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); }
+    .gw-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid rgba(22,34,47,.06); font-size: 12px; }
+    .gw-row.unread .gw-from { font-weight: 700; color: var(--ink); }
+    .gw-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+    .gw-from { font-weight: 500; color: #374151; width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gw-snippet { flex: 1; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gw-chips { display: flex; gap: 4px; flex-shrink: 0; }
+    .gw-date { font-size: 10px; color: var(--muted); flex-shrink: 0; white-space: nowrap; }
+    .gchip { padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .c-teal   { background: #ccfbf1; color: #065f46; }
+    .c-red    { background: #fee2e2; color: #991b1b; }
+    .c-purple { background: #ede9fe; color: #5b21b6; }
+    .c-amber  { background: #fef9c3; color: #713f12; }
+    .c-blue   { background: #dbeafe; color: #1e40af; }
+
+    /* ── Before/After strip ──────────────────────── */
+    .strip-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 680px; }
+    .strip-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+
+    /* ── Week timeline ───────────────────────────── */
+    .wtl { width: 100%; max-width: 400px; }
+    .wtl-days { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-bottom: 6px; }
+    .wtl-day-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: center; }
+    .wtl-cols { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; height: 160px; align-items: end; }
+    .wtl-col { display: flex; flex-direction: column; gap: 3px; height: 100%; justify-content: flex-end; }
+    .wtl-b { border-radius: 5px; flex-shrink: 0; }
+    .b-email { background: #fda4af; } .b-meet { background: #93c5fd; } .b-focus { background: #86efac; } .b-lost { background: #e5e7eb; }
+    .wtl-legend { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+    .wtl-leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+    .wtl-leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ── Decision flowchart ───────────────────────── */
+    .flow { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
+    .fq { display: flex; align-items: flex-start; gap: 14px; }
+    .fq-num { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .fq-text { font-size: 15px; font-weight: 700; color: var(--ink); padding-top: 3px; }
+    .fbranch { margin-left: 40px; display: flex; flex-direction: column; gap: 6px; }
+    .fbranch-row { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px; font-size: 13px; }
+    .farrow { color: var(--muted); } .fcond { font-weight: 600; color: var(--ink); }
+    .faction { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+    .fa-respond { background: #dbeafe; color: #1e40af; }
+    .fa-follow  { background: #fef9c3; color: #713f12; }
+    .fa-label   { background: #ede9fe; color: #5b21b6; }
+    .fa-filter  { background: var(--brand-light); color: #065f46; }
+    .flow-rule { margin-top: 10px; padding: 12px 16px; border-left: 3px solid var(--brand); background: rgba(15,118,110,.06); border-radius: 0 8px 8px 0; font-size: 13px; color: var(--ink); line-height: 1.55; }
+
+    /* ── Principle cards ─────────────────────────── */
+    .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 720px; }
+    .p-card { background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 16px; padding: 24px 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 20px rgba(22,34,47,.07); }
+    .p-icon { font-size: 26px; } .p-title { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -.015em; }
+    .p-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* ── Matrix table ────────────────────────────── */
+    .mtable-wrap { width: 100%; max-width: 860px; overflow: auto; border-radius: 12px; box-shadow: 0 4px 24px rgba(22,34,47,.08); border: 1px solid var(--line); }
+    .mtable { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mtable th { background: rgba(22,34,47,.04); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .mtable td { padding: 10px 14px; border-bottom: 1px solid rgba(22,34,47,.06); vertical-align: middle; }
+    .mtable tbody tr:last-child td { border-bottom: none; }
+    .mtable .combo { font-weight: 700; color: var(--ink); }
+    .mcode { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--muted); background: rgba(22,34,47,.04); padding: 2px 6px; border-radius: 4px; }
+    .pbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .pb-safe { background: #d1fae5; color: #065f46; } .pb-caution { background: #fef9c3; color: #713f12; } .pb-no { background: #fee2e2; color: #991b1b; }
+
+    /* ── Case cards ──────────────────────────────── */
+    .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 780px; }
+    .case-card { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: 0 12px 12px 0; padding: 18px 18px 16px; box-shadow: 0 3px 16px rgba(22,34,47,.06); }
+    .case-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); margin-bottom: 8px; }
+    .case-title { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 10px; }
+    .case-crit { font-family: "IBM Plex Mono", monospace; font-size: 10px; line-height: 1.7; color: var(--muted); background: rgba(22,34,47,.03); border-radius: 6px; padding: 8px 10px; }
+    .case-footer { display: flex; gap: 6px; margin-top: 10px; }
+
+    /* ── Final bullets ────────────────────────────── */
+    .final-bullets { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .final-bullet { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; color: var(--muted); line-height: 1.55; }
+    .fb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); margin-top: 8px; flex-shrink: 0; }
+    .final-cta { margin-top: 32px; font-size: clamp(20px, 2.8vw, 32px); font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+
+    /* ── Manifesto/Proof ─────────────────────────── */
+    .proof-num { font-size: clamp(58px, 8vw, 96px); font-weight: 800; letter-spacing: -.04em; color: var(--brand); line-height: 1; }
+    .proof-sub { font-size: 15px; color: var(--muted); margin-top: 8px; }
+    .proof-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 4px 12px; border-radius: 999px; background: var(--brand-light); border: 1px solid rgba(15,118,110,.2); font-size: 11px; font-weight: 700; color: #065f46; letter-spacing: .04em; }
+    .manifesto-text { font-size: 15px; line-height: 1.72; color: var(--muted); max-width: 600px; margin: 0 auto; }
+    .manifesto-text strong { color: var(--ink); }
+    .value-row { display: flex; width: 100%; max-width: 680px; margin-top: 28px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .value-item { flex: 1; display: flex; flex-direction: column; gap: 5px; padding: 18px 20px; border-left: 1px solid var(--line); }
+    .value-item:first-child { border-left: none; }
+    .value-icon { font-size: 18px; } .value-name { font-size: 14px; font-weight: 800; color: var(--ink); }
+    .value-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Calculator ──────────────────────────────── */
+    .calc-widget { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px 26px; box-shadow: 0 8px 32px rgba(22,34,47,.09); width: 100%; max-width: 420px; }
+    .calc-row { margin-bottom: 18px; }
+    .calc-row label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
+    .calc-row label span { font-family: "IBM Plex Mono", monospace; color: var(--brand); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 13px; }
+    .calc-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #e2f5f2; outline: none; cursor: pointer; }
+    .calc-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--brand); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(15,118,110,.35); }
+    .calc-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--brand); cursor: pointer; border: 3px solid #fff; }
+    .calc-divider { height: 1px; background: var(--line); margin: 18px 0; }
+    .calc-results { display: flex; flex-direction: column; gap: 12px; }
+    .calc-result-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .calc-result-label { color: var(--muted); font-weight: 500; }
+    .calc-result-value { font-weight: 700; font-family: "IBM Plex Mono", monospace; font-size: 14px; }
+    .calc-result-value.bad { color: var(--coral); } .calc-result-value.ok { color: var(--brand); }
+    .calc-highlight { margin-top: 14px; background: var(--brand-light); border-radius: 12px; padding: 16px 18px; }
+    .calc-hl-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #065f46; margin-bottom: 8px; }
+    .calc-big { display: block; font-size: 32px; font-weight: 800; letter-spacing: -.025em; color: var(--brand); line-height: 1.1; }
+    .calc-subs { display: flex; gap: 16px; margin-top: 6px; }
+    .calc-sm { font-size: 12px; color: #065f46; font-weight: 600; }
+    .slide-title-block { margin-bottom: 20px; }
+
+    /* ── Pareto ──────────────────────────────────── */
+    .pareto-wrap { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; }
+
+    .pareto-bar {
+      display: flex; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--line); height: 100px;
+      box-shadow: 0 6px 28px rgba(22,34,47,.1);
+    }
+    .pareto-seg {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; transition: flex .6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .pareto-seg.small { flex: 0 0 22%; background: var(--brand-light); border-right: 2px dashed rgba(15,118,110,.3); }
+    .pareto-seg.large { flex: 1; background: #fff4f3; }
+    .pareto-seg-pct { font-size: 30px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+    .pareto-seg-sub { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+    .small .pareto-seg-pct { color: var(--brand); } .small .pareto-seg-sub { color: var(--brand); }
+    .large .pareto-seg-pct { color: var(--coral); } .large .pareto-seg-sub { color: var(--coral); }
+
+    .pareto-labels { display: flex; }
+    .pareto-lbl { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .pareto-lbl.left { flex: 0 0 22%; text-align: center; }
+    .pareto-lbl.right { flex: 1; text-align: center; }
+
+    .pareto-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pareto-chip { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(22,34,47,.05); color: var(--muted); border: 1px solid var(--line); }
+    .pareto-chip.auto { background: var(--brand-light); color: #065f46; border-color: rgba(15,118,110,.2); }
+
+    .pareto-box {
+      padding: 14px 16px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand-light), #e0fdf4);
+      border: 1px solid rgba(15,118,110,.18);
+      font-size: 13px; color: #065f46; line-height: 1.6;
+    }
+    .pareto-box strong { color: var(--brand); }
+
+    /* ── Ferramenta (tool) slide ─────────────────── */
+    .feat-pipeline { display: flex; align-items: stretch; gap: 0; width: 100%; max-width: 780px; }
+    .feat-card {
+      flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 16px;
+      padding: 22px 20px; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 4px 20px rgba(22,34,47,.07); position: relative;
+    }
+    .feat-arrow {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; flex-shrink: 0; color: var(--muted); font-size: 18px;
+    }
+    .feat-step { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); margin-bottom: 2px; }
+    .feat-title { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+    .feat-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .feat-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 700; margin-top: auto; }
+    .ft-done { background: var(--brand-light); color: #065f46; }
+    .ft-next { background: #fef9c3; color: #713f12; }
+
+    .output-wrap { width: 100%; max-width: 780px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(22,34,47,.07); }
+    .output-header { padding: 9px 16px; background: rgba(22,34,47,.03); border-bottom: 1px solid var(--line); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; gap: 20px; }
+    .output-col { flex: 1; } .output-col.sm { flex: 0 0 90px; }
+    .output-row { display: flex; gap: 20px; padding: 10px 16px; border-bottom: 1px solid rgba(22,34,47,.05); align-items: center; font-size: 12px; }
+    .output-row:last-child { border-bottom: none; }
+    .output-from { flex: 1; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); }
+    .output-label { flex: 1; }
+    .output-action { flex: 0 0 90px; }
+    .act-archive { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: var(--brand-light); color: #065f46; }
+    .act-keep    { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: #dbeafe; color: #1e40af; }
+
+    /* ── Atalhos reformulado ─────────────────────── */
+    .flow4 { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; }
+    .f4step { display: flex; align-items: flex-start; gap: 14px; }
+    .f4num {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--brand); color: #fff;
+      font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .f4body { display: flex; flex-direction: column; gap: 4px; }
+    .f4ctx { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .f4action { display: flex; align-items: center; gap: 8px; }
+    .f4key { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600; background: #f1f5f9; border: 1px solid #cbd5e1; border-bottom: 3px solid #94a3b8; border-radius: 6px; padding: 4px 11px; color: #334155; display: inline-block; }
+    .f4desc { font-size: 14px; font-weight: 700; color: var(--ink); }
+    .f4connector { margin-left: 15px; width: 2px; height: 14px; background: var(--line); }
+
+    .skey-grid { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; align-items: center; }
+    .skey { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; background: #f8fafc; border: 1px solid #cbd5e1; border-bottom: 3px solid #94a3b8; border-radius: 6px; padding: 4px 9px; color: #334155; display: inline-block; white-space: nowrap; text-align: center; }
+    .saction { font-size: 12px; color: var(--ink); font-weight: 500; }
+    .shortcut-note { margin-top: 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Responsive ─────────────────────────────── */
+    @media (max-width: 900px) {
+      .cols-hero, .cols-2 { grid-template-columns: 1fr; }
+      .gw, .wtl, .pareto-wrap { max-width: 100%; }
+      .case-grid, .strip-pair { grid-template-columns: 1fr; }
+      h1 { font-size: 38px; } h2 { font-size: 26px; }
+      .slide { padding: 40px 24px; }
+      .value-row, .feat-pipeline { flex-direction: column; }
+      .value-item { border-left: none; border-top: 1px solid var(--line); }
+      .value-item:first-child { border-top: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="counter">1 / 15</div>
+<div id="deepbadge">— Aprofundamento —</div>
+
+<div class="nav">
+  <button id="prev" onclick="go(-1)" disabled>←</button>
+  <button id="next" onclick="go(1)">→</button>
+</div>
+
+<div id="stage">
+
+  <!-- ─── 1: É segunda-feira ─────────────────────── -->
+  <section class="slide s-morning active" data-idx="0">
+    <div class="cols cols-hero">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">APP-Gmail</span>
+        <h1 class="anim" data-d="80">É segunda&#8209;feira.</h1>
+        <div class="hdivider anim" data-d="190"></div>
+        <p class="sub anim" data-d="270">Você abriu o Gmail.<br>Está tudo tranquilo.<br>Por enquanto.</p>
+      </div>
+      <div class="gw anim anim-scale" data-d="360">
+        <div class="gw-chrome"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div><div class="gw-url">mail.google.com/mail</div></div>
+        <div class="gw-body">
+          <div class="gw-sb"><div class="gw-sb-item active"></div><div class="gw-sb-item"></div><div class="gw-sb-item"></div></div>
+          <div class="gw-main">
+            <div class="gw-search"><div class="gw-search-bar">Pesquisar emails</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#0f766e">S</div><div class="gw-from">Sion Energia</div><div class="gw-snippet">Relatório semanal — tudo certo</div><div class="gw-chips"><span class="gchip c-teal">Sion</span></div></div>
+            <div class="gw-row"><div class="gw-avatar" style="background:#6366f1">T</div><div class="gw-from">Tradener</div><div class="gw-snippet">NF referência abril</div><div class="gw-chips"><span class="gchip c-purple">Fiscal</span></div></div>
+            <div class="gw-row"><div class="gw-avatar" style="background:#f4b942">O</div><div class="gw-from">Omie</div><div class="gw-snippet">Boleto gerado com sucesso</div><div class="gw-chips"><span class="gchip c-amber">Sistema</span></div></div>
+            <div class="gw-row" style="opacity:.35"><div class="gw-avatar" style="background:#94a3b8">—</div><div class="gw-from">—</div><div class="gw-snippet">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 2: Sua caixa também ─────────────────────── -->
+  <section class="slide s-tension" data-idx="1">
+    <div class="cols cols-hero">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">Todo santo dia</span>
+        <h1 class="anim" data-d="80">Sua caixa<br>de entrada<br>também.</h1>
+        <div class="micro-list anim" data-d="260"><span class="micro-item">NF atrasada.</span><span class="micro-item">Cliente esperando.</span><span class="micro-item">Reunião em 20 min.</span></div>
+      </div>
+      <div class="gw anim anim-scale" data-d="340">
+        <div class="gw-chrome"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div><div class="gw-url">mail.google.com/mail</div></div>
+        <div class="gw-body">
+          <div class="gw-sb"><div class="gw-sb-item active"></div><div class="gw-sb-item"></div><div class="gw-sb-item"></div></div>
+          <div class="gw-main">
+            <div class="gw-search"><div class="gw-search-bar">Pesquisar emails</div></div>
+            <div style="padding:8px 14px;border-bottom:1px solid rgba(22,34,47,.06);display:flex;align-items:center;gap:8px;"><span class="tension-num" style="font-size:40px;">147</span><span class="tension-label">não lidos</span></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#ef4444">!</div><div class="gw-from">noreply@banco</div><div class="gw-snippet">Fatura vencendo amanhã</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#f97316">R</div><div class="gw-from">Rafael</div><div class="gw-snippet">Você viu meu email?</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#8b5cf6">N</div><div class="gw-from">Newsletter</div><div class="gw-snippet">47 dicas de produtividade...</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#ef4444">!</div><div class="gw-from">Remetente NF</div><div class="gw-snippet">Nota Fiscal n° 8821</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 3: A mesma loucura ──────────────────────── -->
+  <section class="slide s-heavy" data-idx="2">
+    <div class="cols cols-hero">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">Semana após semana</span>
+        <h2 class="anim" data-d="80">E vai ser a<br>mesma loucura.</h2>
+        <div class="hdivider anim" data-d="190"></div>
+        <p class="sub anim" data-d="270" style="margin-top:0">Até você decidir<br>que não vai mais.</p>
+      </div>
+      <div class="wtl anim" data-d="360">
+        <div class="wtl-days"><div class="wtl-day-label">Seg</div><div class="wtl-day-label">Ter</div><div class="wtl-day-label">Qua</div><div class="wtl-day-label">Qui</div><div class="wtl-day-label">Sex</div></div>
+        <div class="wtl-cols">
+          <div class="wtl-col"><div class="wtl-b b-email" style="height:62px"></div><div class="wtl-b b-meet" style="height:30px"></div><div class="wtl-b b-lost" style="height:28px"></div><div class="wtl-b b-focus" style="height:18px"></div></div>
+          <div class="wtl-col"><div class="wtl-b b-email" style="height:54px"></div><div class="wtl-b b-email" style="height:22px"></div><div class="wtl-b b-meet" style="height:26px"></div><div class="wtl-b b-focus" style="height:12px"></div></div>
+          <div class="wtl-col"><div class="wtl-b b-email" style="height:40px"></div><div class="wtl-b b-meet" style="height:40px"></div><div class="wtl-b b-lost" style="height:24px"></div><div class="wtl-b b-focus" style="height:14px"></div></div>
+          <div class="wtl-col"><div class="wtl-b b-email" style="height:70px"></div><div class="wtl-b b-lost" style="height:36px"></div><div class="wtl-b b-focus" style="height:10px"></div></div>
+          <div class="wtl-col"><div class="wtl-b b-email" style="height:48px"></div><div class="wtl-b b-meet" style="height:34px"></div><div class="wtl-b b-lost" style="height:30px"></div></div>
+        </div>
+        <div class="wtl-legend"><div class="wtl-leg-item"><div class="wtl-leg-dot" style="background:#fda4af"></div>Email</div><div class="wtl-leg-item"><div class="wtl-leg-dot" style="background:#93c5fd"></div>Reunião</div><div class="wtl-leg-item"><div class="wtl-leg-dot" style="background:#86efac"></div>Foco real</div><div class="wtl-leg-item"><div class="wtl-leg-dot" style="background:#e5e7eb"></div>Ruído</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 4: Volta de férias ──────────────────────── -->
+  <section class="slide s-heavy" data-idx="3">
+    <div class="cols cols-hero">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">O teste definitivo</span>
+        <h2 class="anim" data-d="80">Você voltou<br>de férias.</h2>
+        <div style="margin-top:20px"><div class="tension-num anim" data-d="190">500</div><div class="tension-label anim" data-d="230">não lidos esperando</div></div>
+        <p class="anim" data-d="300" style="margin-top:12px;font-size:14px;font-weight:600;color:var(--ink)">Dois dias perdidos.<br>Só procurando o que importa.</p>
+        <p class="sub anim" data-d="380" style="font-size:13px;margin-top:8px">Acontece com todo mundo.<br>A menos que você tenha um método.</p>
+      </div>
+      <div class="gw anim anim-scale" data-d="420">
+        <div class="gw-chrome"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div><div class="gw-url">mail.google.com/mail</div></div>
+        <div class="gw-body">
+          <div class="gw-sb"><div class="gw-sb-item active"></div><div class="gw-sb-item"></div><div class="gw-sb-item"></div></div>
+          <div class="gw-main">
+            <div class="gw-search"><div class="gw-search-bar">Pesquisar emails</div></div>
+            <div style="padding:8px 14px;border-bottom:1px solid rgba(22,34,47,.06);display:flex;align-items:center;gap:8px;"><span class="tension-num" style="font-size:40px;">500</span><span class="tension-label">não lidos</span></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#ef4444">!</div><div class="gw-from">Rafael</div><div class="gw-snippet">Urgente — você viu?</div><div class="gw-date">há 15 dias</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#f97316">C</div><div class="gw-from">Cliente</div><div class="gw-snippet">Contrato — retorno</div><div class="gw-date">há 12 dias</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#8b5cf6">N</div><div class="gw-from">Newsletter</div><div class="gw-snippet">Melhores dicas da semana</div><div class="gw-date">há 9 dias</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#6b7280">S</div><div class="gw-from">Sistema</div><div class="gw-snippet">Relatório automático × 14</div><div class="gw-date">há 2 dias</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 5: A menos que (VIRADA) ────────────────── -->
+  <section class="slide s-pivot" data-idx="4">
+    <div class="center-col">
+      <span class="eyebrow anim" data-d="0">A virada</span>
+      <h2 class="anim" data-d="80" style="max-width:580px">A menos que<br>sua inbox fosse<br>feita <span class="accent">para servir você.</span></h2>
+      <div class="hdivider anim" data-d="190"></div>
+      <p class="sub anim" data-d="270">APP-Gmail é um método simples para que o Gmail<br>trabalhe a seu favor — não o contrário.</p>
+      <div class="strip-pair anim" data-d="380" style="margin-top:28px">
+        <div>
+          <div class="strip-label" style="color:#991b1b">Antes</div>
+          <div class="gw" style="max-width:100%">
+            <div class="gw-chrome" style="padding:7px 10px"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div></div>
+            <div class="gw-row unread" style="padding:7px 10px"><div class="gw-avatar" style="background:#ef4444;width:22px;height:22px;font-size:9px">!</div><div class="gw-from" style="font-size:11px;width:70px">noreply@</div><div class="gw-snippet" style="font-size:11px">Fatura ven...</div></div>
+            <div class="gw-row unread" style="padding:7px 10px"><div class="gw-avatar" style="background:#f97316;width:22px;height:22px;font-size:9px">R</div><div class="gw-from" style="font-size:11px;width:70px">Rafael</div><div class="gw-snippet" style="font-size:11px">Você viu?</div></div>
+            <div class="gw-row unread" style="padding:7px 10px"><div class="gw-avatar" style="background:#8b5cf6;width:22px;height:22px;font-size:9px">N</div><div class="gw-from" style="font-size:11px;width:70px">Newsletter</div><div class="gw-snippet" style="font-size:11px">47 dicas...</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="strip-label" style="color:#065f46">Depois</div>
+          <div class="gw" style="max-width:100%">
+            <div class="gw-chrome" style="padding:7px 10px"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div></div>
+            <div class="gw-row unread" style="padding:7px 10px"><div class="gw-avatar" style="background:#0f766e;width:22px;height:22px;font-size:9px">R</div><div class="gw-from" style="font-size:11px;width:70px">Rafael</div><div class="gw-snippet" style="font-size:11px">Você viu?</div><span class="gchip c-teal" style="font-size:9px">Cliente</span></div>
+            <div class="gw-row" style="padding:7px 10px"><div class="gw-avatar" style="background:#6366f1;width:22px;height:22px;font-size:9px">T</div><div class="gw-from" style="font-size:11px;width:70px">Tradener</div><div class="gw-snippet" style="font-size:11px;color:#94a3b8">Arquivado</div><span class="gchip c-purple" style="font-size:9px">Fiscal</span></div>
+            <div class="gw-row" style="padding:7px 10px"><div class="gw-avatar" style="background:#f4b942;width:22px;height:22px;font-size:9px">O</div><div class="gw-from" style="font-size:11px;width:70px">Omie</div><div class="gw-snippet" style="font-size:11px;color:#94a3b8">Arquivado</div><span class="gchip c-amber" style="font-size:9px">Sistema</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 6: Manifesto + Prova ────────────────────── -->
+  <section class="slide s-proof" data-idx="5">
+    <div class="center-col">
+      <span class="eyebrow anim" data-d="0">Caso real · Por que fazemos isso</span>
+      <div class="proof-num anim" data-d="80">34.000</div>
+      <div class="proof-sub anim" data-d="160">emails da operação de uma empresa. Reorganizados.</div>
+      <div class="proof-badge anim" data-d="210">Caso real</div>
+      <div class="hdivider anim" data-d="300"></div>
+      <p class="manifesto-text anim" data-d="380">Acreditamos que resolver problemas com <strong>criatividade e elegância</strong> é a forma mais honesta de <strong>devolver o poder às pessoas.</strong><br>Email é uma ferramenta — não uma identidade.</p>
+      <div class="value-row" style="margin-top:28px">
+        <div class="value-item anim" data-d="460"><span class="value-icon">✦</span><span class="value-name">Criatividade</span><span class="value-desc">Soluções que ninguém esperava</span></div>
+        <div class="value-item anim" data-d="540"><span class="value-icon">◈</span><span class="value-name">Elegância</span><span class="value-desc">Simples por fora, inteligente por dentro</span></div>
+        <div class="value-item anim" data-d="620"><span class="value-icon">◉</span><span class="value-name">Excelência</span><span class="value-desc">Feito para durar, não impressionar</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 7: Quatro regras ─────────────────────────── -->
+  <section class="slide s-clear" data-idx="6">
+    <div class="center-col">
+      <span class="eyebrow anim" data-d="0">O método</span>
+      <h2 class="anim" data-d="80">Quatro regras<br>que mudam tudo.</h2>
+      <div class="hdivider anim" data-d="190"></div>
+      <div class="p-grid">
+        <div class="p-card anim" data-d="270"><div class="p-icon">✉️</div><div class="p-title">Assunto organiza</div><div class="p-desc">Coloca etiqueta. Nunca esconde. O contexto está sempre a uma busca de distância.</div></div>
+        <div class="p-card anim" data-d="360"><div class="p-icon">👤</div><div class="p-title">Remetente automatiza</div><div class="p-desc">Só arquiva quem é previsível. Se você já sabe o que vai chegar, por que parar para ver?</div></div>
+        <div class="p-card anim" data-d="450"><div class="p-icon">🏢</div><div class="p-title">Cliente permanece</div><div class="p-desc">Contato humano nunca some da inbox. Toda empresa, todo parceiro — visíveis sempre.</div></div>
+        <div class="p-card anim" data-d="540"><div class="p-icon">⚙️</div><div class="p-title">Rotina arquiva</div><div class="p-desc">Só o que quase nunca exige você. Sistemas, alertas, notificações — saem do caminho.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 8: Três perguntas ────────────────────────── -->
+  <section class="slide s-clear" data-idx="7">
+    <div class="cols cols-hero" style="gap:40px">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">Como decidir</span>
+        <h2 class="anim" data-d="80">Três perguntas.<br>Uma decisão.</h2>
+        <div class="hdivider anim" data-d="190"></div>
+        <p class="sub anim" data-d="270" style="margin-top:0;font-size:14px">Se o mesmo email chegar três vezes sem precisar de você, <strong>virou filtro.</strong></p>
+      </div>
+      <div class="flow">
+        <div class="fq anim" data-d="180"><div class="fq-num">1</div><div class="fq-text">Este email precisa de mim agora?</div></div>
+        <div class="fbranch anim" data-d="240"><div class="fbranch-row"><span class="farrow">→</span><span class="fcond">Sim, urgente</span><span class="faction fa-respond">Respondo hoje</span></div><div class="fbranch-row"><span class="farrow">→</span><span class="fcond">Sim, pode esperar</span><span class="faction fa-follow">Acompanho</span></div></div>
+        <div class="fq anim" data-d="310" style="margin-top:6px"><div class="fq-num">2</div><div class="fq-text">Ou é só contexto?</div></div>
+        <div class="fbranch anim" data-d="370"><div class="fbranch-row"><span class="farrow">→</span><span class="fcond">Sim, mas é útil</span><span class="faction fa-label">Etiqueto</span></div></div>
+        <div class="fq anim" data-d="440" style="margin-top:6px"><div class="fq-num">3</div><div class="fq-text">É rotina que nunca muda?</div></div>
+        <div class="fbranch anim" data-d="500"><div class="fbranch-row"><span class="farrow">→</span><span class="fcond">Sim, sempre igual</span><span class="faction fa-filter">Filtro. Arquiva.</span></div></div>
+        <div class="flow-rule anim" data-d="560">Regra de ouro: <strong>nunca arquive o que você ainda não viu pelo menos 3 vezes.</strong> Confirme o padrão antes de automatizar.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 9: Matriz ────────────────────────────────── -->
+  <section class="slide s-clear" data-idx="8">
+    <div style="width:100%;max-width:880px;display:flex;flex-direction:column;gap:18px">
+      <div class="slide-title-block"><span class="eyebrow anim" data-d="0">Combinações certas</span><h2 class="anim" data-d="80">O que funciona. O que não. E por quê.</h2></div>
+      <div class="mtable-wrap anim" data-d="220">
+        <table class="mtable">
+          <thead><tr><th>Combinação</th><th>Sinais reais</th><th>Exemplo</th><th>Arquivar?</th><th>Risco</th></tr></thead>
+          <tbody>
+            <tr><td class="combo">Assunto + Remetente fixo</td><td>Mesmo padrão toda vez, nunca varia</td><td><span class="mcode">DEVEC from:sion.op</span></td><td><span class="pbadge pb-safe">✅ Seguro</span></td><td>Muito baixo</td></tr>
+            <tr><td class="combo">Remetente noreply</td><td>Nunca preciso responder, só informativo</td><td><span class="mcode">noreply@omie.com.br</span></td><td><span class="pbadge pb-safe">✅ Seguro</span></td><td>Baixo</td></tr>
+            <tr><td class="combo">Assunto NF + Remetente fiscal</td><td>Nota fiscal mensal recorrente</td><td><span class="mcode">subject:"Nota Fiscal"</span></td><td><span class="pbadge pb-safe">✅ Seguro</span></td><td>Baixo</td></tr>
+            <tr><td class="combo">Domínio + sem resposta histórica</td><td>Nunca respondi nenhum email desse domínio</td><td><span class="mcode">@tradener.com.br</span></td><td><span class="pbadge pb-caution">⚠️ Atenção</span></td><td>Médio</td></tr>
+            <tr><td class="combo">Assunto genérico</td><td>Palavras como "relatório", "resumo"</td><td><span class="mcode">subject:"relatório"</span></td><td><span class="pbadge pb-caution">⚠️ Atenção</span></td><td>Médio</td></tr>
+            <tr><td class="combo">Remetente com nome próprio</td><td>Pode ser cliente, parceiro ou colega</td><td><span class="mcode">from:"João"</span></td><td><span class="pbadge pb-no">✗ Não arquivar</span></td><td>Alto</td></tr>
+            <tr><td class="combo">Apenas domínio cliente</td><td>Qualquer pessoa da empresa pode escrever</td><td><span class="mcode">@agricolaferrari.com</span></td><td><span class="pbadge pb-no">✗ Não arquivar</span></td><td>Alto</td></tr>
+            <tr><td class="combo">Sem critério testado</td><td>Nunca confirmei o padrão, estou supondo</td><td><span class="mcode">— novo</span></td><td><span class="pbadge pb-no">✗ Não arquivar</span></td><td>Muito alto</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 10: Na prática ───────────────────────────── -->
+  <section class="slide s-clear" data-idx="9">
+    <div style="width:100%;max-width:820px;display:flex;flex-direction:column;gap:20px">
+      <div class="slide-title-block"><span class="eyebrow anim" data-d="0">Exemplos reais</span><h2 class="anim" data-d="80">Assim fica na vida real.</h2></div>
+      <div class="case-grid">
+        <div class="case-card anim" data-d="200"><div class="case-label">Operação</div><div class="case-title">⚡ DEVEC — Sion Operação</div><div class="case-crit">Assunto contém: "DEVEC"<br>Remetente: from:sionenergia.com.br<br>Ação: Arquivar + etiqueta "DEVEC"</div><div class="case-footer"><span class="gchip c-teal">Arquiva</span><span class="gchip c-blue">Resposta: raro</span></div></div>
+        <div class="case-card anim" data-d="300"><div class="case-label">Fiscal</div><div class="case-title">🧾 Nota Fiscal — Tradener</div><div class="case-crit">Assunto contém: "Nota Fiscal"<br>Remetente: @tradener.com.br<br>Ação: Arquivar + etiqueta "Fiscal"</div><div class="case-footer"><span class="gchip c-teal">Arquiva</span><span class="gchip" style="background:#f1f5f9;color:#475569">Resposta: nunca</span></div></div>
+        <div class="case-card anim" data-d="400"><div class="case-label">Sistema</div><div class="case-title">⚙️ Notificação — Omie</div><div class="case-crit">Remetente: noreply@omie.com.br<br>Qualquer assunto<br>Ação: Arquivar + etiqueta "Omie"</div><div class="case-footer"><span class="gchip c-teal">Arquiva</span><span class="gchip" style="background:#f1f5f9;color:#475569">Sistema apenas</span></div></div>
+        <div class="case-card anim" data-d="500"><div class="case-label">Fiscal recorrente</div><div class="case-title">🌾 NF Mensal — Agrícola Ferrari</div><div class="case-crit">Assunto contém: "Nota Fiscal"<br>Remetente: @agricolaferrari.com<br>Ação: Arquivar + etiqueta "Agrícola"</div><div class="case-footer"><span class="gchip c-teal">Arquiva</span><span class="gchip c-amber">NF mensal</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 11: Calculadora ──────────────────────────── -->
+  <section class="slide s-pivot" data-idx="10">
+    <div class="cols cols-hero" style="gap:48px">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">Quanto custa o caos</span>
+        <h2 class="anim" data-d="80">Coloca os seus<br>números.</h2>
+        <div class="hdivider anim" data-d="190"></div>
+        <p class="sub anim" data-d="270" style="margin-top:0">Veja em segundos quanto tempo você pode recuperar com o método.</p>
+      </div>
+      <div class="calc-widget anim anim-scale" data-d="320">
+        <div class="calc-row"><label>Emails por dia <span id="val-emails">40</span></label><input type="range" class="calc-slider" id="calc-emails" min="10" max="200" value="40" oninput="calcUpdate()"></div>
+        <div class="calc-row"><label>Minutos por email <span id="val-mins">3 min</span></label><input type="range" class="calc-slider" id="calc-mins" min="1" max="15" value="3" oninput="calcUpdate()"></div>
+        <div class="calc-divider"></div>
+        <div class="calc-results">
+          <div class="calc-result-item"><span class="calc-result-label">Você gasta hoje</span><span class="calc-result-value bad" id="res-total">2h 0min / dia</span></div>
+          <div class="calc-result-item"><span class="calc-result-label">Com o método</span><span class="calc-result-value ok" id="res-method">~36min / dia</span></div>
+          <div class="calc-highlight">
+            <div class="calc-hl-label">Você recupera</div>
+            <span class="calc-big" id="res-day">1h 24min / dia</span>
+            <div class="calc-subs"><span class="calc-sm" id="res-week">7h / semana</span><span class="calc-sm" style="opacity:.5">·</span><span class="calc-sm" id="res-month">30h / mês</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 12: Dois Momentos + Pareto (NOVO) ────────── -->
+  <section class="slide s-clear" data-idx="11">
+    <div style="width:100%;max-width:940px;display:flex;flex-direction:column;gap:22px">
+
+      <div>
+        <span class="eyebrow anim" data-d="0">O método em duas etapas</span>
+        <h2 class="anim" data-d="80">Máximo resultado.<br>Esforço mínimo primeiro.</h2>
+      </div>
+
+      <!-- Two moments -->
+      <div style="display:grid;grid-template-columns:1fr 40px 1fr;gap:0;align-items:stretch">
+
+        <!-- Momento 1 -->
+        <div class="anim" data-d="200" style="background:var(--brand-light);border:1px solid rgba(15,118,110,.2);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+            <div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand)">Momento inicial</div>
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1.2">Identificar padrões<br>e rotinas</div>
+          <div style="font-size:13px;color:#065f46;line-height:1.6">O sistema varre a inbox e mapeia os remetentes que aparecem <strong>toda semana sem precisar de você</strong> — as rotinas previsíveis.</div>
+
+          <!-- mini pareto bar -->
+          <div style="display:flex;border-radius:8px;overflow:hidden;height:44px;border:1px solid rgba(15,118,110,.2)">
+            <div style="flex:0 0 20%;background:rgba(15,118,110,.25);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px">
+              <span style="font-size:14px;font-weight:800;color:var(--brand)">20%</span>
+              <span style="font-size:8px;font-weight:700;text-transform:uppercase;color:var(--brand);opacity:.8">dos rem.</span>
+            </div>
+            <div style="flex:1;background:rgba(245,107,92,.1);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px">
+              <span style="font-size:14px;font-weight:800;color:var(--coral)">80%</span>
+              <span style="font-size:8px;font-weight:700;text-transform:uppercase;color:var(--coral);opacity:.8">do volume</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            <span class="pareto-chip auto" style="font-size:10px">Tradener NF</span>
+            <span class="pareto-chip auto" style="font-size:10px">Omie Sistema</span>
+            <span class="pareto-chip auto" style="font-size:10px">DEVEC</span>
+            <span class="pareto-chip auto" style="font-size:10px">noreply@banco</span>
+          </div>
+
+          <div style="padding:10px 12px;background:rgba(15,118,110,.1);border-radius:8px;font-size:12px;color:#065f46;font-weight:600;line-height:1.5">
+            ⚡ Resultado imediato:<br>elimina ~80% do volume em horas.
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="anim" data-d="340" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px">→</div>
+
+        <!-- Momento 2 -->
+        <div class="anim" data-d="380" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 4px 20px rgba(22,34,47,.07)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+            <div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Pente fino</div>
+          </div>
+          <div style="font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1.2">Categorizar<br>e refinar</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6">Com o grosso resolvido, agora você categoriza o restante — incluindo os próprios 80/20 — com etiquetas, grupos e regras mais precisas.</div>
+
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink)"><span style="width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0"></span>Etiquetas por tema (Fiscal, Operação, Cliente)</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink)"><span style="width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0"></span>Grupos personalizados com regras</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink)"><span style="width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0"></span>Remetentes de menor frequência mapeados</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink)"><span style="width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0"></span>Inbox zero sustentável no longo prazo</div>
+          </div>
+
+          <div style="padding:10px 12px;background:rgba(22,34,47,.04);border-radius:8px;font-size:12px;color:var(--muted);font-weight:500;line-height:1.5">
+            🎯 Resultado: controle total da inbox.<br>Você volta de férias sem medo.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 13: CTA — Sua próxima segunda ───────────── -->
+  <section class="slide s-morning" data-idx="12">
+    <div class="cols cols-hero">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">A partir de agora</span>
+        <h2 class="anim" data-d="80">Sua próxima<br>segunda pode<br>ser diferente.</h2>
+        <div class="hdivider anim" data-d="190"></div>
+        <div class="final-bullets anim" data-d="270">
+          <div class="final-bullet"><div class="fb-dot"></div><span>Você define as regras. O Gmail executa.</span></div>
+          <div class="final-bullet"><div class="fb-dot"></div><span>Elegante por fora. Inteligente por dentro.</span></div>
+          <div class="final-bullet"><div class="fb-dot"></div><span>Feito para quem tem algo melhor a fazer.</span></div>
+        </div>
+        <div class="final-cta anim" data-d="400">Clareza é uma escolha.<br><span class="accent">Comece agora.</span></div>
+      </div>
+      <div class="gw anim anim-scale" data-d="340">
+        <div class="gw-chrome"><div class="gw-dot r"></div><div class="gw-dot y"></div><div class="gw-dot g"></div><div class="gw-url">mail.google.com/mail</div></div>
+        <div class="gw-body">
+          <div class="gw-sb"><div class="gw-sb-item active"></div><div class="gw-sb-item"></div><div class="gw-sb-item"></div></div>
+          <div class="gw-main">
+            <div class="gw-search"><div class="gw-search-bar">Pesquisar emails</div></div>
+            <div class="gw-row unread"><div class="gw-avatar" style="background:#0f766e">R</div><div class="gw-from">Rafael</div><div class="gw-snippet">Você viu meu email?</div><div class="gw-chips"><span class="gchip c-teal">Cliente</span></div></div>
+            <div class="gw-row"><div class="gw-avatar" style="background:#6366f1">T</div><div class="gw-from">Tradener</div><div class="gw-snippet" style="color:#94a3b8">Arquivado · NF</div><div class="gw-chips"><span class="gchip c-purple">Fiscal</span></div></div>
+            <div class="gw-row"><div class="gw-avatar" style="background:#f4b942">O</div><div class="gw-from">Omie</div><div class="gw-snippet" style="color:#94a3b8">Arquivado · Boleto</div><div class="gw-chips"><span class="gchip c-amber">Sistema</span></div></div>
+            <div class="gw-row"><div class="gw-avatar" style="background:#14b8a6">S</div><div class="gw-from">Sion Energia</div><div class="gw-snippet" style="color:#94a3b8">Arquivado · DEVEC</div><div class="gw-chips"><span class="gchip c-blue">DEVEC</span></div></div>
+            <div style="padding:10px 14px;font-size:11px;color:#94a3b8;text-align:center">Isso é tudo. Sua inbox está em dia. ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 14: O que a ferramenta faz (DEEP DIVE) ──── -->
+  <section class="slide s-deep" data-idx="13">
+    <div style="width:100%;max-width:900px;display:flex;flex-direction:column;gap:24px">
+      <div>
+        <span class="eyebrow anim" data-d="0">Aprofundamento · Como funciona na prática</span>
+        <h2 class="anim" data-d="80">O que a ferramenta<br>já faz por você.</h2>
+      </div>
+
+      <div class="feat-pipeline">
+        <div class="feat-card anim" data-d="200">
+          <div class="feat-step">① Scanner</div>
+          <div class="feat-title">Varre sua inbox automaticamente</div>
+          <div class="feat-desc">Lê os remetentes mais frequentes, mapeia padrões de assunto e volume por categoria — sem você fazer nada.</div>
+          <span class="feat-tag ft-done">✓ Disponível</span>
+        </div>
+        <div class="feat-arrow anim" data-d="280">→</div>
+        <div class="feat-card anim" data-d="300">
+          <div class="feat-step">② Sugestão</div>
+          <div class="feat-title">Sugere labels e assuntos</div>
+          <div class="feat-desc">Com base no que encontrou, propõe nomes de etiquetas e critérios de filtro prontos para revisar.</div>
+          <span class="feat-tag ft-done">✓ Disponível</span>
+        </div>
+        <div class="feat-arrow anim" data-d="380">→</div>
+        <div class="feat-card anim" data-d="400">
+          <div class="feat-step">③ Grupos</div>
+          <div class="feat-title">Grupos personalizados com regras</div>
+          <div class="feat-desc">Cria grupos temáticos (Fiscal, Sistema, Operação) com regras já configuradas. Você revisa e ativa.</div>
+          <span class="feat-tag ft-next">→ Em evolução</span>
+        </div>
+      </div>
+
+      <div class="output-wrap anim" data-d="460">
+        <div class="output-header">
+          <span class="output-col">Remetente detectado</span>
+          <span class="output-col">Label sugerida</span>
+          <span class="output-col sm">Ação</span>
+        </div>
+        <div class="output-row">
+          <span class="output-from">@tradener.com.br</span>
+          <span class="output-label"><span class="gchip c-purple">Fiscal</span></span>
+          <span class="output-action"><span class="act-archive">Arquivar</span></span>
+        </div>
+        <div class="output-row">
+          <span class="output-from">noreply@omie.com.br</span>
+          <span class="output-label"><span class="gchip c-amber">Sistema</span></span>
+          <span class="output-action"><span class="act-archive">Arquivar</span></span>
+        </div>
+        <div class="output-row">
+          <span class="output-from">from:sionenergia.com.br</span>
+          <span class="output-label"><span class="gchip c-blue">DEVEC</span></span>
+          <span class="output-action"><span class="act-archive">Arquivar</span></span>
+        </div>
+        <div class="output-row">
+          <span class="output-from">rafael@cliente.com</span>
+          <span class="output-label"><span class="gchip c-teal">Cliente</span></span>
+          <span class="output-action"><span class="act-keep">Manter</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 15: Atalhos — o fluxo diário (REFORMULADO) ─ -->
+  <section class="slide s-deep" data-idx="14">
+    <div class="cols cols-2" style="max-width:880px;gap:48px">
+      <div class="left-col">
+        <span class="eyebrow anim" data-d="0">Aprofundamento · Produtividade diária</span>
+        <h2 class="anim" data-d="80" style="font-size:clamp(22px,2.8vw,36px)">O fluxo em<br>4 teclas.</h2>
+        <div class="hdivider anim" data-d="190"></div>
+        <p class="sub anim" data-d="260" style="margin-top:0;font-size:14px">Você não precisa memorizar 20 atalhos. Só esses 4 mudam o ritmo completamente.</p>
+
+        <div class="flow4 anim" data-d="340">
+          <div class="f4step">
+            <div class="f4num">1</div>
+            <div class="f4body">
+              <div class="f4ctx">Precisa encontrar algo?</div>
+              <div class="f4action"><span class="f4key">/</span><span class="f4desc">Pesquisa instantânea</span></div>
+            </div>
+          </div>
+          <div class="f4connector"></div>
+          <div class="f4step">
+            <div class="f4num">2</div>
+            <div class="f4body">
+              <div class="f4ctx">Navegando pela inbox?</div>
+              <div class="f4action"><span class="f4key">j / k</span><span class="f4desc">Próximo / Anterior</span></div>
+            </div>
+          </div>
+          <div class="f4connector"></div>
+          <div class="f4step">
+            <div class="f4num">3</div>
+            <div class="f4body">
+              <div class="f4ctx">Não precisa de ação?</div>
+              <div class="f4action"><span class="f4key">e</span><span class="f4desc">Arquiva — some da inbox</span></div>
+            </div>
+          </div>
+          <div class="f4connector"></div>
+          <div class="f4step">
+            <div class="f4num">4</div>
+            <div class="f4body">
+              <div class="f4ctx">Precisa agir depois?</div>
+              <div class="f4action"><span class="f4key">s</span><span class="f4desc">Estrela = compromisso</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-col" style="gap:16px">
+        <div class="anim" data-d="200">
+          <div class="eyebrow" style="margin-bottom:10px">Referência completa</div>
+          <div class="skey-grid">
+            <span class="skey">c</span><span class="saction">Novo email</span>
+            <span class="skey">r</span><span class="saction">Responder</span>
+            <span class="skey">a</span><span class="saction">Responder todos</span>
+            <span class="skey">f</span><span class="saction">Encaminhar</span>
+            <span class="skey">#</span><span class="saction">Deletar</span>
+            <span class="skey">gi</span><span class="saction">Ir para Inbox</span>
+            <span class="skey">gs</span><span class="saction">Ir para Enviados</span>
+            <span class="skey">z</span><span class="saction">Desfazer última ação</span>
+          </div>
+          <p class="shortcut-note">⚙️ Ative em: <strong>Configurações → Ver todas → Atalhos do teclado → Ativar</strong></p>
+        </div>
+
+        <div class="anim" data-d="340" style="padding:14px 16px;border-radius:12px;background:var(--brand-light);border:1px solid rgba(15,118,110,.18)">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#065f46;margin-bottom:6px">Dica de ouro</div>
+          <div style="font-size:13px;color:#065f46;line-height:1.6">
+            Com <strong>j/k + e</strong>, você processa a inbox inteira sem tocar no mouse. Velocidade 3× maior.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#stage -->
+
+<script>
+  var total = 15;
+  var cur = 0;
+  var DEEP_START = 13;
+
+  function minToHuman(m) {
+    if (m < 60) return Math.round(m) + 'min';
+    var h = Math.floor(m / 60), r = Math.round(m % 60);
+    return r === 0 ? h + 'h' : h + 'h ' + r + 'min';
+  }
+
+  function calcUpdate() {
+    var emails = parseInt(document.getElementById('calc-emails').value, 10);
+    var mins   = parseInt(document.getElementById('calc-mins').value, 10);
+    document.getElementById('val-emails').textContent = emails;
+    document.getElementById('val-mins').textContent   = mins + ' min';
+    var total2 = emails * mins, saved = total2 * 0.70, after = total2 - saved;
+    document.getElementById('res-total').textContent  = minToHuman(total2) + ' / dia';
+    document.getElementById('res-method').textContent = '~' + minToHuman(after) + ' / dia';
+    document.getElementById('res-day').textContent    = minToHuman(saved) + ' / dia';
+    document.getElementById('res-week').textContent   = minToHuman(saved * 5) + ' / sem';
+    document.getElementById('res-month').textContent  = minToHuman(saved * 22) + ' / mês';
+  }
+
+  function triggerAnims(slide) {
+    var els = slide.querySelectorAll('.anim');
+    els.forEach(function(el) { el.classList.remove('go'); void el.offsetWidth; });
+    els.forEach(function(el) {
+      el.style.animationDelay = (parseInt(el.getAttribute('data-d') || '0', 10)) + 'ms';
+      el.classList.add('go');
+    });
+  }
+
+  function go(dir) {
+    var next = cur + dir;
+    if (next < 0 || next >= total) return;
+    var slides = document.querySelectorAll('.slide');
+    slides[cur].classList.remove('active');
+    cur = next;
+    slides[cur].classList.add('active');
+    triggerAnims(slides[cur]);
+    sync();
+  }
+
+  function sync() {
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+    document.getElementById('prog').style.width = ((cur + 1) / total * 100) + '%';
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === total - 1;
+    document.getElementById('deepbadge').style.display = cur >= DEEP_START ? 'block' : 'none';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); go(-1); }
+  });
+
+  triggerAnims(document.querySelectorAll('.slide')[0]);
+  calcUpdate();
+  sync();
+</script>
+</body>
+</html>
