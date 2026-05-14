@@ -695,11 +695,101 @@
     }
     .gv-cta:hover { opacity: .9; transform: translateY(-1px); }
     @media (max-width: 640px) { #game { display: none; } }
+
+    /* ── COMBO + ESPECIAL ──────────────────────── */
+    .combo-row {
+      display: flex; align-items: center; gap: 12px;
+      max-width: 860px; margin: 0 auto 16px; padding: 0 6px;
+    }
+    .cmb-label { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.28); min-width: 52px; }
+    .cmb-meter { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+    .cmb-fill   { height: 100%; width: 0%; border-radius: 999px; transition: width .18s ease, background-color .25s ease; background: #0f766e; }
+    .cmb-x      { font-size: 20px; font-weight: 800; color: #fff; min-width: 48px; text-align: right; transition: color .2s; letter-spacing: -.01em; }
+    .cmb-x.bump { animation: cmbBump .15s ease; }
+    @keyframes cmbBump { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.35); } }
+
+    @keyframes hitPop {
+      0%   { opacity: 1; transform: translateY(0)    scale(1);    }
+      35%  {             transform: translateY(-18px) scale(1.22); }
+      100% { opacity: 0; transform: translateY(-58px) scale(.88); }
+    }
+    @keyframes specialChargePulse {
+      0%,100% { text-shadow: 0 0 24px #f4b942; }
+      50%     { text-shadow: 0 0 60px #f4b942, 0 0 120px #f97316, 0 0 200px #ef4444; }
+    }
+    @keyframes specialTitleIn {
+      0%   { opacity:0; transform:translateX(-50%) scale(.4) translateY(20px); }
+      55%  { opacity:1; transform:translateX(-50%) scale(1.12) translateY(-4px); }
+      100% { opacity:1; transform:translateX(-50%) scale(1)    translateY(0); }
+    }
+
+    #special-scene {
+      position: fixed; inset: 0; z-index: 9990;
+      background: rgba(0,0,0,0); pointer-events: none;
+      transition: background .45s;
+    }
+    #special-scene.active { background: rgba(2,4,12,.82); pointer-events: all; }
+
+    #special-charge {
+      position: absolute; top: 48%; left: 50%;
+      transform: translate(-50%,-50%);
+      text-align: center; opacity: 0;
+      transition: opacity .35s;
+      pointer-events: none;
+    }
+    #special-charge-label {
+      font-size: 13px; font-weight: 800; letter-spacing: .15em;
+      color: #f4b942; text-transform: uppercase;
+      animation: specialChargePulse .7s ease-in-out infinite;
+    }
+    #special-charge-num {
+      font-size: 96px; font-weight: 800; color: #fff;
+      line-height: 1; margin-top: 4px;
+      text-shadow: 0 0 40px #f4b942, 0 0 90px #f97316;
+      transition: all .18s ease;
+    }
+
+    #special-beam {
+      position: absolute; top: 0; left: -300px;
+      width: 300px; height: 100%; display: none; pointer-events: none;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(244,185,66,.12) 12%,
+        rgba(255,210,60,.65) 32%,
+        #fff 50%,
+        rgba(255,210,60,.65) 68%,
+        rgba(244,185,66,.12) 88%,
+        transparent 100%
+      );
+      box-shadow:
+        0 0 80px 32px rgba(244,185,66,.55),
+        0 0 180px 72px rgba(249,115,22,.28);
+    }
+
+    #special-title {
+      position: absolute; top: 44%; left: 50%;
+      transform: translateX(-50%) scale(.4) translateY(20px);
+      font-size: 54px; font-weight: 800; color: #fff;
+      text-align: center; opacity: 0; white-space: nowrap;
+      letter-spacing: -.03em; pointer-events: none;
+      text-shadow: 0 0 30px #f4b942, 0 0 70px #f97316;
+    }
+    #special-title.show { animation: specialTitleIn .55s var(--ease-expo) forwards; }
   </style>
 </head>
 <body>
 
 <div class="game-toast" id="game-toast"></div>
+
+<!-- SPECIAL SCENE (fixed, cobre tudo) -->
+<div id="special-scene">
+  <div id="special-charge">
+    <div id="special-charge-label">⚡ Ataque Especial</div>
+    <div id="special-charge-num">3</div>
+  </div>
+  <div id="special-beam"></div>
+  <div id="special-title">INBOX ZERO!!!</div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -916,6 +1006,14 @@
         <div class="game-count-val" id="gc-elim">0</div>
       </div>
     </div>
+
+    <!-- COMBO BAR -->
+    <div class="combo-row reveal" data-delay="2">
+      <span class="cmb-label">Combo</span>
+      <div class="cmb-meter"><div class="cmb-fill" id="cmb-fill"></div></div>
+      <span class="cmb-x" id="cmb-x"></span>
+    </div>
+
     <div class="game-arena-wrap reveal-scale" data-delay="2">
       <div class="game-arena" id="game-arena"></div>
       <div class="game-victory" id="game-victory">
@@ -1539,50 +1637,59 @@
   }
   calcUpdate();
 
-  /* ── INBOX GAME ───────────────────────────────────────── */
+  /* ── INBOX GAME (combo + especial) ──────────────────────── */
   (function() {
     var arena = document.getElementById('game-arena');
     if (!arena) return;
 
     var CARD_W = 270, CARD_H = 58;
-    var TOTAL_JUNK = 12;
-    var eliminated = 0;
-    var cards = [];
-    var started = false;
+    var TOTAL_JUNK = 12, COMBO_MAX = 7;
+    var eliminated = 0, combo = 0;
+    var comboTimer = null, specialFired = false;
+    var cards = [], started = false;
+
+    var HIT_LABELS = [
+      null,
+      {text:'HIT!',           color:'#fff',    size:15},
+      {text:'DOUBLE!!',       color:'#f4b942', size:19},
+      {text:'TRIPLE!!!',      color:'#f97316', size:23},
+      {text:'COMBO x4 ⚡',   color:'#ef4444', size:26},
+      {text:'COMBO x5 🔥',   color:'#c026d3', size:28},
+      {text:'COMBO x6 💥',   color:'#ec4899', size:30},
+      {text:'⚡ ESPECIAL!! ⚡',color:'#f4b942',size:33},
+    ];
+    var COMBO_COLORS = ['#0f766e','#14b8a6','#f4b942','#f97316','#ef4444','#8b5cf6','#ec4899','#f4b942'];
 
     var gameEmails = [
-      /* ── junk (elimináveis) ── */
-      {l:'N', c:'#8b5cf6', f:'Newsletter Semanal',  s:'47 dicas de produtividade que você nunca vai usar', junk:true},
-      {l:'!', c:'#dc2626', f:'noreply@banco.com.br', s:'Extrato de conta disponível para download',         junk:true},
-      {l:'S', c:'#6b7280', f:'Sistema Omie',         s:'Relatório automático gerado às 08:00',               junk:true},
-      {l:'T', c:'#6366f1', f:'Tradener Auto',        s:'Posição CCEE atualizada — julho/2025',               junk:true},
-      {l:'L', c:'#2563eb', f:'LinkedIn',             s:'3 novas conexões e 5 pessoas viram seu perfil',      junk:true},
-      {l:'A', c:'#b45309', f:'Amazon',               s:'Seu pedido foi despachado — rastreie agora',         junk:true},
-      {l:'Z', c:'#6d28d9', f:'Zoom',                 s:'Lembrete: você tem uma call amanhã às 14h',          junk:true},
-      {l:'M', c:'#be185d', f:'Marketing',            s:'Campanha Q2 — relatório semanal de performance',     junk:true},
-      {l:'G', c:'#15803d', f:'Google',               s:'Novo acesso detectado à sua conta Google',           junk:true},
-      {l:'B', c:'#0369a1', f:'Bradesco',             s:'Seu boleto vence em 3 dias — pague já',              junk:true},
-      {l:'P', c:'#4d7c0f', f:'Promoção',             s:'Última chance — 50% OFF só hoje',                    junk:true},
-      {l:'O', c:'#c2410c', f:'Omie NF',              s:'Nota fiscal n° 00472 emitida com sucesso',           junk:true},
-      /* ── importantes (mantém) ── */
-      {l:'R', c:'#0f766e', f:'Rafael Costa',         s:'Você viu meu email sobre o contrato?',               junk:false},
-      {l:'C', c:'#f97316', f:'Cliente ABC Ltda',     s:'Precisamos falar sobre a renovação do contrato',     junk:false},
-      {l:'F', c:'#0284c7', f:'Financeiro',           s:'Boleto do fornecedor estratégico — vence amanhã',    junk:false},
-      {l:'J', c:'#0e7490', f:'Jurídico',             s:'Contrato pronto para assinatura digital',            junk:false},
-      {l:'E', c:'#7c3aed', f:'Equipe Ops',           s:'Preciso de uma decisão sua até hoje, urgente',       junk:false},
-      {l:'D', c:'#e11d48', f:'Diretoria',            s:'Comentários no relatório trimestral — revisar',      junk:false},
+      {l:'N',c:'#8b5cf6',f:'Newsletter Semanal', s:'47 dicas de produtividade que você nunca vai usar',junk:true},
+      {l:'!',c:'#dc2626',f:'noreply@banco',       s:'Extrato de conta disponível para download',         junk:true},
+      {l:'S',c:'#6b7280',f:'Sistema Omie',        s:'Relatório automático gerado às 08:00',              junk:true},
+      {l:'T',c:'#6366f1',f:'Tradener Auto',       s:'Posição CCEE atualizada — julho/2025',              junk:true},
+      {l:'L',c:'#2563eb',f:'LinkedIn',            s:'3 novas conexões e 5 pessoas viram seu perfil',     junk:true},
+      {l:'A',c:'#b45309',f:'Amazon',              s:'Seu pedido foi despachado — rastreie agora',        junk:true},
+      {l:'Z',c:'#6d28d9',f:'Zoom',               s:'Lembrete: você tem uma call amanhã às 14h',         junk:true},
+      {l:'M',c:'#be185d',f:'Marketing',           s:'Campanha Q2 — relatório semanal de performance',    junk:true},
+      {l:'G',c:'#15803d',f:'Google',              s:'Novo acesso detectado à sua conta Google',          junk:true},
+      {l:'B',c:'#0369a1',f:'Bradesco',            s:'Seu boleto vence em 3 dias — pague já',             junk:true},
+      {l:'P',c:'#4d7c0f',f:'Promoção',            s:'Última chance — 50% OFF só hoje',                   junk:true},
+      {l:'O',c:'#c2410c',f:'Omie NF',             s:'Nota fiscal n° 00472 emitida com sucesso',          junk:true},
+      {l:'R',c:'#0f766e',f:'Rafael Costa',        s:'Você viu meu email sobre o contrato?',              junk:false},
+      {l:'C',c:'#f97316',f:'Cliente ABC Ltda',    s:'Precisamos falar sobre a renovação do contrato',    junk:false},
+      {l:'F',c:'#0284c7',f:'Financeiro',          s:'Boleto do fornecedor — vence amanhã',               junk:false},
+      {l:'J',c:'#0e7490',f:'Jurídico',            s:'Contrato pronto para assinatura digital',           junk:false},
+      {l:'E',c:'#7c3aed',f:'Equipe Ops',          s:'Preciso de uma decisão sua até hoje',               junk:false},
+      {l:'D',c:'#e11d48',f:'Diretoria',           s:'Comentários no relatório trimestral — revisar',     junk:false},
     ];
 
     function initGame() {
-      var W = arena.offsetWidth || 760;
-      var H = 500;
+      var W = arena.offsetWidth || 760, H = 500;
       var cols = 6, rows = 3;
       var cellW = W / cols, cellH = H / rows;
 
       gameEmails.forEach(function(d, i) {
         var col = i % cols, row = Math.floor(i / cols);
-        var bx = cellW * col + cellW / 2 + (Math.random() - 0.5) * cellW * 0.35;
-        var by = cellH * row + cellH / 2 + (Math.random() - 0.5) * cellH * 0.3;
+        var bx = cellW * col + cellW / 2 + (Math.random() - 0.5) * cellW * 0.34;
+        var by = cellH * row + cellH / 2 + (Math.random() - 0.5) * cellH * 0.28;
         bx = Math.max(CARD_W / 2 + 8, Math.min(W - CARD_W / 2 - 8, bx));
         by = Math.max(CARD_H / 2 + 8, Math.min(H - CARD_H / 2 - 8, by));
 
@@ -1598,29 +1705,26 @@
         arena.appendChild(el);
 
         var card = {
-          el: el, d: d,
-          baseX: bx, baseY: by,
-          ax: 8  + Math.random() * 14,  ay: 6  + Math.random() * 11,
-          fx: 0.28 + Math.random() * 0.38, fy: 0.22 + Math.random() * 0.32,
-          px: Math.random() * Math.PI * 2, py: Math.random() * Math.PI * 2,
-          baseRot: (Math.random() - 0.5) * 7,
-          arot: 0.8 + Math.random() * 1.6,
-          frot: 0.18 + Math.random() * 0.28,
-          prot: Math.random() * Math.PI * 2,
-          shakeTicks: 0, dead: false, x: bx, y: by,
+          el:el, d:d, baseX:bx, baseY:by,
+          ax:8+Math.random()*14,    ay:6+Math.random()*11,
+          fx:.28+Math.random()*.38, fy:.22+Math.random()*.32,
+          px:Math.random()*Math.PI*2, py:Math.random()*Math.PI*2,
+          baseRot:(Math.random()-.5)*7,
+          arot:.8+Math.random()*1.6, frot:.18+Math.random()*.28,
+          prot:Math.random()*Math.PI*2,
+          shakeTicks:0, dead:false, x:bx, y:by,
         };
 
         el.addEventListener('click', function() {
-          if (card.dead) return;
-          if (d.junk) eliminateCard(card);
+          if (card.dead || specialFired) return;
+          if (d.junk) eliminateCard(card, false);
           else warnCard(card);
         });
-
         cards.push(card);
       });
 
       var t0 = Date.now();
-      function gameLoop() {
+      (function gameLoop() {
         var t = (Date.now() - t0) * 0.001;
         for (var i = 0; i < cards.length; i++) {
           var c = cards[i];
@@ -1628,49 +1732,144 @@
           c.x = c.baseX + Math.sin(t * c.fx + c.px) * c.ax;
           c.y = c.baseY + Math.cos(t * c.fy + c.py) * c.ay;
           var rot = c.baseRot + Math.sin(t * c.frot + c.prot) * c.arot;
-          var shakeX = 0;
-          if (c.shakeTicks > 0) { shakeX = Math.sin(c.shakeTicks * 1.9) * 9; c.shakeTicks--; }
+          var sx = 0;
+          if (c.shakeTicks > 0) { sx = Math.sin(c.shakeTicks * 1.9) * 9; c.shakeTicks--; }
           c.el.style.transform =
-            'translate(' + (c.x - CARD_W / 2 + shakeX) + 'px,' + (c.y - CARD_H / 2) + 'px) rotate(' + rot + 'deg)';
+            'translate(' + (c.x - CARD_W / 2 + sx) + 'px,' + (c.y - CARD_H / 2) + 'px) rotate(' + rot + 'deg)';
         }
         requestAnimationFrame(gameLoop);
-      }
-      requestAnimationFrame(gameLoop);
+      })();
     }
 
-    /* ── Eliminar card junk ── */
-    function eliminateCard(card) {
+    /* ── Eliminar ── */
+    function eliminateCard(card, fromSpecial) {
+      if (card.dead) return;
       card.dead = true;
       var rect = card.el.getBoundingClientRect();
       var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
 
-      explodeAt(cx, cy, card.d.c);
-      floatLabel(cx, cy, '✓ eliminado');
+      explodeAt(cx, cy, card.d.c, fromSpecial ? 18 : 11);
 
-      card.el.style.transition = 'transform .12s ease, opacity .3s ease';
-      card.el.style.transform += ' scale(1.12)';
-      setTimeout(function() {
-        card.el.style.opacity = '0';
-        card.el.style.transform = card.el.style.transform.replace('scale(1.12)', 'scale(0)');
-      }, 90);
-      setTimeout(function() { if (card.el.parentNode) card.el.parentNode.removeChild(card.el); }, 440);
+      card.el.style.transition = 'transform .12s ease, opacity .28s ease';
+      card.el.style.transform += ' scale(1.14)';
+      setTimeout(function() { card.el.style.opacity = '0'; }, 85);
+      setTimeout(function() { if (card.el.parentNode) card.el.parentNode.removeChild(card.el); }, 420);
 
       eliminated++;
       document.getElementById('gc-inbox').textContent = String(18 - eliminated);
       document.getElementById('gc-elim').textContent  = String(eliminated);
-      if (eliminated >= TOTAL_JUNK) setTimeout(showVictory, 700);
+
+      if (!fromSpecial) {
+        onCombo(cx, cy);
+        if (eliminated >= TOTAL_JUNK) setTimeout(showVictory, 700);
+      }
     }
 
-    /* ── Avisar card importante ── */
+    /* ── Combo ── */
+    function onCombo(cx, cy) {
+      clearTimeout(comboTimer);
+      combo = Math.min(combo + 1, COMBO_MAX);
+      updateComboBar();
+      showHitText(cx, cy, combo);
+
+      if (combo >= COMBO_MAX && !specialFired) {
+        specialFired = true;
+        setTimeout(triggerSpecial, 550);
+      } else {
+        comboTimer = setTimeout(function() { combo = 0; updateComboBar(); }, 950);
+      }
+    }
+
+    function updateComboBar() {
+      var fill = document.getElementById('cmb-fill');
+      var xEl  = document.getElementById('cmb-x');
+      if (!fill || !xEl) return;
+      fill.style.width = Math.min(combo / COMBO_MAX * 100, 100) + '%';
+      fill.style.backgroundColor = COMBO_COLORS[Math.min(combo, COMBO_COLORS.length - 1)];
+      xEl.textContent = combo > 0 ? 'x' + combo : '';
+      xEl.style.color = combo >= COMBO_MAX ? '#f4b942' : '#fff';
+      xEl.classList.remove('bump');
+      void xEl.offsetWidth;
+      if (combo > 0) xEl.classList.add('bump');
+    }
+
+    function showHitText(cx, cy, c) {
+      var lbl = HIT_LABELS[Math.min(c, HIT_LABELS.length - 1)];
+      if (!lbl) return;
+      var el = document.createElement('div');
+      el.style.cssText =
+        'position:fixed;pointer-events:none;z-index:9998;white-space:nowrap;' +
+        'left:' + (cx - 55) + 'px;top:' + (cy - 22) + 'px;' +
+        'font-size:' + lbl.size + 'px;font-weight:800;color:' + lbl.color + ';' +
+        'font-family:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;' +
+        'text-shadow:0 2px 10px rgba(0,0,0,.5);' +
+        'animation:hitPop .65s ease-out forwards;';
+      el.textContent = lbl.text;
+      document.body.appendChild(el);
+      setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 700);
+    }
+
+    /* ── Ataque Especial ── */
+    function triggerSpecial() {
+      var scene  = document.getElementById('special-scene');
+      var charge = document.getElementById('special-charge');
+      var numEl  = document.getElementById('special-charge-num');
+      var beam   = document.getElementById('special-beam');
+      var title  = document.getElementById('special-title');
+      if (!scene) return;
+
+      scene.classList.add('active');
+      charge.style.opacity = '1';
+      numEl.textContent = '3';
+      setTimeout(function() { numEl.textContent = '2'; }, 420);
+      setTimeout(function() { numEl.textContent = '1'; }, 840);
+      setTimeout(function() { numEl.textContent = '⚡'; }, 1180);
+
+      setTimeout(function() {
+        charge.style.opacity = '0';
+        beam.style.display = 'block';
+
+        var remaining = cards.filter(function(c) { return !c.dead && c.d.junk; });
+        remaining.sort(function(a, b) { return a.x - b.x; });
+
+        var W = window.innerWidth;
+        var x0 = -300, x1 = W + 300, dur = 820;
+        var hitIdx = 0, beamStart = null;
+
+        (function beamTick(ts) {
+          if (!beamStart) beamStart = ts;
+          var p  = Math.min((ts - beamStart) / dur, 1);
+          var bx = x0 + (x1 - x0) * p;
+          beam.style.left = bx + 'px';
+
+          while (hitIdx < remaining.length) {
+            var rect = remaining[hitIdx].el.getBoundingClientRect();
+            if (rect.left + rect.width * 0.5 < bx + 150) {
+              eliminateCard(remaining[hitIdx], true);
+              hitIdx++;
+            } else break;
+          }
+
+          if (p < 1) { requestAnimationFrame(beamTick); return; }
+
+          beam.style.display = 'none';
+          scene.classList.remove('active');
+          title.classList.add('show');
+          setTimeout(function() { title.style.opacity = '0'; scene.style.pointerEvents = 'none'; }, 2400);
+          setTimeout(showVictory, 700);
+        })(performance.now());
+      }, 1500);
+    }
+
+    /* ── Warn importante ── */
     function warnCard(card) {
-      card.shakeTicks = 20;
-      showToast('⚠️  Este email é importante! Mantenha-o na inbox.');
+      card.shakeTicks = 22;
+      showToast('⚠️  Email humano — mantenha na inbox!');
     }
 
     /* ── Toast ── */
     function showToast(msg) {
       var t = document.getElementById('game-toast');
-      if (!t) { t = document.createElement('div'); t.id='game-toast'; t.className='game-toast'; document.body.appendChild(t); }
       t.textContent = msg;
       t.style.opacity = '1';
       t.style.transform = 'translateX(-50%) translateY(0)';
@@ -1681,28 +1880,25 @@
       }, 2400);
     }
 
-    /* ── Explosão de shards ── */
-    function explodeAt(cx, cy, color) {
-      var N = 11;
+    /* ── Explosão ── */
+    function explodeAt(cx, cy, color, N) {
       for (var i = 0; i < N; i++) {
         (function(idx) {
           var shard = document.createElement('div');
-          var w = 10 + Math.random() * 24, h = 4 + Math.random() * 7;
+          var w = 10 + Math.random() * 26, h = 4 + Math.random() * 8;
           shard.style.cssText =
             'position:fixed;pointer-events:none;z-index:9999;border-radius:3px;' +
             'width:' + w + 'px;height:' + h + 'px;background:' + color + ';' +
             'left:' + cx + 'px;top:' + cy + 'px;';
           document.body.appendChild(shard);
-
-          var angle = (idx / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.55;
-          var speed = 3.5 + Math.random() * 7;
-          var vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed - 2.5;
-          var sx = 0, sy = 0, rot = Math.random() * 360, vrot = (Math.random() - 0.5) * 20;
-          var dur = 380 + Math.random() * 180, start = null;
-
+          var angle = (idx / N) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+          var sp = 3.5 + Math.random() * 7.5;
+          var vx = Math.cos(angle) * sp, vy = Math.sin(angle) * sp - 2.8;
+          var sx = 0, sy = 0, rot = Math.random() * 360, vrot = (Math.random() - 0.5) * 22;
+          var dur = 360 + Math.random() * 200, start = null;
           (function tick(ts) {
             if (!start) start = ts;
-            vy += 0.38; sx += vx; sy += vy; rot += vrot;
+            vy += 0.40; sx += vx; sy += vy; rot += vrot;
             var p = (ts - start) / dur;
             shard.style.transform = 'translate(' + sx + 'px,' + sy + 'px) rotate(' + rot + 'deg)';
             shard.style.opacity = String(Math.max(0, 1 - p));
@@ -1713,34 +1909,13 @@
       }
     }
 
-    /* ── Label flutuante "+1 eliminado" ── */
-    function floatLabel(cx, cy, text) {
-      var lbl = document.createElement('div');
-      lbl.style.cssText =
-        'position:fixed;pointer-events:none;z-index:9998;white-space:nowrap;' +
-        'left:' + (cx - 44) + 'px;top:' + (cy - 12) + 'px;' +
-        'font-size:12px;font-weight:700;color:#0f766e;' +
-        'font-family:"Segoe UI",Arial,sans-serif;';
-      lbl.textContent = text;
-      document.body.appendChild(lbl);
-      var start = null;
-      (function tick(ts) {
-        if (!start) start = ts;
-        var p = (ts - start) / 650;
-        lbl.style.transform = 'translateY(' + (-p * 44) + 'px)';
-        lbl.style.opacity   = String(Math.max(0, 1 - p * 1.3));
-        if (p < 1) requestAnimationFrame(tick);
-        else if (lbl.parentNode) lbl.parentNode.removeChild(lbl);
-      })(performance.now());
-    }
-
     /* ── Vitória ── */
     function showVictory() {
       var v = document.getElementById('game-victory');
       if (v) { v.style.opacity = '1'; v.style.pointerEvents = 'all'; }
     }
 
-    /* Inicializa só quando a seção entra na tela */
+    /* Lazy init via IntersectionObserver */
     var gameEl = document.getElementById('game');
     if (gameEl) {
       var gameObs = new IntersectionObserver(function(entries) {
