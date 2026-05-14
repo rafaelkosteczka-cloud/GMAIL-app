@@ -661,6 +661,17 @@
     .gc-star { font-size: 14px; color: #f59e0b; flex-shrink: 0; line-height: 1; }
     .game-hint { text-align: center; margin-top: 14px; font-size: 11px; color: rgba(255,255,255,.2); }
     .game-hint span { color: #f59e0b; }
+    .game-reset-btn {
+      display: block; margin: 14px auto 0;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.35);
+      font-size: 12px; font-weight: 600;
+      padding: 7px 20px; border-radius: 999px;
+      cursor: pointer; font-family: inherit;
+      transition: border-color .2s, color .2s, transform .15s;
+    }
+    .game-reset-btn:hover { border-color: rgba(255,255,255,.35); color: rgba(255,255,255,.65); transform: translateY(-1px); }
     /* Toast */
     .game-toast {
       position: fixed; bottom: 36px; left: 50%;
@@ -1023,10 +1034,12 @@
           <p>Você eliminou 12 emails desnecessários.</p>
           <div class="gv-stat">+8h por mês recuperadas</div>
           <a href="#cta" class="gv-cta">Quero fazer isso na minha inbox →</a>
+          <div style="margin-top:14px"><button class="game-reset-btn" onclick="resetInboxGame()" style="margin:0 auto;border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.5)">↺ Jogar de novo</button></div>
         </div>
       </div>
     </div>
     <p class="game-hint reveal" data-delay="3"><span>★</span> = email humano — não elimine &nbsp;·&nbsp; Os outros são seguros para filtrar automaticamente</p>
+    <button class="game-reset-btn" onclick="resetInboxGame()">↺ Reiniciar jogo</button>
   </div>
 </section>
 
@@ -1646,7 +1659,7 @@
     var TOTAL_JUNK = 12, COMBO_MAX = 7;
     var eliminated = 0, combo = 0;
     var comboTimer = null, specialFired = false;
-    var cards = [], started = false;
+    var cards = [], started = false, loopId = null;
 
     var HIT_LABELS = [
       null,
@@ -1724,7 +1737,8 @@
       });
 
       var t0 = Date.now();
-      (function gameLoop() {
+      if (loopId) { cancelAnimationFrame(loopId); loopId = null; }
+      function gameLoop() {
         var t = (Date.now() - t0) * 0.001;
         for (var i = 0; i < cards.length; i++) {
           var c = cards[i];
@@ -1737,8 +1751,9 @@
           c.el.style.transform =
             'translate(' + (c.x - CARD_W / 2 + sx) + 'px,' + (c.y - CARD_H / 2) + 'px) rotate(' + rot + 'deg)';
         }
-        requestAnimationFrame(gameLoop);
-      })();
+        loopId = requestAnimationFrame(gameLoop);
+      }
+      loopId = requestAnimationFrame(gameLoop);
     }
 
     /* ── Eliminar ── */
@@ -1914,6 +1929,40 @@
       var v = document.getElementById('game-victory');
       if (v) { v.style.opacity = '1'; v.style.pointerEvents = 'all'; }
     }
+
+    /* ── Reset ── */
+    function resetGame() {
+      if (loopId) { cancelAnimationFrame(loopId); loopId = null; }
+      clearTimeout(comboTimer);
+      eliminated = 0; combo = 0; specialFired = false;
+
+      cards.forEach(function(c) { if (c.el && c.el.parentNode) c.el.parentNode.removeChild(c.el); });
+      cards = [];
+
+      var v = document.getElementById('game-victory');
+      if (v) { v.style.opacity = '0'; v.style.pointerEvents = 'none'; }
+
+      var scene = document.getElementById('special-scene');
+      if (scene) {
+        scene.classList.remove('active');
+        scene.style.pointerEvents = 'none';
+        document.getElementById('special-title').classList.remove('show');
+        document.getElementById('special-title').style.opacity = '0';
+        document.getElementById('special-beam').style.display = 'none';
+        document.getElementById('special-charge').style.opacity = '0';
+      }
+
+      var fill = document.getElementById('cmb-fill');
+      if (fill) { fill.style.width = '0%'; fill.style.backgroundColor = '#0f766e'; }
+      var xEl = document.getElementById('cmb-x');
+      if (xEl) xEl.textContent = '';
+
+      document.getElementById('gc-inbox').textContent = '18';
+      document.getElementById('gc-elim').textContent  = '0';
+
+      initGame();
+    }
+    window.resetInboxGame = resetGame;
 
     /* Lazy init via IntersectionObserver */
     var gameEl = document.getElementById('game');
