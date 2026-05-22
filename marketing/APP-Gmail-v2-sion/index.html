@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELEVE Gmail Redondo — Sua caixa cheia pode virar um sistema em 1 dia</title>
+<meta name="description" content="Método guiado para organizar Gmail caótico em 1 dia. Planilha, IA, etiquetas e filtros prontos. R$119, acesso único.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='9' width='22' height='16' rx='2.5' fill='%230f766e'/><path d='M3 11l11 7 11-7' stroke='%23fbfaf7' stroke-width='2' fill='none' stroke-linejoin='round'/><path d='M19 4l10 0 0 8-5-3-5 3z' fill='%23ef6f61'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #fbfaf7;
+  --bg-2: #f3f1ec;
+  --ink: #15171a;
+  --ink-soft: #4a4d54;
+  --ink-mute: #8a8d94;
+  --teal: #0f766e;
+  --teal-dark: #0a544e;
+  --mint: #d7f8ed;
+  --coral: #ef6f61;
+  --amber: #f5b942;
+  --blue: #2563eb;
+  --lavender: #e7ddff;
+  --line: rgba(21,23,26,0.08);
+  --shadow-sm: 0 1px 2px rgba(21,23,26,0.05);
+  --shadow-md: 0 8px 24px rgba(21,23,26,0.06);
+  --shadow-lg: 0 24px 60px rgba(21,23,26,0.10);
+  --radius: 8px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); }
+html { scroll-behavior: auto; }
+
+body {
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* ============ HEADER ============ */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 14px 24px;
+  background: rgba(251,250,247,0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+  transition: padding 0.3s ease;
+}
+.header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+.logo svg { width: 28px; height: 28px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px;
+  border-radius: var(--radius);
+  font-family: inherit; font-weight: 600; font-size: 14px;
+  cursor: pointer; border: 0;
+  transition: all 0.18s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--teal); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg); }
+.btn-large { padding: 18px 30px; font-size: 16px; border-radius: 10px; }
+
+/* ============ HERO ============ */
+.hero {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+#hero-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 64px;
+  pointer-events: none;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.hero-content > * { pointer-events: auto; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: rgba(15,118,110,0.10);
+  color: var(--teal-dark);
+  border-radius: 100px;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 28px;
+  backdrop-filter: blur(8px);
+}
+.hero-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+.hero h1 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(40px, 6.4vw, 88px);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  max-width: 16ch;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+.hero h1 em { font-style: italic; color: var(--teal); }
+.hero p.lead {
+  font-size: clamp(17px, 1.4vw, 21px);
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
+.hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.hero-counter {
+  position: absolute;
+  bottom: 56px; right: 56px;
+  z-index: 3;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.hero-counter .num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  transition: color 0.4s ease;
+}
+.hero-counter.organized .num { color: var(--teal); }
+.hero-counter .label {
+  font-size: 12px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin-top: 8px;
+  font-weight: 500;
+}
+.scroll-hint {
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-size: 12px; color: var(--ink-mute);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.scroll-hint .arrow {
+  width: 1px; height: 28px; background: var(--ink-mute);
+  position: relative;
+}
+.scroll-hint .arrow::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 6px; height: 6px;
+  border-right: 1px solid var(--ink-mute);
+  border-bottom: 1px solid var(--ink-mute);
+}
+
+/* ============ SECTION BASE ============ */
+.section { padding: 140px 0; position: relative; }
+.section-eyebrow {
+  font-size: 12px; font-weight: 600; color: var(--teal);
+  text-transform: uppercase; letter-spacing: 0.14em;
+  margin-bottom: 18px; display: inline-block;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 4.8vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  max-width: 22ch;
+}
+.section-title em { font-style: italic; color: var(--teal); }
+.section-lead { font-size: 19px; color: var(--ink-soft); max-width: 60ch; line-height: 1.5; }
+
+/* ============ DOR ============ */
+.section-dor { background: var(--bg); }
+.chaos-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; margin-top: 64px;
+}
+.chaos-card {
+  background: white; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 18px 20px; box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: default;
+}
+.chaos-card:nth-child(2n) { transform: rotate(-0.6deg); }
+.chaos-card:nth-child(3n) { transform: rotate(0.4deg); }
+.chaos-card:hover { transform: translateY(-3px) rotate(0deg); box-shadow: var(--shadow-md); }
+.chaos-card .from { font-size: 12px; color: var(--ink-mute); margin-bottom: 4px; }
+.chaos-card .subj { font-weight: 600; margin-bottom: 6px; font-size: 15px; padding-right: 80px; }
+.chaos-card .prev { font-size: 13px; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.chaos-card .badge {
+  position: absolute; top: 14px; right: 14px;
+  padding: 3px 9px; border-radius: 100px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.chaos-card .badge.urgent { background: rgba(239,111,97,0.15); color: var(--coral); }
+.chaos-card .badge.unread { background: rgba(37,99,235,0.12); color: var(--blue); }
+.chaos-card .badge.lost { background: rgba(21,23,26,0.08); color: var(--ink-soft); }
+
+/* ============ CALCULADORA ============ */
+.section-calc { background: var(--ink); color: var(--bg); }
+.section-calc .section-eyebrow { color: var(--amber); }
+.section-calc .section-title { color: var(--bg); }
+.section-calc .section-title em { color: var(--amber); }
+.section-calc .section-lead { color: rgba(251,250,247,0.65); }
+.calc-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; margin-top: 64px;
+}
+@media (max-width: 900px) { .calc-wrap { grid-template-columns: 1fr; gap: 36px; } }
+.calc-inputs { display: flex; flex-direction: column; gap: 32px; }
+.calc-input label { display: block; font-size: 13px; color: rgba(251,250,247,0.55); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+.calc-input .row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.calc-input .val { font-family: 'Instrument Serif', serif; font-size: 38px; line-height: 1; color: var(--bg); font-variant-numeric: tabular-nums; }
+.calc-input .unit { color: rgba(251,250,247,0.5); font-size: 14px; }
+.calc-input input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px;
+  background: rgba(251,250,247,0.15); border-radius: 100px;
+  outline: none; cursor: pointer;
+}
+.calc-input input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--amber); cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(245,185,66,0.18);
+  transition: transform 0.15s ease;
+}
+.calc-input input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.calc-input input[type=range]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--amber); cursor: pointer; border: 0;
+}
+.calc-result {
+  background: rgba(251,250,247,0.04);
+  border: 1px solid rgba(251,250,247,0.10);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+}
+.calc-result .label { font-size: 12px; color: rgba(251,250,247,0.55); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 14px; font-weight: 600; }
+.calc-result .big {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(48px, 6vw, 88px);
+  line-height: 1; color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.calc-result .sub { color: rgba(251,250,247,0.65); font-size: 14px; }
+.calc-result hr { border: 0; border-top: 1px solid rgba(251,250,247,0.1); margin: 28px 0; }
+.calc-result .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.calc-result .breakdown div { font-size: 12px; color: rgba(251,250,247,0.55); text-transform: uppercase; letter-spacing: 0.06em; }
+.calc-result .breakdown strong { display: block; color: var(--bg); font-size: 26px; font-family: 'Instrument Serif', serif; font-weight: 400; margin-top: 6px; letter-spacing: -0.01em; }
+
+/* ============ METODO ============ */
+.section-metodo { background: var(--bg); }
+.metodo-pipeline { margin-top: 80px; position: relative; }
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  position: relative;
+}
+.steps::before {
+  content: ''; position: absolute;
+  top: 56px; left: 7%; right: 7%;
+  height: 2px;
+  background: linear-gradient(to right, var(--mint) 0%, var(--teal) 100%);
+  z-index: 0;
+  opacity: 0.4;
+}
+@media (max-width: 900px) {
+  .steps { grid-template-columns: 1fr; gap: 12px; }
+  .steps::before { display: none; }
+}
+.step {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 28px 22px;
+  position: relative;
+  z-index: 1;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.step.active { border-color: var(--teal); transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.step .num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--mint); color: var(--teal-dark);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+  margin-bottom: 18px;
+  transition: all 0.3s ease;
+}
+.step.active .num { background: var(--teal); color: white; transform: scale(1.08); }
+.step h4 { font-size: 16px; margin-bottom: 8px; font-weight: 600; letter-spacing: -0.01em; }
+.step p { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+
+/* ============ PRODUTO ============ */
+.section-produto { background: var(--bg-2); }
+.kit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 64px; }
+.kit-item {
+  background: white; padding: 28px;
+  border-radius: var(--radius-lg); border: 1px solid var(--line);
+  transition: all 0.25s ease;
+}
+.kit-item:hover { border-color: var(--teal); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.kit-item .icon { width: 40px; height: 40px; padding: 9px; background: var(--mint); border-radius: 10px; color: var(--teal-dark); margin-bottom: 18px; }
+.kit-item .icon svg { width: 100%; height: 100%; display: block; }
+.kit-item h4 { font-size: 17px; margin-bottom: 6px; letter-spacing: -0.01em; }
+.kit-item p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+.spreadsheet-mock {
+  margin-top: 80px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.spreadsheet-mock .ss-head {
+  background: var(--bg-2); padding: 12px 18px;
+  display: flex; gap: 12px; align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.spreadsheet-mock .dots { display: flex; gap: 6px; }
+.spreadsheet-mock .dots span { width: 11px; height: 11px; border-radius: 50%; }
+.spreadsheet-mock .dots span:nth-child(1) { background: #ff5f57; }
+.spreadsheet-mock .dots span:nth-child(2) { background: #ffbd2e; }
+.spreadsheet-mock .dots span:nth-child(3) { background: #28c840; }
+.spreadsheet-mock .ss-title { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.spreadsheet-mock table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.spreadsheet-mock th { background: var(--bg-2); padding: 12px 18px; text-align: left; font-weight: 600; font-size: 12px; color: var(--ink-soft); border-bottom: 1px solid var(--line); text-transform: uppercase; letter-spacing: 0.05em; }
+.spreadsheet-mock td { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.spreadsheet-mock tr:last-child td { border-bottom: 0; }
+.tag-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+.tag-pill.urg { background: rgba(239,111,97,0.15); color: var(--coral); }
+.tag-pill.cli { background: rgba(15,118,110,0.12); color: var(--teal-dark); }
+.tag-pill.fin { background: rgba(245,185,66,0.20); color: #92670c; }
+.tag-pill.foll { background: var(--lavender); color: #5a3fb1; }
+.tag-pill.diretoria { background: rgba(37,99,235,0.12); color: var(--blue); }
+
+/* ============ ANTES/DEPOIS ============ */
+.section-ad { background: var(--bg); }
+.ba-wrap {
+  margin-top: 64px;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  user-select: none;
+  height: 580px;
+  box-shadow: var(--shadow-lg);
+}
+.ba-side { position: absolute; inset: 0; padding: 32px; overflow: hidden; }
+.ba-side.before { background: linear-gradient(180deg, #f5f3ee 0%, #e8e4dc 100%); }
+.ba-side.after  { background: linear-gradient(180deg, #ffffff 0%, var(--mint) 100%); clip-path: inset(0 0 0 50%); }
+.ba-handle {
+  position: absolute; top: 0; bottom: 0;
+  left: 50%; width: 2px; background: var(--ink);
+  cursor: ew-resize; z-index: 5;
+  touch-action: none;
+}
+.ba-handle::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px; height: 52px; border-radius: 50%; background: var(--ink);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease;
+}
+.ba-handle:hover::before { transform: translate(-50%, -50%) scale(1.06); }
+.ba-handle::after {
+  content: '⇆'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--bg); font-size: 22px; font-weight: 700; pointer-events: none;
+  z-index: 1;
+}
+.ba-label { position: absolute; top: 24px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; }
+.ba-label.b { left: 24px; background: rgba(21,23,26,0.85); color: var(--bg); }
+.ba-label.a { right: 24px; background: var(--teal); color: var(--bg); }
+.ba-stat { position: absolute; bottom: 24px; font-size: 12px; font-weight: 500; }
+.ba-stat.b { left: 24px; color: var(--ink-mute); }
+.ba-stat.a { right: 24px; color: var(--teal-dark); font-weight: 600; }
+.ba-list { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 56px; max-width: 540px; }
+.ba-row {
+  background: rgba(255,255,255,0.7);
+  padding: 11px 14px; border-radius: 6px;
+  font-size: 13px;
+  border-left: 3px solid rgba(21,23,26,0.15);
+  display: flex; gap: 10px; align-items: center;
+}
+.ba-row.urg-row { border-left-color: var(--coral); }
+.ba-side.after .ba-row { background: white; border-left: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.tag-row-line { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+
+/* ============ OFERTA ============ */
+.section-oferta { background: var(--ink); color: var(--bg); }
+.section-oferta .section-eyebrow { color: var(--amber); }
+.section-oferta .section-title { color: var(--bg); }
+.section-oferta .section-title em { color: var(--mint); }
+.section-oferta .section-lead { color: rgba(251,250,247,0.7); }
+.oferta-card {
+  background: linear-gradient(180deg, #1d2024 0%, #0e1013 100%);
+  border: 1px solid rgba(251,250,247,0.10);
+  border-radius: 20px;
+  padding: 56px 48px;
+  max-width: 720px; margin: 64px auto 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.oferta-card::before {
+  content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(15,118,110,0.5) 0%, transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+.oferta-card > * { position: relative; z-index: 1; }
+.oferta-card .tag {
+  display: inline-block;
+  font-size: 12px; color: var(--mint); text-transform: uppercase; letter-spacing: 0.10em;
+  font-weight: 600;
+  background: rgba(15,118,110,0.18);
+  padding: 6px 14px;
+  border-radius: 100px;
+}
+.oferta-card .price { font-family: 'Instrument Serif', serif; font-size: 96px; line-height: 1; margin: 24px 0 8px; letter-spacing: -0.03em; }
+.oferta-card .price small { font-size: 28px; opacity: 0.6; vertical-align: top; margin-right: 4px; line-height: 1.2; }
+.oferta-card .desc { color: rgba(251,250,247,0.7); margin-bottom: 36px; font-size: 15px; }
+.oferta-card .btn-primary { background: var(--bg); color: var(--ink); }
+.oferta-card .btn-primary:hover { background: var(--mint); color: var(--teal-dark); }
+.oferta-card ul { list-style: none; text-align: left; max-width: 380px; margin: 36px auto 0; display: grid; gap: 10px; }
+.oferta-card li { padding-left: 28px; position: relative; color: rgba(251,250,247,0.85); font-size: 14px; }
+.oferta-card li::before { content: '✓'; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+
+/* ============ FAQ ============ */
+.section-faq { background: var(--bg); padding: 140px 0; }
+.faq-list { margin-top: 56px; max-width: 760px; }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-q {
+  width: 100%; background: transparent; border: 0;
+  padding: 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: inherit; font-size: 17px; font-weight: 600; color: var(--ink);
+  cursor: pointer; text-align: left;
+  transition: color 0.2s ease;
+}
+.faq-q:hover { color: var(--teal); }
+.faq-q .plus { font-size: 22px; color: var(--teal); transition: transform 0.3s ease; font-weight: 400; flex-shrink: 0; margin-left: 16px; }
+.faq-item.open .plus { transform: rotate(45deg); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+.faq-a p { color: var(--ink-soft); padding-bottom: 24px; padding-right: 40px; line-height: 1.6; font-size: 15px; }
+.faq-item.open .faq-a { max-height: 500px; }
+
+/* ============ FOOTER ============ */
+.footer {
+  background: var(--ink); color: rgba(251,250,247,0.55);
+  padding: 56px 0 36px;
+}
+.footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; align-items: center; }
+.footer .logo { color: var(--bg); }
+.footer p { font-size: 13px; }
+
+/* ============ ANIMATIONS ============ */
+.fade-up { opacity: 0; transform: translateY(20px); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .fade-up { opacity: 1; transform: none; }
+  .hero-tag .dot { animation: none; }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+  .hero-content { padding: 0 24px; }
+  .hero-counter { right: 20px; bottom: 20px; }
+  .hero-counter .num { font-size: 44px; }
+  .scroll-hint { display: none; }
+  .section { padding: 88px 0; }
+  .oferta-card { padding: 40px 24px; }
+  .oferta-card .price { font-size: 76px; }
+  .calc-result { padding: 28px; }
+  .header { padding: 12px 16px; }
+  .logo span { display: none; }
+  .ba-wrap { height: 520px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="9" width="22" height="16" rx="2.5" fill="#0f766e"/>
+        <path d="M3 11l11 7 11-7" stroke="#fbfaf7" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M19 4l10 0 0 8-5-3-5 3z" fill="#ef6f61"/>
+      </svg>
+      <span>ELEVE Gmail Redondo</span>
+    </a>
+    <a href="#oferta" class="btn btn-primary">Quero organizar meu Gmail</a>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <span class="hero-tag"><span class="dot"></span> método guiado · 1 dia</span>
+    <h1>Sua caixa cheia pode virar um <em>sistema</em> em 1 dia.</h1>
+    <p class="lead">Mapeie seus e-mails, crie etiquetas inteligentes e gere filtros que deixam o Gmail trabalhando por você. Sem virar especialista em automação.</p>
+    <div class="hero-actions">
+      <a href="#oferta" class="btn btn-primary btn-large">Quero organizar meu Gmail</a>
+      <a href="#metodo" class="btn btn-ghost">Ver o método →</a>
+    </div>
+  </div>
+  <div class="hero-counter" id="hero-counter">
+    <div class="num" id="hero-num">34.218</div>
+    <div class="label" id="hero-label">e-mails na sua caixa</div>
+  </div>
+  <div class="scroll-hint">role para ver<div class="arrow"></div></div>
+</section>
+
+<!-- ============ DOR ============ -->
+<section class="section section-dor" id="dor">
+  <div class="container">
+    <span class="section-eyebrow">o caos é familiar</span>
+    <h2 class="section-title">Você abre o Gmail, sente um aperto e <em>fecha de novo</em>.</h2>
+    <p class="section-lead">Caixa lotada não é falta de organização — é falta de método. Enquanto você procura o e-mail certo, coisas importantes ficam invisíveis.</p>
+    <div class="chaos-grid" id="chaos-grid"></div>
+  </div>
+</section>
+
+<!-- ============ CALCULADORA ============ -->
+<section class="section section-calc" id="calculadora">
+  <div class="container">
+    <span class="section-eyebrow">calculadora do caos</span>
+    <h2 class="section-title">Quanto a sua caixa desorganizada <em>custa por ano</em>?</h2>
+    <p class="section-lead">Ajuste os controles e descubra o prejuízo anual. Os números costumam assustar.</p>
+
+    <div class="calc-wrap">
+      <div class="calc-inputs">
+        <div class="calc-input">
+          <label>Salário médio mensal por pessoa</label>
+          <div class="row"><span class="val" id="v-salario">R$ 8.000</span></div>
+          <input type="range" id="r-salario" min="2000" max="40000" step="500" value="8000">
+        </div>
+        <div class="calc-input">
+          <label>Pessoas afetadas pela bagunça</label>
+          <div class="row"><span class="val" id="v-pessoas">3</span><span class="unit">pessoas</span></div>
+          <input type="range" id="r-pessoas" min="1" max="50" step="1" value="3">
+        </div>
+        <div class="calc-input">
+          <label>Minutos perdidos por dia procurando e-mail</label>
+          <div class="row"><span class="val" id="v-min">35</span><span class="unit">min/dia</span></div>
+          <input type="range" id="r-min" min="5" max="180" step="5" value="35">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="label">Prejuízo anual estimado</div>
+        <div class="big" id="calc-big">R$ 0</div>
+        <div class="sub">Considera 220 dias úteis e 8h por dia de trabalho.</div>
+        <hr>
+        <div class="breakdown">
+          <div>Horas perdidas/ano <strong id="b-horas">0h</strong></div>
+          <div>Por pessoa/mês <strong id="b-pessoa">R$ 0</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METODO ============ -->
+<section class="section section-metodo" id="metodo">
+  <div class="container">
+    <span class="section-eyebrow">método em 5 passos</span>
+    <h2 class="section-title">Da bagunça ao sistema — sem aprender <em>automação</em>.</h2>
+    <p class="section-lead">Cada etapa é guiada por uma planilha inteligente e um menu no Apps Script. Você aprova; a IA executa.</p>
+
+    <div class="metodo-pipeline">
+      <div class="steps">
+        <div class="step" data-step="1">
+          <div class="num">1</div>
+          <h4>Escanear a caixa</h4>
+          <p>Um script lê remetentes e assuntos dos últimos meses e devolve uma planilha pronta.</p>
+        </div>
+        <div class="step" data-step="2">
+          <div class="num">2</div>
+          <h4>Agrupar remetentes</h4>
+          <p>Você vê padrões: faturas, clientes, notificações. Marca o que é o quê.</p>
+        </div>
+        <div class="step" data-step="3">
+          <div class="num">3</div>
+          <h4>Refinar com IA</h4>
+          <p>A IA sugere etiquetas, prioridades e regras. Você só aprova ou ajusta.</p>
+        </div>
+        <div class="step" data-step="4">
+          <div class="num">4</div>
+          <h4>Aprovar etiquetas</h4>
+          <p>Revisa o conjunto final na própria planilha — com cores e categorias.</p>
+        </div>
+        <div class="step" data-step="5">
+          <div class="num">5</div>
+          <h4>Aplicar no Gmail</h4>
+          <p>O Apps Script gera filtros, cria etiquetas e organiza tudo de uma vez.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUTO ============ -->
+<section class="section section-produto" id="produto">
+  <div class="container">
+    <span class="section-eyebrow">o que você recebe</span>
+    <h2 class="section-title">Um <em>kit completo</em> para sair do zero — em uma tarde.</h2>
+    <p class="section-lead">Tudo já configurado. Você abre, segue o passo a passo e termina o dia com Gmail organizado.</p>
+
+    <div class="kit-grid">
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+        <h4>Planilha inteligente</h4>
+        <p>Estrutura pronta com colunas, fórmulas e validações. Só preencher.</p>
+      </div>
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <h4>Apps Script com menu</h4>
+        <p>Botões prontos no menu da planilha — sem editar código.</p>
+      </div>
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div>
+        <h4>Painel de progresso</h4>
+        <p>Veja em tempo real quantos e-mails já foram organizados.</p>
+      </div>
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
+        <h4>Gerador de filtros</h4>
+        <p>Os filtros do Gmail são criados automaticamente, com regras claras.</p>
+      </div>
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h4>Implantação em 1 dia</h4>
+        <p>Roteiro de 6h para sair do caos e ter tudo no ar até o fim do expediente.</p>
+      </div>
+      <div class="kit-item">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h4>Checklist semanal</h4>
+        <p>Rotina simples para a caixa não voltar ao caos. Toma 10 minutos.</p>
+      </div>
+    </div>
+
+    <div class="spreadsheet-mock">
+      <div class="ss-head">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="ss-title">ELEVE_Gmail_Redondo · Mapeamento</div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Remetente</th><th>Grupo</th><th>Prioridade</th><th>Etiqueta</th><th>Status</th></tr>
+        </thead>
+        <tbody id="ss-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ANTES/DEPOIS ============ -->
+<section class="section section-ad">
+  <div class="container">
+    <span class="section-eyebrow">antes & depois</span>
+    <h2 class="section-title">Mesma caixa. <em>Outra cabeça.</em></h2>
+    <p class="section-lead">Arraste para comparar. À esquerda, o caos atual. À direita, sua caixa depois do método.</p>
+
+    <div class="ba-wrap" id="ba">
+      <div class="ba-side before">
+        <div class="ba-label b">Antes</div>
+        <div class="ba-list">
+          <div class="ba-row urg-row">⚠️ Urgente: aprovar férias da Maria</div>
+          <div class="ba-row">Newsletter — 5 hábitos produtivos</div>
+          <div class="ba-row">NF-e #28341 (escondido entre spams)</div>
+          <div class="ba-row urg-row">⚠️ Boleto vence amanhã</div>
+          <div class="ba-row">Re: proposta enviada (sem resposta)</div>
+          <div class="ba-row">LinkedIn: 12 novas conexões</div>
+          <div class="ba-row">Spam: oferta imperdível...</div>
+          <div class="ba-row">Re: reagendar call?</div>
+        </div>
+        <div class="ba-stat b">34.218 e-mails · 0 etiquetas</div>
+      </div>
+      <div class="ba-side after">
+        <div class="ba-label a">Depois</div>
+        <div class="ba-list">
+          <div class="tag-row-line">
+            <span class="tag-pill urg">● Urgente (12)</span>
+            <span class="tag-pill cli">● Clientes (84)</span>
+            <span class="tag-pill fin">● Financeiro (37)</span>
+            <span class="tag-pill foll">● Follow-up (21)</span>
+            <span class="tag-pill diretoria">● Diretoria (8)</span>
+          </div>
+          <div class="ba-row"><span class="tag-pill urg">●</span>Aprovar férias — Maria · RH</div>
+          <div class="ba-row"><span class="tag-pill cli">●</span>Mendes — proposta revisada</div>
+          <div class="ba-row"><span class="tag-pill fin">●</span>Boleto · vencimento 12/05</div>
+          <div class="ba-row"><span class="tag-pill cli">●</span>Lara — reagendar call</div>
+          <div class="ba-row"><span class="tag-pill foll">●</span>Notas da reunião 3a</div>
+          <div class="ba-row"><span class="tag-pill diretoria">●</span>Reunião com diretoria</div>
+        </div>
+        <div class="ba-stat a">organizado · 6 etiquetas ativas</div>
+      </div>
+      <div class="ba-handle" id="ba-handle"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OFERTA ============ -->
+<section class="section section-oferta" id="oferta">
+  <div class="container">
+    <span class="section-eyebrow">acesso único</span>
+    <h2 class="section-title">Pronto para deixar o Gmail <em>trabalhando por você</em>?</h2>
+    <p class="section-lead">Feito para quem quer organizar o Gmail sem aprender automação do zero.</p>
+
+    <div class="oferta-card">
+      <div class="tag">ELEVE Gmail Redondo</div>
+      <div class="price"><small>R$</small>119</div>
+      <div class="desc">acesso único · sem mensalidade</div>
+      <a href="#" class="btn btn-primary btn-large">Quero entrar no lançamento</a>
+      <ul>
+        <li>Planilha inteligente pronta</li>
+        <li>Apps Script com menu guiado</li>
+        <li>Painel de progresso visual</li>
+        <li>Gerador de filtros do Gmail</li>
+        <li>Roteiro de implantação em 1 dia</li>
+        <li>Checklist de manutenção semanal</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section section-faq" id="faq">
+  <div class="container">
+    <span class="section-eyebrow">perguntas frequentes</span>
+    <h2 class="section-title">Antes de comprar, é justo <em>perguntar</em>.</h2>
+    <div class="faq-list" id="faq-list"></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="9" width="22" height="16" rx="2.5" fill="#0f766e"/>
+        <path d="M3 11l11 7 11-7" stroke="#fbfaf7" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M19 4l10 0 0 8-5-3-5 3z" fill="#ef6f61"/>
+      </svg>
+      <span>ELEVE Gmail Redondo</span>
+    </a>
+    <p>© 2026 · Feito para quem quer Gmail redondo.</p>
+  </div>
+</footer>
+
+<!-- ============ LIBS ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<script>
+(function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ============ GSAP + Lenis ============
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+  }
+
+  if (window.Lenis && !reduceMotion) {
+    const lenis = new Lenis({ lerp: 0.085 });
+    lenis.on('scroll', () => { if (window.ScrollTrigger) ScrollTrigger.update(); });
+    if (window.gsap) {
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+  }
+
+  // ============ THREE.JS HERO SCENE ============
+  const heroEl = document.getElementById('hero');
+  const canvas = document.getElementById('hero-canvas');
+
+  if (!window.THREE || !canvas) return;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#fbfaf7');
+
+  const camera = new THREE.PerspectiveCamera(45, heroEl.clientWidth / heroEl.clientHeight, 0.1, 1000);
+  camera.position.set(0, 0, 13);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(heroEl.clientWidth, heroEl.clientHeight);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+  dirLight.position.set(5, 8, 6);
+  scene.add(dirLight);
+  const rim = new THREE.DirectionalLight(0x0f766e, 0.5);
+  rim.position.set(-5, 2, -3);
+  scene.add(rim);
+
+  // Texture pool for emails
+  function makeEmailTexture(opts) {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 512, 256);
+    ctx.strokeStyle = 'rgba(21,23,26,0.10)'; ctx.lineWidth = 4; ctx.strokeRect(2, 2, 508, 252);
+    ctx.fillStyle = '#15171a'; ctx.font = 'bold 26px Inter, sans-serif';
+    ctx.fillText(opts.from || 'sender@email.com', 28, 50);
+    ctx.fillStyle = '#4a4d54'; ctx.font = '500 22px Inter, sans-serif';
+    ctx.fillText(opts.subject || 'Subject', 28, 90);
+    ctx.fillStyle = '#cfcec9';
+    ctx.fillRect(28, 120, 440, 8);
+    ctx.fillRect(28, 144, 380, 8);
+    ctx.fillRect(28, 168, 320, 8);
+    if (opts.color) {
+      ctx.fillStyle = opts.color;
+      ctx.beginPath(); ctx.arc(470, 50, 12, 0, Math.PI * 2); ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter;
+    tex.anisotropy = 2;
+    return tex;
+  }
+
+  const emailSamples = [
+    { from: 'NF-e Sistema', subject: 'Sua nota fiscal #28341', color: '#f5b942' },
+    { from: 'Cliente Mendes', subject: 'Re: proposta enviada', color: '#0f766e' },
+    { from: 'LinkedIn', subject: '12 novas conexões esta semana', color: '#cfcec9' },
+    { from: 'Banco Itaú', subject: 'Fatura disponível', color: '#f5b942' },
+    { from: 'Maria — RH', subject: 'Urgente: aprovação férias', color: '#ef6f61' },
+    { from: 'Newsletter', subject: '5 dicas de produtividade...', color: '#cfcec9' },
+    { from: 'Diretoria', subject: 'Reunião 3a feira 14h', color: '#2563eb' },
+    { from: 'Boleto Vencimento', subject: 'Boleto vence amanhã', color: '#ef6f61' },
+    { from: 'Cliente Lara', subject: 'Reagendar call?', color: '#0f766e' },
+    { from: 'Zoom', subject: 'Gravação disponível', color: '#cfcec9' }
+  ];
+  const texturePool = emailSamples.map(makeEmailTexture);
+
+  // Cards
+  const NUM_CARDS = reduceMotion ? 24 : 70;
+  const cardGeo = new THREE.PlaneGeometry(1.8, 0.9);
+  const cards = [];
+
+  for (let i = 0; i < NUM_CARDS; i++) {
+    const tex = texturePool[i % texturePool.length];
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex,
+      side: THREE.DoubleSide,
+      roughness: 0.85,
+      metalness: 0.05
+    });
+    const mesh = new THREE.Mesh(cardGeo, mat);
+    const r = 4 + Math.random() * 5;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = (Math.random() - 0.5) * 1.2;
+    mesh.position.set(
+      Math.cos(theta) * r,
+      Math.sin(phi) * 4 + (Math.random() - 0.5) * 2,
+      Math.sin(theta) * r * 0.7 - 2
+    );
+    mesh.rotation.set(
+      (Math.random() - 0.5) * 0.6,
+      Math.random() * Math.PI * 2,
+      (Math.random() - 0.5) * 0.6
+    );
+    mesh.userData = {
+      baseY: mesh.position.y,
+      baseX: mesh.position.x,
+      speedY: 0.6 + Math.random() * 1.0,
+      driftPhase: Math.random() * Math.PI * 2,
+      offset: i * 0.4
+    };
+    scene.add(mesh);
+    cards.push(mesh);
+  }
+
+  // Final grid positions (organized state)
+  const cols = 10;
+  cards.forEach((c, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    c.userData.endPos = new THREE.Vector3(
+      (col - cols / 2 + 0.5) * 1.0,
+      (row - 3) * -0.55 + 1.0,
+      -1.5
+    );
+  });
+
+  // Envelope
+  const envelope = new THREE.Group();
+  scene.add(envelope);
+
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.4, metalness: 0.18 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.3, 0.28), bodyMat);
+  envelope.add(body);
+
+  const flapMat = new THREE.MeshStandardMaterial({ color: 0x0a544e, roughness: 0.4, metalness: 0.15 });
+  const flapShape = new THREE.Shape();
+  flapShape.moveTo(-1.8, 0); flapShape.lineTo(1.8, 0); flapShape.lineTo(0, -1.15); flapShape.lineTo(-1.8, 0);
+  const flapGeo = new THREE.ExtrudeGeometry(flapShape, { depth: 0.06, bevelEnabled: false });
+  const flap = new THREE.Mesh(flapGeo, flapMat);
+  flap.position.set(0, 1.15, 0.18);
+  envelope.add(flap);
+
+  const tagMat = new THREE.MeshStandardMaterial({ color: 0xef6f61, roughness: 0.5, metalness: 0.1 });
+  const tagShape = new THREE.Shape();
+  tagShape.moveTo(-0.65, 0.5); tagShape.lineTo(0.6, 0.5); tagShape.lineTo(0.92, 0); tagShape.lineTo(0.6, -0.5); tagShape.lineTo(-0.65, -0.5); tagShape.lineTo(-0.65, 0.5);
+  const tagGeo = new THREE.ExtrudeGeometry(tagShape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 });
+  const tag = new THREE.Mesh(tagGeo, tagMat);
+  tag.position.set(1.3, -0.55, 0.20);
+  tag.rotation.z = -0.28;
+  envelope.add(tag);
+
+  // Fragments (shards)
+  const FRAG_COUNT = reduceMotion ? 24 : 56;
+  const fragColors = [0x0f766e, 0x0a544e, 0xef6f61, 0xf5b942, 0x2563eb, 0xb39ddb];
+  const fragments = [];
+
+  for (let i = 0; i < FRAG_COUNT; i++) {
+    const sx = 0.18 + Math.random() * 0.4;
+    const sy = sx * (0.5 + Math.random() * 0.9);
+    const sz = sx * 0.35;
+    const geo = new THREE.BoxGeometry(sx, sy, sz);
+    const mat = new THREE.MeshStandardMaterial({
+      color: fragColors[i % fragColors.length],
+      roughness: 0.45, metalness: 0.12,
+      transparent: true, opacity: 1
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.visible = false;
+    m.userData = {
+      startPos: new THREE.Vector3(
+        (Math.random() - 0.5) * 3.2,
+        (Math.random() - 0.5) * 2.0,
+        (Math.random() - 0.5) * 0.4
+      ),
+      endPos: new THREE.Vector3(
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 8 - 3,
+        (Math.random() - 0.5) * 6
+      ),
+      rotEnd: new THREE.Vector3(
+        Math.random() * Math.PI * 4,
+        Math.random() * Math.PI * 4,
+        Math.random() * Math.PI * 4
+      )
+    };
+    scene.add(m);
+    fragments.push(m);
+  }
+
+  // Animation state driven by ScrollTrigger
+  const state = { phase: 0, breakProgress: 0, organizeProgress: 0 };
+
+  if (window.gsap && window.ScrollTrigger) {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: '+=320%',
+        scrub: 1,
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true
+      }
+    });
+    tl.to(state, { phase: 1, duration: 1 }, 0);
+    tl.to(state, { phase: 2, breakProgress: 1, duration: 1 }, 1);
+    tl.to(state, { phase: 3, organizeProgress: 0.5, duration: 1 }, 2);
+    tl.to(state, { phase: 4, organizeProgress: 1, duration: 1 }, 3);
+
+    // Fade hero text out as we scroll past phase 1
+    gsap.to('.hero-content', {
+      opacity: 0, y: -30,
+      scrollTrigger: { trigger: '#hero', start: 'top top', end: '+=80%', scrub: 1 }
+    });
+
+    gsap.to('.scroll-hint', {
+      opacity: 0,
+      scrollTrigger: { trigger: '#hero', start: 'top top', end: '+=20%', scrub: 1 }
+    });
+
+    // Counter animation: tense pulse during caos, then count down to 0 + label change
+    gsap.to('.hero-counter', {
+      scrollTrigger: {
+        trigger: '#hero',
+        start: '+=180% top',
+        end: '+=100% top',
+        scrub: 1,
+        toggleClass: { targets: '.hero-counter', className: 'organized' }
+      }
+    });
+  }
+
+  const numEl = document.getElementById('hero-num');
+  const labelEl = document.getElementById('hero-label');
+  const counterEl = document.getElementById('hero-counter');
+
+  // RAF loop
+  const clock = new THREE.Clock();
+
+  function lerpVec(a, b, t) {
+    return {
+      x: a.x + (b.x - a.x) * t,
+      y: a.y + (b.y - a.y) * t,
+      z: a.z + (b.z - a.z) * t
+    };
+  }
+
+  // ====== SOLITAIRE-STYLE CASCADE TRAJECTORY ======
+  // Inspired by the classic Windows Solitaire victory animation:
+  // cards arc up high, then bounce 3x with decreasing amplitude until they land.
+  function solitaireBounce(t, origin, target, peakHeight) {
+    // X / Z: ease-out cubic from origin to target
+    const xzEase = 1 - Math.pow(1 - t, 3);
+    const x = origin.x + (target.x - origin.x) * xzEase;
+    const z = origin.z + (target.z - origin.z) * xzEase;
+
+    // Y: 3 bounces with decreasing amplitude, then settle
+    let y;
+    const baseY = target.y;
+    if (t < 0.55) {
+      // Big arc: from origin.y, up to peak, down to target.y at t=0.55
+      const lt = t / 0.55;
+      const linearY = origin.y + (baseY - origin.y) * lt;
+      const arc = Math.sin(lt * Math.PI); // 0..1..0
+      y = linearY + arc * peakHeight;
+    } else if (t < 0.80) {
+      // Bounce 2 (40% amplitude)
+      const lt = (t - 0.55) / 0.25;
+      const arc = Math.sin(lt * Math.PI);
+      y = baseY + arc * peakHeight * 0.42;
+    } else if (t < 0.94) {
+      // Bounce 3 (15% amplitude)
+      const lt = (t - 0.80) / 0.14;
+      const arc = Math.sin(lt * Math.PI);
+      y = baseY + arc * peakHeight * 0.15;
+    } else {
+      y = baseY;
+    }
+
+    return { x: x, y: y, z: z, t: t };
+  }
+
+  let organizeStarted = false;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    const phase = state.phase;
+    const breakP = state.breakProgress;
+    const orgP = state.organizeProgress;
+
+    // Camera dolly
+    const camZ = 13 - phase * 0.7;
+    camera.position.z += (camZ - camera.position.z) * 0.04;
+    camera.position.y = Math.sin(t * 0.15) * 0.15 + phase * 0.08;
+    camera.lookAt(0, 0, 0);
+
+    // Envelope behavior
+    if (breakP < 0.05) {
+      envelope.visible = true;
+      envelope.rotation.y = t * 0.3;
+      envelope.rotation.x = Math.sin(t * 0.5) * 0.08;
+      envelope.position.set(0, Math.sin(t * 0.6) * 0.2, 0);
+      envelope.scale.setScalar(1);
+    } else if (breakP < 1) {
+      envelope.visible = true;
+      envelope.rotation.y += 0.02 * (1 + breakP * 4);
+      envelope.position.x = (Math.random() - 0.5) * breakP * 0.4;
+      envelope.position.y = (Math.random() - 0.5) * breakP * 0.4;
+      const s = Math.max(0, 1 - breakP * 1.05);
+      envelope.scale.setScalar(s);
+    } else {
+      envelope.visible = false;
+    }
+
+    // Fragments
+    if (breakP > 0.4) {
+      const fp = Math.min(1, (breakP - 0.4) / 0.6);
+      fragments.forEach((f, i) => {
+        f.visible = true;
+        const tt = Math.min(1, fp * (1 + (i % 5) * 0.04));
+        const target = lerpVec(f.userData.startPos, f.userData.endPos, tt);
+        f.position.set(target.x, target.y, target.z);
+        f.rotation.x = f.userData.rotEnd.x * tt;
+        f.rotation.y = f.userData.rotEnd.y * tt;
+        f.rotation.z = f.userData.rotEnd.z * tt;
+        if (orgP > 0.2) {
+          const fade = 1 - Math.min(1, (orgP - 0.2) / 0.5);
+          f.material.opacity = fade;
+          if (fade < 0.05) f.visible = false;
+        } else {
+          f.material.opacity = 1;
+        }
+      });
+    } else {
+      fragments.forEach(f => { f.visible = false; });
+    }
+
+    // Cards
+    if (orgP >= 0.25 && !organizeStarted) {
+      // First time crossing into organize: snapshot launch positions
+      organizeStarted = true;
+      cards.forEach((c, i) => {
+        // Origin: snap card up to a "launch height" matching its X cluster.
+        // We keep current X/Z roughly but lift Y way up off-screen so it
+        // arcs DOWN onto the slot like the Solitaire cards.
+        const corner = i % 2 === 0 ? -1 : 1;
+        c.userData.organizeOrigin = {
+          x: c.position.x * 0.6 + corner * (4 + Math.random() * 5),
+          y: 9 + Math.random() * 3, // launch from above
+          z: c.position.z + (Math.random() - 0.5) * 1.5
+        };
+        c.userData.organizeDelay = (i / cards.length) * 0.40 + Math.random() * 0.05;
+        c.userData.peakHeight = 2.5 + Math.random() * 2.8;
+        c.userData.spinSpeed = (Math.random() - 0.5) * 0.6;
+      });
+    }
+    if (orgP < 0.25 && organizeStarted) {
+      // Scrolled back up — clear so next entry recomputes
+      organizeStarted = false;
+    }
+
+    cards.forEach((c, i) => {
+      if (orgP < 0.25) {
+        if (phase >= 1) {
+          // wrap-around rain (devils-advocate style)
+          const span = 16;
+          let yPos = ((t * c.userData.speedY * 1.0 + i * 0.45) % span) - span / 2;
+          c.position.y = -yPos;
+          c.position.x = c.userData.baseX + Math.sin(t * 0.5 + c.userData.driftPhase) * 0.4;
+          c.position.z = c.userData.baseY * 0.3 + Math.cos(t * 0.3 + i) * 0.2;
+        } else {
+          // gentle orbit/float
+          c.position.y = c.userData.baseY + Math.sin(t * c.userData.speedY + c.userData.driftPhase) * 0.4;
+          c.position.x = c.userData.baseX + Math.cos(t * 0.4 + c.userData.driftPhase) * 0.3;
+        }
+        c.rotation.z = Math.sin(t * 0.3 + i) * 0.25;
+        c.rotation.y += 0.005;
+      } else {
+        // ====== SOLITAIRE BOUNCE CASCADE ======
+        // Each card has its own start delay (stagger), then arcs from
+        // origin (high above) down to its grid slot with 3 bounces.
+        const target = c.userData.endPos;
+        const origin = c.userData.organizeOrigin || { x: c.position.x, y: 9, z: c.position.z };
+        const delay = c.userData.organizeDelay || 0;
+
+        // Map orgP from [0.25 .. 1.0] to [0 .. 1] for the cascade
+        const cascade = (orgP - 0.25) / 0.75;
+        // Each card's local time accounts for its delay
+        const flightDuration = 0.55; // each card takes 55% of the cascade
+        const localT = Math.max(0, Math.min(1, (cascade - delay) / flightDuration));
+
+        if (localT <= 0) {
+          // Hasn't launched yet — keep it parked at origin, slight wobble
+          c.position.x = origin.x;
+          c.position.y = origin.y;
+          c.position.z = origin.z;
+          c.rotation.x += (0 - c.rotation.x) * 0.1;
+          c.rotation.y = Math.sin(t * 2 + i) * 0.3;
+          c.rotation.z += (c.userData.spinSpeed - c.rotation.z) * 0.05;
+        } else if (localT < 1) {
+          const p = solitaireBounce(localT, origin, target, c.userData.peakHeight);
+          c.position.x = p.x;
+          c.position.y = p.y;
+          c.position.z = p.z;
+
+          // Spin while flying, slow as it lands
+          const spinDamp = 1 - localT;
+          c.rotation.x += (0 - c.rotation.x) * 0.06;
+          c.rotation.y += c.userData.spinSpeed * 0.15 * spinDamp;
+          // tilt jitters during bounces
+          c.rotation.z = Math.sin(localT * Math.PI * 6) * 0.25 * spinDamp;
+        } else {
+          // Landed — settle clean
+          c.position.x = target.x;
+          c.position.y = target.y;
+          c.position.z = target.z;
+          c.rotation.x += (0 - c.rotation.x) * 0.18;
+          c.rotation.y += (0 - c.rotation.y) * 0.18;
+          c.rotation.z += (0 - c.rotation.z) * 0.18;
+        }
+      }
+    });
+
+    // Counter
+    if (orgP > 0.25) {
+      const p = Math.min(1, (orgP - 0.25) / 0.65);
+      const remaining = Math.round(34218 * (1 - p));
+      numEl.textContent = remaining.toLocaleString('pt-BR');
+      labelEl.textContent = p > 0.95 ? 'organizado' : 'organizando…';
+    } else if (phase >= 1) {
+      // pulse upward briefly to add tension
+      numEl.textContent = '34.218';
+      labelEl.textContent = 'e-mails na sua caixa';
+    } else {
+      numEl.textContent = '34.218';
+      labelEl.textContent = 'e-mails na sua caixa';
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  function onResize() {
+    const w = heroEl.clientWidth;
+    const h = heroEl.clientHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  }
+  window.addEventListener('resize', onResize);
+
+  // ============ CHAOS CARDS (Section 2) ============
+  const chaosData = [
+    { from: 'cliente.mendes@empresa.com', subj: 'Re: Proposta enviada quinta', prev: 'Voltei aqui pra cobrar… vocês conseguem revisar até hoje?', badge: 'urgent', tag: 'Urgente' },
+    { from: 'banco@instituicao.com.br', subj: 'Sua fatura vence em 2 dias', prev: 'Evite juros — boleto disponível na área logada.', badge: 'unread', tag: 'Não lido' },
+    { from: 'newsletter@medium.com', subj: '5 hábitos de pessoas produtivas', prev: 'Esta semana, separamos os artigos mais lidos sobre…', badge: 'lost', tag: 'Distração' },
+    { from: 'NF-e Sistema', subj: 'Sua nota fiscal nº 28.341', prev: 'Segue em anexo o XML e o PDF da nota fiscal eletrônica…', badge: 'unread', tag: 'Sem etiqueta' },
+    { from: 'rh@empresa.com', subj: 'URGENTE: aprovar férias da Maria', prev: 'O prazo termina hoje. Por favor, responder com aprovação…', badge: 'urgent', tag: 'Quase perdido' },
+    { from: 'LinkedIn', subj: '12 novas conexões esta semana', prev: 'Você apareceu em 47 buscas. Veja quem está olhando…', badge: 'lost', tag: 'Distração' }
+  ];
+  const chaosGrid = document.getElementById('chaos-grid');
+  chaosData.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'chaos-card fade-up';
+    div.innerHTML = `
+      <span class="badge ${c.badge}">${c.tag}</span>
+      <div class="from">${c.from}</div>
+      <div class="subj">${c.subj}</div>
+      <div class="prev">${c.prev}</div>`;
+    chaosGrid.appendChild(div);
+  });
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('#chaos-grid .chaos-card').forEach((el, i) => {
+      gsap.to(el, {
+        opacity: 1, y: 0, duration: 0.7, delay: i * 0.06,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 88%' }
+      });
+    });
+  } else {
+    chaosGrid.querySelectorAll('.fade-up').forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
+  }
+
+  // ============ CALCULADORA ============
+  const rSal = document.getElementById('r-salario');
+  const rPess = document.getElementById('r-pessoas');
+  const rMin = document.getElementById('r-min');
+  const vSal = document.getElementById('v-salario');
+  const vPess = document.getElementById('v-pessoas');
+  const vMin = document.getElementById('v-min');
+  const calcBig = document.getElementById('calc-big');
+  const bHoras = document.getElementById('b-horas');
+  const bPessoa = document.getElementById('b-pessoa');
+
+  const fmtBR = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  const calcAnim = { v: 0 };
+
+  function recalc() {
+    const sal = +rSal.value;
+    const pess = +rPess.value;
+    const min = +rMin.value;
+    vSal.textContent = fmtBR(sal);
+    vPess.textContent = pess;
+    vMin.textContent = min;
+    const horasPessoaAno = (min / 60) * 220;
+    const custoHora = sal / 220 / 8;
+    const total = horasPessoaAno * custoHora * pess;
+    const porPessoaMes = (horasPessoaAno * custoHora) / 12;
+    if (window.gsap) {
+      gsap.to(calcAnim, {
+        v: total, duration: 0.5, ease: 'power2.out',
+        onUpdate: () => { calcBig.textContent = fmtBR(calcAnim.v); }
+      });
+    } else {
+      calcBig.textContent = fmtBR(total);
+    }
+    bHoras.textContent = Math.round(horasPessoaAno * pess) + 'h';
+    bPessoa.textContent = fmtBR(porPessoaMes);
+  }
+  [rSal, rPess, rMin].forEach(el => el.addEventListener('input', recalc));
+  recalc();
+
+  // ============ METODO STEP HIGHLIGHT ============
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('.step').forEach((step) => {
+      ScrollTrigger.create({
+        trigger: step,
+        start: 'top 75%',
+        onEnter: () => step.classList.add('active'),
+        onLeaveBack: () => step.classList.remove('active')
+      });
+    });
+  }
+
+  // ============ SPREADSHEET MOCK ============
+  const ssBody = document.getElementById('ss-body');
+  const ssRows = [
+    { from: 'cliente.mendes@empresa.com', grupo: 'Clientes', prio: 'Alta', tag: '<span class="tag-pill cli">Clientes</span>', status: '✓' },
+    { from: 'banco@instituicao.com.br', grupo: 'Financeiro', prio: 'Média', tag: '<span class="tag-pill fin">Financeiro</span>', status: '✓' },
+    { from: 'rh@empresa.com', grupo: 'Equipe', prio: 'Alta', tag: '<span class="tag-pill urg">Urgente</span>', status: '✓' },
+    { from: 'NF-e Sistema', grupo: 'Documentos', prio: 'Baixa', tag: '<span class="tag-pill fin">Financeiro</span>', status: '✓' },
+    { from: 'newsletter@medium.com', grupo: 'Conteúdo', prio: 'Baixa', tag: '<span class="tag-pill foll">Follow-up</span>', status: '✓' },
+    { from: 'diretoria@empresa.com', grupo: 'Diretoria', prio: 'Alta', tag: '<span class="tag-pill diretoria">Diretoria</span>', status: '✓' }
+  ];
+  ssRows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.style.opacity = '0';
+    tr.innerHTML = `<td>${r.from}</td><td>${r.grupo}</td><td>${r.prio}</td><td>${r.tag}</td><td style="color:var(--teal);font-weight:700">${r.status}</td>`;
+    ssBody.appendChild(tr);
+  });
+  if (window.gsap && window.ScrollTrigger) {
+    ScrollTrigger.create({
+      trigger: '.spreadsheet-mock',
+      start: 'top 80%',
+      once: true,
+      onEnter: () => {
+        gsap.utils.toArray('.spreadsheet-mock tbody tr').forEach((tr, i) => {
+          gsap.to(tr, { opacity: 1, duration: 0.4, delay: i * 0.18, ease: 'power2.out' });
+        });
+      }
+    });
+  } else {
+    ssBody.querySelectorAll('tr').forEach(tr => tr.style.opacity = '1');
+  }
+
+  // ============ ANTES/DEPOIS slider ============
+  const ba = document.getElementById('ba');
+  const baHandle = document.getElementById('ba-handle');
+  const baAfterEl = ba.querySelector('.ba-side.after');
+
+  let dragging = false;
+  function setBA(pct) {
+    pct = Math.max(0, Math.min(100, pct));
+    baHandle.style.left = pct + '%';
+    baAfterEl.style.clipPath = `inset(0 0 0 ${pct}%)`;
+  }
+  function startDrag(e) { dragging = true; if (e.cancelable) e.preventDefault(); }
+  function endDrag() { dragging = false; }
+  function moveDrag(e) {
+    if (!dragging) return;
+    const rect = ba.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    setBA((x / rect.width) * 100);
+  }
+  baHandle.addEventListener('mousedown', startDrag);
+  baHandle.addEventListener('touchstart', startDrag, { passive: false });
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('touchmove', moveDrag, { passive: false });
+  ba.addEventListener('click', (e) => {
+    if (e.target === baHandle) return;
+    const rect = ba.getBoundingClientRect();
+    setBA(((e.clientX - rect.left) / rect.width) * 100);
+  });
+  setBA(50);
+
+  // Auto-demo wiggle on first reveal
+  if (window.gsap && window.ScrollTrigger) {
+    ScrollTrigger.create({
+      trigger: ba,
+      start: 'top 70%',
+      once: true,
+      onEnter: () => {
+        const obj = { p: 50 };
+        gsap.to(obj, {
+          p: 25, duration: 0.7, ease: 'power2.inOut',
+          yoyo: true, repeat: 1,
+          onUpdate: () => setBA(obj.p)
+        });
+      }
+    });
+  }
+
+  // ============ FAQ ============
+  const faqData = [
+    { q: 'Preciso saber programar?', a: 'Não. Tudo é guiado por uma planilha com menu próprio. Você clica em botões e revisa o que a IA sugere — em nenhum momento precisa abrir ou editar código.' },
+    { q: 'Funciona em qualquer Gmail?', a: 'Funciona em contas Gmail pessoais e contas Google Workspace (corporativas). Em algumas empresas o admin pode restringir Apps Script — nesse caso o time de TI libera com 1 clique.' },
+    { q: 'A IA lê meus e-mails?', a: 'A IA recebe apenas remetentes e assuntos (não o corpo dos e-mails) para sugerir agrupamentos e etiquetas. Tudo roda na sua conta — nenhum dado vai para servidores externos sem sua autorização.' },
+    { q: 'Posso adaptar para minha empresa?', a: 'Sim. As categorias, etiquetas e regras são totalmente customizáveis na própria planilha. Você pode rodar a mesma metodologia para você, para seu time ou para clientes.' },
+    { q: 'Quanto tempo demora?', a: 'O método foi pensado para 1 dia: 2-3h de scan e agrupamento, 1h de IA + revisão, 1h de aplicação. Caixa muito grande pode virar 2 tardes.' },
+    { q: 'Isso substitui o Gmail?', a: 'Não — pelo contrário. O método configura o próprio Gmail (etiquetas e filtros nativos) para que ele trabalhe melhor pra você. Você continua usando o Gmail, só que organizado.' }
+  ];
+  const faqList = document.getElementById('faq-list');
+  faqData.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'faq-item';
+    div.innerHTML = `
+      <button class="faq-q"><span>${item.q}</span><span class="plus">+</span></button>
+      <div class="faq-a"><p>${item.a}</p></div>`;
+    faqList.appendChild(div);
+    div.querySelector('.faq-q').addEventListener('click', () => div.classList.toggle('open'));
+  });
+
+  // ============ SECTION FADE-INS ============
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('.section .section-title, .section .section-eyebrow, .section .section-lead, .section .step, .section .kit-item').forEach(el => {
+      gsap.fromTo(el,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 88%' }
+        }
+      );
+    });
+  }
+
+  // ============ Smooth-scroll for in-page links (fallback when Lenis present) ============
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) {
+        const target = document.querySelector(id);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>

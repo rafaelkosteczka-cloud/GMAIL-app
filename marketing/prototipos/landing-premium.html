@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP-Gmail | Inbox Zero Sustentável</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Playfair Display for premium serif headlines, Inter for clean body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset & Variables */
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-light: #fafaf8;
+            --text-light: #f5f5f5;
+            --text-dark: #121212;
+            --accent-green: #4ade80;
+            --accent-teal: #0f766e;
+            --accent-red: #ef4444;
+            --muted-dark: #888;
+            --muted-light: #666;
+            
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+            
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Reusable Animation Classes --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s var(--ease-out-expo), transform 1s var(--ease-out-expo);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Stagger delays */
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        /* Floating animation */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* Split Text Reveal */
+        .split-line { overflow: hidden; display: block; }
+        .split-word {
+            display: inline-block;
+            transform: translateY(110%);
+            transition: transform 0.8s var(--ease-out-expo);
+        }
+        .visible .split-word { transform: translateY(0); }
+
+        /* --- Sections --- */
+        section {
+            min-height: 100vh;
+            padding: 100px 5%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1a1a24 0%, var(--bg-dark) 70%);
+        }
+
+        .eyebrow {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-green);
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 7rem);
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            z-index: 10;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--muted-dark);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            z-index: 10;
+        }
+
+        /* Exploding Emails Effect */
+        #envelope-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .envelope {
+            position: absolute;
+            width: 60px;
+            height: 40px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            transform-origin: center;
+            transition: all 1.5s var(--ease-out-back);
+        }
+        
+        .envelope::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 20px;
+            background: rgba(0,0,0,0.05);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+        }
+
+        /* Central App Icon */
+        .app-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--bg-dark);
+            margin: 0 auto 2rem;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 20px 40px rgba(74, 222, 128, 0.2);
+            z-index: 10;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- Tension Section (Light Background) --- */
+        #tension {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .big-number {
+            font-family: var(--font-display);
+            font-size: clamp(6rem, 12vw, 12rem);
+            color: var(--accent-red);
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .mockup-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .mockup-card:hover {
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+        }
+
+        .email-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold; font-size: 0.8rem;
+        }
+
+        /* --- Rules Section --- */
+        #rules {
+            background-color: var(--bg-dark);
+            position: relative;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 4rem auto 0;
+        }
+
+        .rule-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .rule-card:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-10px);
+        }
+
+        .rule-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .rule-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .rule-desc {
+            color: var(--muted-dark);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* --- Social Proof (Avatars Floating) --- */
+        #proof {
+            background-color: #f0ede8;
+            color: var(--text-dark);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .floating-avatar {
+            position: absolute;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        /* --- CTA Section --- */
+        #cta {
+            text-align: center;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-dark), #000);
+        }
+
+        .circular-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            padding: 1rem 2rem;
+            border-radius: 99px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .circular-btn:hover {
+            transform: scale(1.05);
+            background: #fff;
+        }
+
+        .circular-btn .icon {
+            background: var(--bg-dark);
+            color: var(--accent-green);
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .circular-btn:hover .icon {
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+            .split-layout { grid-template-columns: 1fr; gap: 2rem; }
+            .hero-title { font-size: 3rem; }
+            .section-title { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO SECTION -->
+    <section id="hero">
+        <div id="envelope-container"></div>
+        
+        <div class="app-icon reveal" id="trigger-explosion">✉️</div>
+        
+        <span class="eyebrow reveal delay-1">Método APP-Gmail</span>
+        
+        <h1 class="hero-title">
+            <span class="split-line"><span class="split-word reveal delay-2">Clareza é</span></span>
+            <span class="split-line"><span class="split-word reveal delay-3"><i style="color: var(--accent-green);">uma escolha.</i></span></span>
+        </h1>
+        
+        <p class="hero-subtitle reveal delay-4">
+            Um método simples e elegante para que o Gmail trabalhe a seu favor — não o contrário. Feito para quem tem algo melhor a fazer do que organizar e-mails.
+        </p>
+    </section>
+
+    <!-- TENSION SECTION -->
+    <section id="tension">
+        <div class="split-layout">
+            <div>
+                <span class="eyebrow reveal" style="color: var(--accent-red);">Todo santo dia</span>
+                <h2 class="section-title reveal delay-1">É segunda-feira.<br>Você voltou<br>de férias.</h2>
+                <p class="hero-subtitle reveal delay-2" style="color: var(--muted-light); margin-left: 0;">
+                    Dois dias perdidos só procurando o que importa. Acontece com todo mundo, a menos que você tenha um método.
+                </p>
+            </div>
+            
+            <div class="reveal delay-3">
+                <div class="big-number" style="text-align: right; margin-bottom: -40px; position: relative; z-index: 2;">500+</div>
+                <div class="mockup-card">
+                    <div class="email-row">
+                        <div class="avatar" style="background: var(--accent-red);">!</div>
+                        <div>
+                            <div style="font-weight: 600;">Rafael</div>
+                            <div style="color: var(--muted-light); font-size: 0.9rem;">Urgente — você viu?</div>
+                        </div>
+                    </div>
+                    <div class="email-row">
+                        <div class="avatar" style="background: #f97316;">C</div>
+                        <div>
+                            <div style="font-weight: 600;">Cliente</div>
+                            <div style="color: var(--muted-light); font-size: 0.9rem;">Contrato — aguardo retorno</div>
+                        </div>
+                    </div>
+                    <div class="email-row" style="border: none;">
+                        <div class="avatar" style="background: #8b5cf6;">N</div>
+                        <div>
+                            <div style="font-weight: 600;">Newsletter</div>
+                            <div style="color: var(--muted-light); font-size: 0.9rem;">47 dicas de produtividade...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RULES SECTION -->
+    <section id="rules">
+        <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+            <span class="eyebrow reveal">A Virada</span>
+            <h2 class="section-title reveal delay-1">Quatro regras<br>que mudam tudo.</h2>
+        </div>
+        
+        <div class="rules-grid">
+            <div class="rule-card reveal delay-1">
+                <div class="rule-icon">🏷️</div>
+                <h3 class="rule-title">Assunto organiza</h3>
+                <p class="rule-desc">Coloca etiqueta. Nunca esconde. O contexto está sempre a uma busca de distância.</p>
+            </div>
+            
+            <div class="rule-card reveal delay-2">
+                <div class="rule-icon">🤖</div>
+                <h3 class="rule-title">Remetente automatiza</h3>
+                <p class="rule-desc">Só arquiva quem é previsível. Se você já sabe o que vai chegar, por que parar para ver?</p>
+            </div>
+            
+            <div class="rule-card reveal delay-3">
+                <div class="rule-icon">👤</div>
+                <h3 class="rule-title">Cliente permanece</h3>
+                <p class="rule-desc">Contato humano nunca some da inbox. Toda empresa, todo parceiro — visíveis sempre.</p>
+            </div>
+            
+            <div class="rule-card reveal delay-4">
+                <div class="rule-icon">⚙️</div>
+                <h3 class="rule-title">Rotina arquiva</h3>
+                <p class="rule-desc">Só o que quase nunca exige você. Sistemas, alertas, notificações — saem do caminho.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOCIAL PROOF SECTION -->
+    <section id="proof">
+        <!-- Generative floating elements via JS -->
+        <div id="avatars-container"></div>
+        
+        <div style="position: relative; z-index: 10;">
+            <span class="eyebrow reveal" style="color: var(--accent-teal);">Caso Real</span>
+            <div class="big-number reveal delay-1" style="color: var(--accent-teal); font-size: clamp(4rem, 8vw, 8rem);">34.000</div>
+            <h2 class="section-title reveal delay-2" style="font-family: var(--font-body); font-weight: 500; font-size: 1.5rem; color: var(--muted-light);">e-mails da operação de uma empresa.<br>Reorganizados.</h2>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section id="cta">
+        <span class="eyebrow reveal">Sua próxima segunda</span>
+        <h2 class="section-title reveal delay-1">Pode ser<br><i style="color: var(--accent-green);">diferente.</i></h2>
+        
+        <div class="reveal delay-2">
+            <a href="#" class="circular-btn">
+                Começar o Método
+                <div class="icon">→</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Interactions & Animations Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* --- Intersection Observer for Scroll Reveals --- */
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Optional: stop observing once revealed
+                        // observer.unobserve(entry.target); 
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal').forEach(el => {
+                observer.observe(el);
+            });
+
+            /* --- Exploding Emails Animation (Hero Section) --- */
+            const container = document.getElementById('envelope-container');
+            const icons = ['📄', '🧾', '✉️', '🔔', '💳', '📅'];
+            let exploded = false;
+
+            function createExplosion() {
+                if (exploded) return;
+                exploded = true;
+                
+                const numEnvelopes = window.innerWidth < 768 ? 12 : 24;
+                
+                for(let i = 0; i < numEnvelopes; i++) {
+                    const env = document.createElement('div');
+                    env.className = 'envelope';
+                    env.innerText = icons[Math.floor(Math.random() * icons.length)];
+                    container.appendChild(env);
+
+                    // Random scattering logic
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 150 + Math.random() * 300;
+                    const tx = Math.cos(angle) * radius;
+                    const ty = Math.sin(angle) * radius;
+                    const rot = (Math.random() - 0.5) * 180;
+                    const delay = Math.random() * 0.2;
+
+                    // Trigger animation slightly after creation
+                    setTimeout(() => {
+                        env.style.opacity = '1';
+                        env.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${0.8 + Math.random()*0.5})`;
+                    }, 50 + (delay * 1000));
+                    
+                    // Make them fall away after a bit
+                    setTimeout(() => {
+                        env.style.transform = `translate(${tx}px, ${ty + window.innerHeight}px) rotate(${rot + 180}deg)`;
+                        env.style.opacity = '0';
+                    }, 3000 + (Math.random() * 1000));
+                }
+            }
+
+            // Trigger explosion automatically after a short delay or on click
+            setTimeout(createExplosion, 1200);
+            document.getElementById('trigger-explosion').addEventListener('click', () => {
+                exploded = false;
+                container.innerHTML = '';
+                createExplosion();
+            });
+
+            /* --- Floating Avatars (Social Proof Section) --- */
+            const avatarsContainer = document.getElementById('avatars-container');
+            const proofSection = document.getElementById('proof');
+            
+            // Generic avatar colors
+            const colors = ['#ef4444', '#f97316', '#8b5cf6', '#10b981', '#3b82f6'];
+            const initials = ['A','B','C','D','E','M','R','S','T'];
+
+            // Generate random avatars
+            for(let i=0; i < 12; i++) {
+                const av = document.createElement('div');
+                av.className = 'floating-avatar';
+                
+                // Styling as solid circles with initials (simulating user avatars)
+                av.style.width = av.style.height = (40 + Math.random() * 40) + 'px';
+                av.style.background = colors[Math.floor(Math.random() * colors.length)];
+                av.style.color = 'white';
+                av.style.display = 'flex';
+                av.style.alignItems = 'center';
+                av.style.justifyContent = 'center';
+                av.style.fontWeight = 'bold';
+                av.style.fontSize = '1.2rem';
+                av.innerText = initials[Math.floor(Math.random() * initials.length)];
+                
+                // Random positioning
+                const top = 10 + Math.random() * 80;
+                const left = 5 + Math.random() * 90;
+                
+                av.style.top = top + '%';
+                av.style.left = left + '%';
+                
+                // Randomize animation phase
+                av.style.animationDelay = (Math.random() * -8) + 's';
+                av.style.animationDuration = (6 + Math.random() * 4) + 's';
+                
+                // Avoid placing right in the middle text
+                if (top > 30 && top < 70 && left > 30 && left < 70) continue;
+
+                avatarsContainer.appendChild(av);
+            }
+        });
+    </script>
+</body>
+</html>

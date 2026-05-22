@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #F4F4F9;
+            background-image: radial-gradient(#2D3436 2px, transparent 2px);
+            background-size: 30px 30px;
+            font-family: 'Inter', sans-serif;
+            color: #2D3436;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .sticky-note {
+            background-color: #FFD04B;
+            border: 2px solid #2D3436;
+            border-radius: 4px;
+            padding: 60px 80px;
+            text-align: center;
+            max-width: 900px;
+            box-shadow: 8px 8px 0px #2D3436;
+            position: relative;
+            transform: rotate(-1deg);
+        }
+        .title {
+            font-size: 64px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 400;
+            color: #2D3436;
+        }
+        .icon-container {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            background-color: #0984E3;
+            color: #FFF;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            border: 2px solid #2D3436;
+            box-shadow: 4px 4px 0px #2D3436;
+            transform: rotate(15deg);
+        }
+        .progress-pill {
+            position: absolute;
+            bottom: 40px;
+            background-color: #FFF;
+            border: 2px solid #2D3436;
+            border-radius: 20px;
+            padding: 10px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 4px 4px 0px #2D3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-pill i {
+            color: #0984E3;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="sticky-note">
+            <div class="icon-container">
+                <i class="fa-brands fa-google"></i>
+            </div>
+            <h1 class="title">Dominando as Etiquetas do Gmail</h1>
+            <p class="subtitle">Um framework passo a passo para organizar sua caixa de entrada</p>
+        </div>
+        <div class="progress-pill">
+            <i class="fa-solid fa-flag-checkered"></i>
+            <span>Início do Framework</span>
+        </div>
+    </div>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #F4F4F9;
+            background-image: radial-gradient(#2D3436 2px, transparent 2px);
+            background-size: 30px 30px;
+            font-family: 'Inter', sans-serif;
+            color: #2D3436;
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header {
+            margin-left: 80px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #2D3436;
+            color: #F4F4F9;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            border: 2px solid #2D3436;
+        }
+        .title {
+            font-size: 48px;
+            font-weight: 800;
+        }
+        .content-area {
+            display: flex;
+            width: 1120px;
+            margin: 0 auto;
+            gap: 60px;
+            flex: 1;
+        }
+        .left-col {
+            flex: 1;
+            position: relative;
+        }
+        .chaos-note {
+            background-color: #FFF;
+            border: 2px solid #2D3436;
+            border-radius: 4px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 4px 4px 0px #2D3436;
+            position: absolute;
+            width: 320px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .chaos-note i {
+            color: #2D3436;
+            font-size: 24px;
+            margin-top: 2px;
+        }
+        .note-1 { top: 0px; left: 20px; transform: rotate(-3deg); }
+        .note-2 { top: 110px; left: 180px; transform: rotate(4deg); background-color: #FFD04B; }
+        .note-3 { top: 230px; left: 0px; transform: rotate(-2deg); }
+        .note-4 { top: 340px; left: 140px; transform: rotate(5deg); }
+        .note-5 { top: 450px; left: 30px; transform: rotate(-4deg); background-color: #FFD04B; }
+        
+        .right-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .solution-box {
+            background-color: #0984E3;
+            border: 2px solid #2D3436;
+            border-radius: 4px;
+            padding: 50px;
+            box-shadow: 8px 8px 0px #2D3436;
+            color: #FFF;
+            transform: rotate(1deg);
+        }
+        .solution-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .solution-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            line-height: 1.6;
+        }
+        .solution-box .highlight {
+            background-color: #FFD04B;
+            color: #2D3436;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+        .progress-pill {
+            position: absolute;
+            bottom: 40px;
+            right: 80px;
+            background-color: #FFF;
+            border: 2px solid #2D3436;
+            border-radius: 20px;
+            padding: 10px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 4px 4px 0px #2D3436;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="header">
+            <div class="header-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="title">Sua caixa de entrada está fora de controle?</h2>
+        </div>
+        
+        <div class="content-area">
+            <div class="left-col">
+                <div class="chaos-note note-1">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Centenas de e-mails não lidos acumulados diariamente</span>
+                </div>
+                <div class="chaos-note note-2">
+                    <i class="fa-solid fa-magnifying-glass-minus"></i>
+                    <span>Dificuldade em encontrar mensagens importantes</span>
+                </div>
+                <div class="chaos-note note-3">
+                    <i class="fa-solid fa-hourglass-empty"></i>
+                    <span>Tempo desperdiçado procurando e-mails específicos</span>
+                </div>
+                <div class="chaos-note note-4">
+                    <i class="fa-solid fa-shuffle"></i>
+                    <span>Mistura de e-mails pessoais, profissionais e notificações</span>
+                </div>
+                <div class="chaos-note note-5">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                    <span>Sem um sistema de organização, a produtividade cai</span>
+                </div>
+            </div>
+            
+            <div class="right-col">
+                <div class="solution-box">
+                    <h3 class="solution-title"><i class="fa-solid fa-lightbulb"></i> A Solução</h3>
+                    <p class="solution-text">As <span class="highlight">etiquetas do Gmail</span> são a ferramenta mais poderosa e subutilizada para organizar sua comunicação digital.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-pill">
+            <span>O Problema</span>
+        </div>
+    </div>
+</body>
+</html>

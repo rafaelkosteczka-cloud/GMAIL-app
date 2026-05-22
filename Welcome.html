@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #0f766e;
+      --brand-soft: #ccfbf1;
+      --warn: #fff7ed;
+      --warn-line: #fdba74;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef6f5 100%);
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    .wrap {
+      padding: 26px;
+    }
+
+    .eyebrow {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 31px;
+      line-height: 1.08;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      margin-top: 20px;
+      padding: 18px;
+    }
+
+    .panel h2 {
+      font-size: 17px;
+      margin: 0 0 8px;
+    }
+
+    .steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .step {
+      align-items: start;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 34px 1fr;
+      padding: 12px;
+    }
+
+    .num {
+      align-items: center;
+      background: var(--brand-soft);
+      border-radius: 999px;
+      color: var(--brand);
+      display: flex;
+      font-size: 14px;
+      font-weight: 800;
+      height: 34px;
+      justify-content: center;
+      width: 34px;
+    }
+
+    .step strong,
+    .quick-card strong,
+    .warn strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .step span,
+    .quick-card span,
+    .warn span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .quick-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 14px;
+    }
+
+    .quick-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .warn {
+      background: var(--warn);
+      border: 1px solid var(--warn-line);
+      border-radius: 12px;
+      margin-top: 14px;
+      padding: 14px;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .list div {
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.45;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .list div::before {
+      color: var(--brand);
+      content: "-";
+      left: 0;
+      position: absolute;
+      top: 0;
+    }
+
+    .actions,
+    .mini-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button,
+    .link-btn {
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 12px 16px;
+      text-decoration: none;
+    }
+
+    .primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .secondary {
+      background: #e2e8f0;
+      color: var(--ink);
+    }
+
+    .ghost {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+
+    .mini-actions button,
+    .mini-actions .link-btn {
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    .note {
+      color: #475569;
+      font-size: 13px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 720px) {
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">Gmail Redondo</div>
+    <h1>Organize primeiro. Arquive depois.</h1>
+    <p>
+      Esta tela agora funciona como guia de implantacao e ponto de ajuste do produto.
+      A ideia e revisar a planilha com clareza antes de transformar tudo em filtro.
+    </p>
+
+    <div class="panel">
+      <h2>Fluxo recomendado</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <div>
+            <strong>Escaneie a caixa</strong>
+            <span>O sistema mapeia remetentes, assuntos e padroes para montar o diagnostico inicial.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <div>
+            <strong>Revise o Centro de treinamento</strong>
+            <span>Confirme o que e conversa humana, o que e rotina e o que ainda precisa de decisao.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <div>
+            <strong>Ajuste Regras e Marcadores</strong>
+            <span>Use a planilha como painel de customizacao antes de gerar os filtros finais.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <div>
+            <strong>Gere e importe no Gmail</strong>
+            <span>Depois da revisao, exporte os XMLs e aplique a estrutura ja com a experiencia pensada.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="google.script.run.varreduraLegado(); google.script.host.close();">Escanear minha caixa</button>
+        <button class="secondary" onclick="google.script.run.abrirConsole(); google.script.host.close();">Abrir painel</button>
+        <button class="ghost" onclick="abrirAba('Centro de treinamento')">Abrir Centro de treinamento</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Ajustes rapidos na planilha</h2>
+      <p>Esses atalhos deixam a revisao mais fluida e ajudam a transformar a planilha em produto.</p>
+      <div class="quick-grid">
+        <div class="quick-card">
+          <strong>Centro de treinamento</strong>
+          <span>Revise, aprove e ajuste casos antes de criar regra definitiva.</span>
+          <div class="mini-actions">
+            <button class="secondary" onclick="abrirAba('Centro de treinamento')">Abrir aba</button>
+          </div>
+        </div>
+        <div class="quick-card">
+          <strong>Regras</strong>
+          <span>Confira principalmente a coluna "Ignorar a caixa de entrada" antes de importar.</span>
+          <div class="mini-actions">
+            <button class="secondary" onclick="abrirAba('Regras')">Abrir aba</button>
+            <button class="ghost" onclick="abrirAba('Regras Auto')">Regras Auto</button>
+          </div>
+        </div>
+        <div class="quick-card">
+          <strong>Marcadores Manuais</strong>
+          <span>Padronize nomes, hierarquia e descricoes para ficar mais replicavel.</span>
+          <div class="mini-actions">
+            <button class="secondary" onclick="abrirAba('Marcadores Manuais')">Abrir aba</button>
+          </div>
+        </div>
+        <div class="quick-card">
+          <strong>Importacao no Gmail</strong>
+          <span>Depois de revisar, abra a tela de filtros do Gmail e importe os XMLs.</span>
+          <div class="mini-actions">
+            <a class="link-btn ghost" href="https://mail.google.com/mail/u/0/#settings/filters" target="_blank" rel="noopener noreferrer">Abrir filtros do Gmail</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Regra de UX para arquivamento</h2>
+      <p>Use "Ignorar a caixa de entrada" apenas quando o e-mail puder continuar fora da inbox mesmo se houver nova mensagem.</p>
+
+      <div class="warn">
+        <strong>Ponto critico</strong>
+        <span>Se uma resposta nova tambem cair na mesma regra com arquivamento, ela pode continuar fora da caixa de entrada. Conversa bilateral e regra por assunto merecem mais cuidado.</span>
+      </div>
+
+      <div class="list">
+        <div><strong>Clientes e conversas humanas:</strong> aplique etiqueta, mas nao arquive por padrao.</div>
+        <div><strong>Rotinas automaticas:</strong> notas fiscais, boletos, alertas, informativos e notificacoes podem arquivar.</div>
+        <div><strong>Regras por assunto:</strong> costumam ser mais sensiveis porque a resposta herda o mesmo tema.</div>
+        <div><strong>Resposta do cliente:</strong> se o filtro nao arquivar, o novo e-mail volta para a inbox normalmente e voce arquiva depois, sem loop infinito.</div>
+      </div>
+
+      <p class="note">
+        O sistema agora sugere arquivamento automatico de forma mais conservadora: assunto recorrente fica visivel por padrao; remetente automatico ou rotina clara pode arquivar.
+      </p>
+    </div>
+
+    <div class="actions">
+      <button class="primary" onclick="abrirAba('Regras')">Revisar regras agora</button>
+      <button class="secondary" onclick="abrirAba('Marcadores Manuais')">Ajustar marcadores</button>
+      <button class="ghost" onclick="google.script.host.close();">Fechar</button>
+    </div>
+  </div>
+
+  <script>
+    function abrirAba(nomeAba) {
+      google.script.run
+        .withSuccessHandler(function() {
+          google.script.host.close();
+        })
+        .irParaAba(nomeAba);
+    }
+  </script>
+</body>
+</html>

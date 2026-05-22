@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 12px; background-color: #0d1117; color: #c9d1d9; font-size: 12px; }
+    .section-title { font-size: 10px; color: #8b949e; text-transform: uppercase; margin: 15px 0 8px; border-bottom: 1px solid #30363d; padding-bottom: 3px; font-weight: bold; letter-spacing: 0.5px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .card { background: #161b22; padding: 10px; border-radius: 4px; border: 1px solid #30363d; text-align: center; }
+    .card h3 { margin: 0; font-size: 9px; color: #8b949e; }
+    .card p { margin: 4px 0 0; font-size: 18px; font-weight: bold; color: #f0f6fc; }
+    .progress-bg { background: #30363d; height: 8px; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: #238636; width: 0%; transition: width 0.8s ease-in-out; }
+    .api-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #21262d; }
+    .api-val { font-weight: bold; color: #58a6ff; }
+    #log-container { background: #000; padding: 8px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 10px; height: 200px; overflow-y: auto; color: #3fb950; border: 1px solid #30363d; margin-top: 10px; line-height: 1.3; }
+    .success { color: #3fb950; }
+    .error { color: #f85149; }
+    .info { color: #58a6ff; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="section-title">📊 STATUS DA OPERAÇÃO</div>
+  <div class="grid">
+    <div class="card"><h3>📦 TOTAL</h3><p id="total">0</p></div>
+    <div class="card"><h3>⏳ PENDENTE</h3><p id="pendente" style="color: #f85149;">0</p></div>
+    <div class="card"><h3>✅ MEMÓRIA</h3><p id="memoria" style="color: #3fb950;">0</p></div>
+    <div class="card"><h3>🤖 IA</h3><p id="ia" style="color: #58a6ff;">0</p></div>
+  </div>
+  <div class="progress-bg"><div id="bar" class="progress-fill"></div></div>
+  <div style="text-align:center; font-size: 10px; color: #8b949e;" id="percText">0% CONCLUÍDO</div>
+
+  <div class="section-title">🤖 SAÚDE DA API GEMINI</div>
+  <div class="api-row"><span>Cota Diária (RPD):</span> <span class="api-val" id="rpd">0/500</span></div>
+  <div class="api-row"><span>Velocidade (RPM):</span> <span class="api-val" id="rpm">0/15</span></div>
+  <div class="api-row"><span>Volume (TPM):</span> <span class="api-val" id="tpm">0k/250k</span></div>
+
+  <div class="section-title">🖥️ CONSOLE TÉCNICO</div>
+  <div id="log-container">Iniciando Sion IA...</div>
+
+  <script>
+    function update() {
+      google.script.run.registrarHeartbeatConsole();
+
+      google.script.run.withSuccessHandler(function(s) {
+        document.getElementById('total').innerText = s.operacao.total;
+        document.getElementById('memoria').innerText = s.operacao.memoria;
+        document.getElementById('ia').innerText = s.operacao.ia;
+        document.getElementById('pendente').innerText = s.operacao.pendentes;
+        document.getElementById('bar').style.width = s.operacao.perc + '%';
+        document.getElementById('percText').innerText = s.operacao.perc + '% CONCLUÍDO';
+
+        document.getElementById('rpd').innerText = s.api.rpd + '/500';
+        document.getElementById('rpm').innerText = s.api.rpm + '/15';
+        document.getElementById('tpm').innerText = (s.api.tpm / 1000).toFixed(0) + 'k/250k';
+      }).obterStatsRelatorio();
+
+      google.script.run.withSuccessHandler(function(logs) {
+        const div = document.getElementById('log-container');
+        div.innerHTML = logs.map(l => `<div class="${l.type}">[${l.time}] ${l.msg}</div>`).join('');
+        div.scrollTop = div.scrollHeight;
+      }).getSionLogs();
+    }
+
+    setInterval(update, 4000);
+    window.onload = update;
+  </script>
+</body>
+</html>

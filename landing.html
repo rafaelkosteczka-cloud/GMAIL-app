@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELEVE Gmail Redondo | Organize sua caixa de entrada em 1 dia</title>
+  <meta name="description" content="Metodo guiado com planilha, IA, etiquetas e filtros para organizar o Gmail em poucas horas.">
+  <style>
+    :root {
+      --ink: #15171a;
+      --muted: #68707d;
+      --paper: #fbfaf7;
+      --surface: #ffffff;
+      --line: #dedbd2;
+      --teal: #0f766e;
+      --mint: #d7f8ed;
+      --blue: #2563eb;
+      --amber: #f5b942;
+      --coral: #ef6f61;
+      --lavender: #e7ddff;
+      --shadow: 0 24px 70px rgba(21, 23, 26, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .nav {
+      align-items: center;
+      background: rgba(251, 250, 247, .9);
+      border-bottom: 1px solid rgba(222, 219, 210, .7);
+      display: flex;
+      height: 72px;
+      justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 72px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      font-weight: 850;
+    }
+
+    .logo-mark {
+      background: var(--ink);
+      border-radius: 8px;
+      display: grid;
+      height: 38px;
+      place-items: center;
+      position: relative;
+      width: 38px;
+    }
+
+    .logo-mark::before,
+    .logo-mark::after {
+      border-radius: 3px;
+      content: "";
+      display: block;
+      position: absolute;
+    }
+
+    .logo-mark::before {
+      background: var(--amber);
+      height: 18px;
+      left: 9px;
+      top: 9px;
+      transform: rotate(-8deg);
+      width: 20px;
+    }
+
+    .logo-mark::after {
+      background: var(--mint);
+      height: 9px;
+      left: 13px;
+      top: 15px;
+      transform: rotate(-8deg);
+      width: 12px;
+    }
+
+    .nav-links {
+      align-items: center;
+      display: flex;
+      gap: 22px;
+      color: #3d424a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .btn {
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      font-weight: 850;
+      gap: 10px;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(21, 23, 26, .18);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    .hero {
+      display: grid;
+      gap: clamp(34px, 5vw, 70px);
+      grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+      min-height: calc(100vh - 72px);
+      padding: clamp(42px, 7vw, 92px) clamp(20px, 5vw, 72px) 46px;
+    }
+
+    .hero-copy {
+      align-self: center;
+      max-width: 680px;
+    }
+
+    .eyebrow {
+      align-items: center;
+      background: var(--mint);
+      border: 1px solid #a4ead7;
+      border-radius: 999px;
+      color: #075f59;
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 850;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 8px 12px;
+    }
+
+    .dot {
+      background: var(--teal);
+      border-radius: 999px;
+      height: 8px;
+      width: 8px;
+    }
+
+    h1 {
+      font-size: clamp(46px, 7vw, 86px);
+      letter-spacing: 0;
+      line-height: .94;
+      margin: 0;
+      max-width: 760px;
+    }
+
+    .highlight {
+      color: var(--coral);
+    }
+
+    .lead {
+      color: #4e5662;
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.55;
+      margin: 24px 0 0;
+      max-width: 640px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .trust-pill {
+      background: rgba(255, 255, 255, .7);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #4e5662;
+      font-size: 13px;
+      font-weight: 750;
+      padding: 8px 11px;
+    }
+
+    .hero-stage {
+      align-self: center;
+      min-height: 560px;
+      position: relative;
+    }
+
+    .inbox-visual {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .inbox-top {
+      align-items: center;
+      background: #f5f3ed;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 8px;
+      height: 42px;
+      padding: 0 14px;
+    }
+
+    .window-dot {
+      border-radius: 999px;
+      height: 10px;
+      width: 10px;
+    }
+
+    .red { background: var(--coral); }
+    .yellow { background: var(--amber); }
+    .green { background: var(--teal); }
+
+    .inbox-grid {
+      display: grid;
+      grid-template-columns: 166px 1fr;
+      min-height: 410px;
+    }
+
+    .sidebar {
+      background: #faf8f2;
+      border-right: 1px solid var(--line);
+      padding: 18px 12px;
+    }
+
+    .side-item {
+      align-items: center;
+      border-radius: 8px;
+      color: #4e5662;
+      display: flex;
+      font-size: 13px;
+      font-weight: 800;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding: 9px 10px;
+    }
+
+    .side-item.active {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .side-item.mint { background: var(--mint); color: #075f59; }
+    .side-item.lavender { background: var(--lavender); color: #51308d; }
+    .side-item.amber { background: #ffe8a3; color: #735400; }
+
+    .mail-list {
+      padding: 18px;
+    }
+
+    .mail-row {
+      align-items: center;
+      animation: floatRow 7s ease-in-out infinite;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 10px minmax(90px, 120px) 1fr auto;
+      margin-bottom: 10px;
+      padding: 12px;
+    }
+
+    .mail-row:nth-child(2) { animation-delay: -.8s; }
+    .mail-row:nth-child(3) { animation-delay: -1.6s; }
+    .mail-row:nth-child(4) { animation-delay: -2.4s; }
+    .mail-row:nth-child(5) { animation-delay: -3.2s; }
+
+    @keyframes floatRow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .priority {
+      border-radius: 999px;
+      height: 10px;
+      width: 10px;
+    }
+
+    .from {
+      color: #262a30;
+      font-size: 13px;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .subject {
+      color: #565f6c;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .label {
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 850;
+      padding: 5px 8px;
+      white-space: nowrap;
+    }
+
+    .label.client { background: var(--mint); color: #075f59; }
+    .label.finance { background: #ffe8a3; color: #735400; }
+    .label.urgent { background: #ffe0dc; color: #a93628; }
+    .label.auto { background: var(--lavender); color: #51308d; }
+
+    .automation-card {
+      background: var(--ink);
+      border-radius: 8px;
+      bottom: 4px;
+      box-shadow: 0 26px 70px rgba(21, 23, 26, .28);
+      color: #fff;
+      left: -28px;
+      padding: 18px;
+      position: absolute;
+      width: min(320px, 70vw);
+    }
+
+    .automation-card strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .sheet-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      bottom: -32px;
+      box-shadow: 0 20px 56px rgba(21, 23, 26, .16);
+      padding: 12px;
+      position: absolute;
+      right: 8px;
+      width: min(420px, 76vw);
+    }
+
+    .sheet-header,
+    .sheet-row {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1.2fr .8fr 1fr;
+    }
+
+    .sheet-header span,
+    .sheet-row span {
+      border-radius: 5px;
+      font-size: 11px;
+      overflow: hidden;
+      padding: 8px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sheet-header span {
+      background: var(--ink);
+      color: #fff;
+      font-weight: 850;
+    }
+
+    .sheet-row span {
+      background: #f7f5ef;
+      color: #555d68;
+      margin-top: 6px;
+    }
+
+    section {
+      padding: 86px clamp(20px, 5vw, 72px);
+    }
+
+    .section-head {
+      margin: 0 auto 42px;
+      max-width: 780px;
+      text-align: center;
+    }
+
+    .section-kicker {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: clamp(34px, 5vw, 58px);
+      letter-spacing: 0;
+      line-height: 1;
+      margin: 0;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+      margin: 18px auto 0;
+      max-width: 680px;
+    }
+
+    .pain-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pain-card,
+    .step-card,
+    .offer-card,
+    .calc-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .pain-card {
+      min-height: 210px;
+      padding: 22px;
+    }
+
+    .pain-card strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.18;
+      margin-bottom: 12px;
+    }
+
+    .pain-card p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .badge-icon {
+      align-items: center;
+      border-radius: 8px;
+      display: flex;
+      font-size: 18px;
+      font-weight: 900;
+      height: 42px;
+      justify-content: center;
+      margin-bottom: 18px;
+      width: 42px;
+    }
+
+    .badge-icon.coral { background: #ffe0dc; color: #9f3125; }
+    .badge-icon.amber { background: #ffe8a3; color: #735400; }
+    .badge-icon.mint { background: var(--mint); color: #075f59; }
+    .badge-icon.blue { background: #dbeafe; color: #1d4ed8; }
+
+    .method {
+      background: #15171a;
+      color: #fff;
+    }
+
+    .method .section-kicker,
+    .method .section-head p {
+      color: #d7f8ed;
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .step-card {
+      background: #202329;
+      border-color: #343940;
+      min-height: 230px;
+      padding: 20px;
+    }
+
+    .step-num {
+      align-items: center;
+      background: var(--amber);
+      border-radius: 999px;
+      color: var(--ink);
+      display: flex;
+      font-weight: 950;
+      height: 36px;
+      justify-content: center;
+      margin-bottom: 18px;
+      width: 36px;
+    }
+
+    .step-card strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.18;
+      margin-bottom: 10px;
+    }
+
+    .step-card p {
+      color: #bec6d0;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .calculator {
+      display: grid;
+      gap: 22px;
+      grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
+      align-items: stretch;
+    }
+
+    .calc-copy {
+      align-self: center;
+    }
+
+    .calc-copy h2 {
+      max-width: 620px;
+    }
+
+    .calc-copy p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+      max-width: 600px;
+    }
+
+    .calc-card {
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .calc-row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      color: #555d68;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .field input {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 48px;
+      padding: 0 12px;
+      width: 100%;
+    }
+
+    .range-wrap {
+      margin: 10px 0 22px;
+    }
+
+    input[type="range"] {
+      accent-color: var(--coral);
+      width: 100%;
+    }
+
+    .calc-result {
+      background: var(--ink);
+      border-radius: 8px;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .calc-result span {
+      color: #c8d0da;
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .calc-result strong {
+      display: block;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1;
+      margin-top: 8px;
+    }
+
+    .deliverables {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: .95fr 1.05fr;
+      align-items: start;
+    }
+
+    .offer-card {
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .price {
+      align-items: end;
+      display: flex;
+      gap: 8px;
+      margin: 22px 0;
+    }
+
+    .price strong {
+      font-size: 64px;
+      letter-spacing: 0;
+      line-height: .9;
+    }
+
+    .price span {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .check-list li {
+      align-items: flex-start;
+      display: flex;
+      gap: 10px;
+      list-style: none;
+      color: #454c56;
+      line-height: 1.4;
+    }
+
+    .check {
+      align-items: center;
+      background: var(--mint);
+      border-radius: 999px;
+      color: var(--teal);
+      display: flex;
+      flex: 0 0 22px;
+      font-size: 13px;
+      font-weight: 950;
+      height: 22px;
+      justify-content: center;
+      margin-top: 1px;
+      width: 22px;
+    }
+
+    .proof-band {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      padding: 30px clamp(20px, 5vw, 72px);
+    }
+
+    .proof-item strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .proof-item span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      font-weight: 750;
+      margin-top: 6px;
+    }
+
+    .builder-brief {
+      background: #f4efe5;
+    }
+
+    .brief-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 0 auto;
+      max-width: 980px;
+      padding: 26px;
+    }
+
+    .brief-box pre {
+      color: #303640;
+      font-size: 14px;
+      line-height: 1.55;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .final-cta {
+      background: var(--ink);
+      color: #fff;
+      text-align: center;
+    }
+
+    .final-cta p {
+      color: #c8d0da;
+      font-size: 18px;
+      line-height: 1.55;
+      margin: 18px auto 28px;
+      max-width: 680px;
+    }
+
+    footer {
+      align-items: center;
+      background: #101114;
+      color: #aeb6c2;
+      display: flex;
+      font-size: 13px;
+      justify-content: space-between;
+      padding: 24px clamp(20px, 5vw, 72px);
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .calculator,
+      .deliverables {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-stage {
+        min-height: 620px;
+      }
+
+      .pain-grid,
+      .steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .nav {
+        height: auto;
+        padding-bottom: 14px;
+        padding-top: 14px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        padding-top: 36px;
+      }
+
+      h1 {
+        font-size: 45px;
+      }
+
+      .hero-stage {
+        min-height: 560px;
+      }
+
+      .inbox-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .mail-row {
+        grid-template-columns: 10px 1fr;
+      }
+
+      .from,
+      .subject,
+      .label {
+        grid-column: 2;
+      }
+
+      .automation-card {
+        left: 0;
+      }
+
+      .sheet-card {
+        right: 0;
+      }
+
+      .pain-grid,
+      .steps,
+      .proof-band,
+      .calc-row {
+        grid-template-columns: 1fr;
+      }
+
+      .price strong {
+        font-size: 52px;
+      }
+
+      footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav">
+      <a class="brand" href="#top" aria-label="ELEVE Gmail Redondo">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span>ELEVE Gmail Redondo</span>
+      </a>
+      <div class="nav-links">
+        <a href="#metodo">Metodo</a>
+        <a href="#calculadora">Diagnostico</a>
+        <a href="#oferta">O que recebe</a>
+        <a class="btn btn-primary" href="#oferta">Quero organizar</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="dot"></span> Planilha + IA + filtros do Gmail</div>
+          <h1>Sua caixa cheia pode virar um sistema <span class="highlight">em 1 dia.</span></h1>
+          <p class="lead">
+            Um metodo guiado para mapear seus e-mails, criar etiquetas inteligentes e gerar filtros que deixam o Gmail trabalhando por voce.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#oferta">Entrar na lista de lancamento</a>
+            <a class="btn btn-secondary" href="#calculadora">Calcular meu caos</a>
+          </div>
+          <div class="trust-row">
+            <span class="trust-pill">Feito para quem nao e de TI</span>
+            <span class="trust-pill">Baseado em caso real com 34 mil e-mails</span>
+            <span class="trust-pill">Preco alvo: R$119</span>
+          </div>
+        </div>
+
+        <div class="hero-stage" aria-label="Demonstracao visual do Gmail organizado">
+          <div class="inbox-visual">
+            <div class="inbox-top">
+              <span class="window-dot red"></span>
+              <span class="window-dot yellow"></span>
+              <span class="window-dot green"></span>
+            </div>
+            <div class="inbox-grid">
+              <aside class="sidebar">
+                <div class="side-item active"><span>Entrada</span><b>34.218</b></div>
+                <div class="side-item mint"><span>Clientes</span><b>412</b></div>
+                <div class="side-item amber"><span>Financeiro</span><b>89</b></div>
+                <div class="side-item lavender"><span>Follow-up</span><b>27</b></div>
+                <div class="side-item"><span>Arquivo</span><b>limpo</b></div>
+              </aside>
+              <div class="mail-list">
+                <div class="mail-row">
+                  <span class="priority red"></span>
+                  <span class="from">Diretoria</span>
+                  <span class="subject">Pendencia urgente de aprovacao</span>
+                  <span class="label urgent">Urgente</span>
+                </div>
+                <div class="mail-row">
+                  <span class="priority yellow"></span>
+                  <span class="from">Fornecedor</span>
+                  <span class="subject">Nota e vencimento desta semana</span>
+                  <span class="label finance">Financeiro</span>
+                </div>
+                <div class="mail-row">
+                  <span class="priority green"></span>
+                  <span class="from">Cliente Alfa</span>
+                  <span class="subject">Contrato e alinhamento operacional</span>
+                  <span class="label client">Cliente</span>
+                </div>
+                <div class="mail-row">
+                  <span class="priority green"></span>
+                  <span class="from">Sistema</span>
+                  <span class="subject">Relatorio mensal recebido</span>
+                  <span class="label auto">Auto</span>
+                </div>
+                <div class="mail-row">
+                  <span class="priority yellow"></span>
+                  <span class="from">RH</span>
+                  <span class="subject">Documento para assinatura</span>
+                  <span class="label finance">Acao</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="automation-card">
+            <strong>82%</strong>
+            dos padroes encontrados ja podem virar etiqueta ou filtro.
+          </div>
+
+          <div class="sheet-card">
+            <div class="sheet-header">
+              <span>Remetente</span><span>Grupo</span><span>Marcador</span>
+            </div>
+            <div class="sheet-row">
+              <span>cliente@empresa.com</span><span>Cliente</span><span>5.Clientes/Ativo</span>
+            </div>
+            <div class="sheet-row">
+              <span>nfe@fornecedor.com</span><span>Financeiro</span><span>2.Financeiro/NF</span>
+            </div>
+            <div class="sheet-row">
+              <span>gestor@time.com</span><span>Prioridade</span><span>1.Urgente</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="proof-band">
+        <div class="proof-item">
+          <strong>34.218</strong>
+          <span>e-mails baguncados viraram o caso de origem do metodo</span>
+        </div>
+        <div class="proof-item">
+          <strong>5 etapas</strong>
+          <span>varredura, sugestao, IA, aprovacao e filtros</span>
+        </div>
+        <div class="proof-item">
+          <strong>1 dia</strong>
+          <span>para sair do susto inicial e ter um plano aplicado</span>
+        </div>
+      </div>
+
+      <section>
+        <div class="section-head">
+          <div class="section-kicker">O problema</div>
+          <h2>E-mail baguncado nao parece urgente ate custar reputacao.</h2>
+          <p>O Gmail vira uma gaveta infinita: tudo entra, nada tem prioridade, e voce so descobre o problema quando alguem cobra.</p>
+        </div>
+        <div class="pain-grid">
+          <article class="pain-card">
+            <div class="badge-icon coral">!</div>
+            <strong>Voce perde mensagens importantes</strong>
+            <p>Clientes, diretoria, fornecedores e faturas ficam misturados com notificacoes irrelevantes.</p>
+          </article>
+          <article class="pain-card">
+            <div class="badge-icon amber">h</div>
+            <strong>Horas somem em buscas repetidas</strong>
+            <p>Cada e-mail antigo vira uma pequena investigacao manual.</p>
+          </article>
+          <article class="pain-card">
+            <div class="badge-icon mint">✓</div>
+            <strong>Filtros manuais nao escalam</strong>
+            <p>Sem metodo, voce cria etiquetas demais e volta para o mesmo caos.</p>
+          </article>
+          <article class="pain-card">
+            <div class="badge-icon blue">AI</div>
+            <strong>A IA precisa de processo</strong>
+            <p>Ela ajuda muito mais quando existe uma planilha e uma regra de aprovacao.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="metodo" class="method">
+        <div class="section-head">
+          <div class="section-kicker">Como funciona</div>
+          <h2>Um roteiro simples para deixar o Gmail redondo.</h2>
+          <p>O produto junta o que voce ja tem: Gmail, planilha, Apps Script e IA. A diferenca e que tudo fica guiado.</p>
+        </div>
+        <div class="steps">
+          <article class="step-card">
+            <div class="step-num">1</div>
+            <strong>Escanear</strong>
+            <p>O sistema le remetentes e assuntos para entender o volume e os padroes.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-num">2</div>
+            <strong>Agrupar</strong>
+            <p>A planilha mostra categorias, nomes e caminhos de etiqueta sugeridos.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-num">3</div>
+            <strong>Refinar com IA</strong>
+            <p>A IA ajuda onde o padrao local nao chega: assunto confuso, remetente misto e nome ruim.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-num">4</div>
+            <strong>Aprovar</strong>
+            <p>Voce decide o que vira regra. Nada importante sai do seu controle.</p>
+          </article>
+          <article class="step-card">
+            <div class="step-num">5</div>
+            <strong>Aplicar</strong>
+            <p>O sistema gera a entrega para importar filtros e etiquetas no Gmail.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="calculadora">
+        <div class="calculator">
+          <div class="calc-copy">
+            <div class="section-kicker">Diagnostico gratuito</div>
+            <h2>Quanto custa a sua caixa desorganizada?</h2>
+            <p>Essa calculadora veio dos prototipos antigos e funciona muito bem como isca de entrada. A pessoa sente a dor antes de ver a oferta.</p>
+          </div>
+          <div class="calc-card">
+            <div class="calc-row">
+              <div class="field">
+                <label for="salary">Salario mensal medio</label>
+                <input id="salary" type="number" value="5000" min="0">
+              </div>
+              <div class="field">
+                <label for="team">Pessoas afetadas</label>
+                <input id="team" type="number" value="1" min="1">
+              </div>
+            </div>
+            <div class="field range-wrap">
+              <label for="minutes">Tempo perdido por dia: <span id="minutesLabel">45</span> min</label>
+              <input id="minutes" type="range" min="5" max="180" step="5" value="45">
+            </div>
+            <div class="calc-result">
+              <span>Prejuizo estimado por ano</span>
+              <strong id="moneyResult">R$ 0</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="oferta">
+        <div class="deliverables">
+          <div>
+            <div class="section-kicker">Oferta v1</div>
+            <h2>O que a pessoa recebe ao comprar.</h2>
+            <p class="lead">A promessa nao e uma aula solta. E um kit de implantacao para sair do caos e manter uma rotina simples.</p>
+          </div>
+          <article class="offer-card">
+            <div class="eyebrow"><span class="dot"></span> Lancamento recomendado</div>
+            <h3 style="font-size:32px;line-height:1;margin:0;">Metodo Gmail Redondo</h3>
+            <div class="price">
+              <strong>R$119</strong>
+              <span>acesso unico</span>
+            </div>
+            <ul class="check-list">
+              <li><span class="check">✓</span> Planilha inteligente para mapear e-mails, remetentes e etiquetas.</li>
+              <li><span class="check">✓</span> Apps Script com menu guiado e painel de progresso.</li>
+              <li><span class="check">✓</span> Gerador de filtros para Gmail.</li>
+              <li><span class="check">✓</span> Guia de boas-vindas para implantar em 1 dia.</li>
+              <li><span class="check">✓</span> Checklist de manutencao semanal.</li>
+              <li><span class="check">✓</span> Bonus: calculadora do caos e modelos de etiquetas.</li>
+            </ul>
+            <a class="btn btn-primary" style="margin-top:24px;width:100%;" href="mailto:contato@sion.local?subject=Quero%20o%20Gmail%20Redondo">Quero entrar no lancamento</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="builder-brief">
+        <div class="section-head">
+          <div class="section-kicker">Para Lovable / Builder</div>
+          <h2>Brief pronto para evoluir a pagina.</h2>
+          <p>Use este bloco como direcao se quiser jogar em um construtor visual e pedir uma versao mais animada.</p>
+        </div>
+        <div class="brief-box">
+          <pre>Crie uma landing page premium em portugues para o produto "ELEVE Gmail Redondo".
+Promessa: organizar uma caixa de Gmail caotica em 1 dia usando planilha, IA, etiquetas e filtros.
+Publico: profissionais desorganizados, novos gestores, administrativo/financeiro e pequenas equipes.
+Visual: limpo, moderno, produtivo, acessivel. Evitar cara de curso generico. Usar mockups reais de Gmail/Google Sheets, etiquetas coloridas e antes/depois.
+Secoes: hero com inbox cheia virando sistema; dor; metodo em 5 passos; calculadora do caos; o que recebe; preco R$119; FAQ; CTA.
+Tom: humano, direto, aliviador. Menos enterprise, mais "vou te guiar".
+Animações: scrolling fluido, e-mails sendo etiquetados, numeros caindo de 34.218 para organizado, planilha preenchendo linhas, filtros conectando remetente a etiqueta.</pre>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <h2>Primeiro a gente deixa a caixa redonda. Depois vira assinatura.</h2>
+        <p>O caminho natural e validar o kit de R$119, medir antes/depois com usuarios reais e depois criar pacotes recorrentes de manutencao, regras por area e suporte assistido.</p>
+        <a class="btn btn-primary" style="background:#fff;color:var(--ink);" href="#top">Voltar para o topo</a>
+      </section>
+    </main>
+
+    <footer>
+      <span>ELEVE Gmail Redondo</span>
+      <span>Produto em estruturacao dentro de APP-Gmail</span>
+    </footer>
+  </div>
+
+  <script>
+    const formatter = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0
+    });
+
+    const salary = document.getElementById('salary');
+    const team = document.getElementById('team');
+    const minutes = document.getElementById('minutes');
+    const minutesLabel = document.getElementById('minutesLabel');
+    const moneyResult = document.getElementById('moneyResult');
+
+    function updateCalculator() {
+      const monthlySalary = Number(salary.value || 0);
+      const people = Math.max(1, Number(team.value || 1));
+      const minutesPerDay = Number(minutes.value || 0);
+      const hourlyRate = monthlySalary / 160;
+      const annualHours = (minutesPerDay / 60) * 240 * people;
+      const annualCost = annualHours * hourlyRate;
+
+      minutesLabel.textContent = minutesPerDay;
+      moneyResult.textContent = formatter.format(annualCost);
+    }
+
+    [salary, team, minutes].forEach((input) => {
+      input.addEventListener('input', updateCalculator);
+    });
+
+    updateCalculator();
+  </script>
+</body>
+</html>
+

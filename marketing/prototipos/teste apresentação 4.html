@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass: Automação Sion</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Fonte Google Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        sion: {
+                            blue: '#0984E3',
+                            light: '#E6F0FA',
+                            dark: '#003d82',
+                            accent: '#FFD04B',
+                            red: '#FF7675',
+                            green: '#00B894'
+                        },
+                        brutal: {
+                            dark: '#2D3436',
+                            bg: '#F4F4F9'
+                        }
+                    },
+                    boxShadow: {
+                        'brutal': '6px 6px 0px #2D3436',
+                        'brutal-lg': '8px 8px 0px #2D3436',
+                        'brutal-sm': '4px 4px 0px #2D3436',
+                        'brutal-blue': '6px 6px 0px #0984E3',
+                        'brutal-yellow': '6px 6px 0px #FFD04B',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F4F4F9;
+            background-image: radial-gradient(#2D3436 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+            overflow: hidden;
+            color: #2D3436;
+        }
+        
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Estilos base Brutalistas */
+        .brutal-border { border: 2px solid #2D3436; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between relative">
+
+    <!-- Indicador de Progresso -->
+    <div class="w-full h-2 bg-white brutal-border fixed top-0 left-0 z-50">
+        <div id="progress-bar" class="h-full bg-sion-blue transition-all duration-500 w-0"></div>
+    </div>
+
+    <main class="flex-1 flex items-center justify-center p-8 relative w-full max-w-7xl mx-auto h-full mt-6">
+
+        <!-- SLIDE 1: CAPA -->
+        <div class="slide active flex-col items-center text-center w-full" id="slide-1">
+            <div class="bg-sion-accent p-16 rounded-md brutal-border shadow-brutal-lg max-w-4xl w-full relative -rotate-1">
+                <div class="absolute -top-10 -right-10 bg-sion-blue text-white w-20 h-20 flex items-center justify-center rounded-full shadow-brutal-sm rotate-12 brutal-border">
+                    <i class="fa-brands fa-google text-4xl"></i>
+                </div>
+                <h1 class="text-6xl font-extrabold mb-6 leading-tight">
+                    Dominando as <br> Etiquetas do Gmail
+                </h1>
+                <p class="text-2xl font-mono text-brutal-dark">
+                    Um framework passo a passo para organizar sua caixa de entrada na Sion.
+                </p>
+                <div class="mt-12 inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full font-bold brutal-border shadow-brutal-sm text-lg animate-bounce">
+                    <i class="fa-solid fa-arrow-right text-sion-blue"></i>
+                    <span>Use as setas para navegar</span>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold flex items-center gap-3">
+                <i class="fa-solid fa-flag-checkered text-sion-blue"></i> Início do Framework
+            </div>
+        </div>
+
+        <!-- SLIDE 2: O PROBLEMA -->
+        <div class="slide flex-col w-full" id="slide-2">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-brutal-dark text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Sua caixa de entrada está fora de controle?</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-16">
+                <div class="flex-1 relative h-96">
+                    <div class="absolute top-0 left-4 bg-white brutal-border p-4 shadow-brutal font-mono font-bold flex items-start gap-3 w-80 -rotate-3">
+                        <i class="fa-solid fa-envelope-open-text text-2xl"></i> Centenas de e-mails não lidos acumulados diariamente
+                    </div>
+                    <div class="absolute top-24 left-40 bg-sion-accent brutal-border p-4 shadow-brutal font-mono font-bold flex items-start gap-3 w-80 rotate-3 z-10">
+                        <i class="fa-solid fa-magnifying-glass-minus text-2xl"></i> Dificuldade em encontrar mensagens cruciais de clientes
+                    </div>
+                    <div class="absolute top-48 left-0 bg-white brutal-border p-4 shadow-brutal font-mono font-bold flex items-start gap-3 w-80 -rotate-2">
+                        <i class="fa-solid fa-hourglass-empty text-2xl"></i> Tempo desperdiçado configurando o Gmail
+                    </div>
+                    <div class="absolute top-64 left-32 bg-white brutal-border p-4 shadow-brutal font-mono font-bold flex items-start gap-3 w-80 rotate-2 z-20">
+                        <i class="fa-solid fa-arrow-trend-down text-2xl text-red-500"></i> Sem organização, nossa produtividade cai.
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="bg-sion-blue brutal-border p-12 shadow-brutal-lg text-white rotate-1 rounded-md">
+                        <h3 class="text-4xl font-extrabold mb-6 flex items-center gap-4"><i class="fa-solid fa-lightbulb text-sion-accent"></i> A Solução</h3>
+                        <p class="font-mono text-xl leading-relaxed">
+                            As <span class="bg-sion-accent text-brutal-dark px-2 font-bold rounded">etiquetas do Gmail</span> aliadas ao nosso sistema automatizado são a ferramenta mais poderosa para o seu dia a dia.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">O Problema</div>
+        </div>
+
+        <!-- SLIDE 3: CONCEITO -->
+        <div class="slide flex-col w-full" id="slide-3">
+            <div class="flex items-center gap-5 mb-8 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Etiquetas: mais do que simples pastas</h2>
+            </div>
+            
+            <div class="flex flex-col w-full max-w-5xl mx-auto gap-6">
+                <div class="flex gap-6 w-full">
+                    <div class="flex-1 bg-white brutal-border rounded-md p-8 shadow-brutal flex flex-col items-center text-center">
+                        <h3 class="text-3xl font-mono font-bold border-b-2 border-dashed border-brutal-dark pb-3 mb-6 w-full">Pastas Tradicionais</h3>
+                        <div class="font-mono font-bold text-lg text-slate-500 mb-6">Movem o e-mail (Outlook)</div>
+                        <ul class="text-left font-mono text-lg space-y-4 w-full">
+                            <li><i class="fa-solid fa-xmark text-sion-red mr-3"></i> O e-mail sai da caixa de entrada</li>
+                            <li><i class="fa-solid fa-xmark text-sion-red mr-3"></i> Pode estar em apenas UM lugar</li>
+                            <li><i class="fa-solid fa-xmark text-sion-red mr-3"></i> Difícil categorização múltipla</li>
+                        </ul>
+                    </div>
+                    <div class="flex-1 bg-white brutal-border rounded-md p-8 shadow-brutal flex flex-col items-center text-center">
+                        <h3 class="text-3xl font-mono font-bold border-b-2 border-dashed border-brutal-dark pb-3 mb-6 w-full">Etiquetas do Gmail</h3>
+                        <div class="flex gap-3 mb-6">
+                            <span class="px-4 py-1 brutal-border rounded-full font-mono font-bold shadow-brutal-sm bg-sion-red">Urgente</span>
+                            <span class="px-4 py-1 brutal-border rounded-full font-mono font-bold shadow-brutal-sm bg-sion-blue text-white">Sion</span>
+                        </div>
+                        <ul class="text-left font-mono text-lg space-y-4 w-full">
+                            <li><i class="fa-solid fa-check text-sion-green mr-3"></i> Categorias visuais coloridas</li>
+                            <li><i class="fa-solid fa-check text-sion-green mr-3"></i> MÚLTIPLAS etiquetas por e-mail</li>
+                            <li><i class="fa-solid fa-check text-sion-green mr-3"></i> Mantém o e-mail visível e organizado</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-sion-accent brutal-border rounded-md p-5 shadow-brutal text-2xl font-extrabold text-center flex items-center justify-center gap-4 -rotate-1">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Ao contrário de pastas, etiquetas NÃO movem o e-mail — elas o classificam!</span>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Conceito</div>
+        </div>
+
+        <!-- SLIDE 4: PASSO 1 -->
+        <div class="slide flex-col w-full" id="slide-4">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-accent text-brutal-dark rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-1"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Antes de criar: planeje sua estrutura</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12">
+                <div class="flex-1 flex flex-col gap-6">
+                    <div class="bg-white brutal-border p-6 shadow-brutal font-mono text-lg flex items-start gap-4 rounded-md">
+                        <i class="fa-solid fa-map text-sion-blue text-2xl mt-1"></i> Mapeie as categorias da sua vida digital (Clientes, Encargos, Entregas).
+                    </div>
+                    <div class="bg-white brutal-border p-6 shadow-brutal font-mono text-lg flex items-start gap-4 rounded-md">
+                        <i class="fa-solid fa-sitemap text-sion-blue text-2xl mt-1"></i> Defina uma hierarquia clara: etiquetas principais e subetiquetas.
+                    </div>
+                    <div class="bg-white brutal-border p-6 shadow-brutal font-mono text-lg flex items-start gap-4 rounded-md">
+                        <i class="fa-solid fa-ban text-red-500 text-2xl mt-1"></i> Evite criar etiquetas demais — isso gera o mesmo caos que não ter nenhuma.
+                    </div>
+                </div>
+                <div class="flex-1 bg-slate-200 brutal-border border-dashed p-8 rounded-md relative flex flex-col items-center">
+                    <div class="font-mono font-bold text-xl mb-8 bg-brutal-dark text-white px-6 py-2 rounded-full">Quadro de Planejamento Sion</div>
+                    <div class="flex flex-col items-start w-full gap-4 relative pl-10">
+                        <div class="bg-sion-accent brutal-border px-8 py-3 font-extrabold text-2xl shadow-brutal-sm -rotate-2 z-10">5.Clientes</div>
+                        <div class="absolute border-l-2 border-b-2 border-dashed border-brutal-dark w-10 h-12 top-10 left-16"></div>
+                        <div class="bg-sion-blue text-white brutal-border px-6 py-2 font-extrabold text-xl shadow-brutal-sm rotate-1 ml-10 z-10">01_Atacado</div>
+                        <div class="absolute border-l-2 border-b-2 border-dashed border-brutal-dark w-10 h-12 top-24 left-24"></div>
+                        <div class="bg-green-300 brutal-border px-6 py-2 font-extrabold text-lg shadow-brutal-sm -rotate-1 ml-20 z-10">Agrícola Ferrari</div>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-sion-blue text-white brutal-border rounded-md px-8 py-4 shadow-brutal font-extrabold text-xl flex items-center gap-4">
+                <i class="fa-solid fa-pen-to-square"></i> Ação: Nossa planilha V2 já tem essa hierarquia pronta para você!
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 1 de 7</div>
+        </div>
+
+        <!-- SLIDE 5: PASSO 2 -->
+        <div class="slide flex-col w-full" id="slide-5">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">PASSO 2: Criando as Etiquetas</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12">
+                <div class="flex-[1.5] flex flex-col gap-5 relative">
+                    <div class="absolute left-10 top-0 bottom-0 w-1 border-l-4 border-dotted border-brutal-dark -z-10"></div>
+                    
+                    <div class="bg-white brutal-border p-5 shadow-brutal flex items-center gap-5 rounded-md">
+                        <div class="bg-brutal-dark text-white w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xl flex-shrink-0">1</div>
+                        <div class="font-mono text-lg">Acesse as configurações do Gmail e vá até a aba <strong class="text-sion-blue">Etiquetas</strong>.</div>
+                    </div>
+                    <div class="bg-white brutal-border p-5 shadow-brutal flex items-center gap-5 rounded-md">
+                        <div class="bg-brutal-dark text-white w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xl flex-shrink-0">2</div>
+                        <div class="font-mono text-lg">Role a página e clique no botão <strong class="text-sion-blue">"Criar nova etiqueta"</strong>.</div>
+                    </div>
+                    <div class="bg-white brutal-border p-5 shadow-brutal flex items-center gap-5 rounded-md">
+                        <div class="bg-brutal-dark text-white w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xl flex-shrink-0">3</div>
+                        <div class="font-mono text-lg">Para subetiquetas: ative a opção <strong>"Aninhar etiqueta em"</strong> e selecione a etiqueta pai.</div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col gap-10">
+                    <div class="bg-brutal-dark text-white brutal-border p-8 rounded-md shadow-brutal-blue font-mono">
+                        <div class="text-sion-accent text-xl mb-4 font-bold"><i class="fa-solid fa-route"></i> O Caminho</div>
+                        <div class="leading-loose text-lg">
+                            Gmail <i class="fa-solid fa-arrow-right text-sion-blue mx-2"></i> Config. (⚙️) <br>
+                            <i class="fa-solid fa-arrow-right text-sion-blue mx-2"></i> Ver todas as config. <br>
+                            <i class="fa-solid fa-arrow-right text-sion-blue mx-2"></i> <strong>Etiquetas</strong>
+                        </div>
+                    </div>
+                    <div class="bg-sion-accent brutal-border p-8 rounded-md shadow-brutal rotate-2 relative">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-sion-red rounded-full brutal-border shadow-brutal-sm"></div>
+                        <h3 class="text-2xl font-bold mb-4"><i class="fa-solid fa-bolt"></i> O Segredo Sion</h3>
+                        <p class="font-mono text-lg">Se você usar o nosso arquivo <strong>SION_ESTRUTURA.xml</strong>, o sistema cria todas as 150 pastas para você de uma só vez!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 2 de 7</div>
+        </div>
+
+        <!-- SLIDE 6: PASSO 3 -->
+        <div class="slide flex-col w-full" id="slide-6">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-white text-brutal-dark rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-palette text-pink-500"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">PASSO 3: Cores visuais</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12">
+                <div class="flex-1 bg-white brutal-border p-8 shadow-brutal rounded-md font-mono text-lg">
+                    <ul class="space-y-6">
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-ellipsis-vertical text-sion-blue text-2xl"></i> Clique nos 3 pontos ao lado de cada etiqueta na barra lateral do Gmail.</li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-fill-drip text-sion-blue text-2xl"></i> Selecione "Cor da etiqueta".</li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-traffic-light text-sion-blue text-2xl"></i> A consistência de cores cria um sistema de semáforos para leitura rápida de e-mails.</li>
+                    </ul>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center justify-center gap-6">
+                    <div class="w-4/5 bg-sion-red text-white p-5 brutal-border rounded-md font-mono font-bold text-2xl flex items-center gap-5 shadow-brutal -rotate-2">
+                        <div class="w-10 h-10 bg-white text-brutal-dark rounded-full brutal-border flex items-center justify-center"><i class="fa-solid fa-fire"></i></div>
+                        Vermelho = Urgente
+                    </div>
+                    <div class="w-4/5 bg-sion-green text-white p-5 brutal-border rounded-md font-mono font-bold text-2xl flex items-center gap-5 shadow-brutal rotate-2">
+                        <div class="w-10 h-10 bg-white text-brutal-dark rounded-full brutal-border flex items-center justify-center"><i class="fa-solid fa-check"></i></div>
+                        Verde = Entregue / OK
+                    </div>
+                    <div class="w-4/5 bg-sion-blue text-white p-5 brutal-border rounded-md font-mono font-bold text-2xl flex items-center gap-5 shadow-brutal -rotate-2">
+                        <div class="w-10 h-10 bg-white text-brutal-dark rounded-full brutal-border flex items-center justify-center"><i class="fa-solid fa-building"></i></div>
+                        Azul = Clientes Atacado
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-11/12 mx-auto mt-10 bg-sion-accent brutal-border rounded-md p-6 shadow-brutal font-extrabold text-2xl text-center flex items-center justify-center gap-4">
+                <i class="fa-solid fa-bullseye"></i> Em segundos, você identifica a categoria sem precisar abrir o e-mail.
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 3 de 7</div>
+        </div>
+
+        <!-- SLIDE 7: PASSO 4 -->
+        <div class="slide flex-col w-full" id="slide-7">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">PASSO 4: Aplicando Manualmente</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12 items-stretch">
+                <div class="flex-[1.2] flex flex-col gap-6 relative">
+                    <div class="absolute left-10 top-10 bottom-10 w-1 border-l-4 border-dotted border-brutal-dark -z-10"></div>
+                    
+                    <div class="bg-white brutal-border p-6 shadow-brutal flex items-start gap-5 rounded-md">
+                        <div class="bg-brutal-dark text-white w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xl flex-shrink-0 mt-1">1</div>
+                        <div>
+                            <strong class="font-sans text-2xl block mb-2">Selecione os e-mails</strong>
+                            <span class="font-mono text-lg">Marque a caixa de seleção ao lado de um ou mais e-mails na caixa de entrada.</span>
+                        </div>
+                    </div>
+                    <div class="bg-white brutal-border p-6 shadow-brutal flex items-start gap-5 rounded-md">
+                        <div class="bg-brutal-dark text-white w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xl flex-shrink-0 mt-1">2</div>
+                        <div>
+                            <strong class="font-sans text-2xl block mb-2">Clique no ícone</strong>
+                            <span class="font-mono text-lg">Na barra superior, clique no ícone de etiqueta (<i class="fa-solid fa-tag text-sion-blue"></i>).</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col gap-8">
+                    <div class="bg-sion-accent brutal-border p-10 rounded-md shadow-brutal rotate-2">
+                        <h3 class="text-3xl font-extrabold mb-4"><i class="fa-solid fa-dumbbell"></i> Exercício Prático</h3>
+                        <p class="font-mono text-xl font-bold leading-relaxed">Vá até o seu Gmail: selecione 10 e-mails e aplique as etiquetas que você planejou.</p>
+                    </div>
+                    <div class="bg-white brutal-border border-dashed p-6 rounded-md font-mono text-lg flex items-center gap-4 -rotate-1">
+                        <i class="fa-solid fa-circle-info text-sion-blue text-3xl"></i>
+                        <p><strong>Dica:</strong> Para e-mails abertos, use o menu "Mais" (três pontos) > "Etiquetar como".</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 4 de 7</div>
+        </div>
+
+        <!-- SLIDE 8: PASSO 5 (A MAGICA SION) -->
+        <div class="slide flex-col w-full" id="slide-8">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-brutal-dark text-sion-accent rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">PASSO 5: Filtros = Piloto Automático</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-8 items-center justify-between mb-8">
+                <div class="bg-white brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4">
+                    <div class="w-10 h-10 bg-brutal-dark text-white rounded-full flex items-center justify-center font-bold text-xl -mt-10 brutal-border">1</div>
+                    <h3 class="text-xl font-extrabold">Acessar Filtros</h3>
+                    <p class="font-mono">Configurações (⚙️) > Filtros > Criar novo filtro.</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-4xl text-slate-400"></i>
+                <div class="bg-white brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4">
+                    <div class="w-10 h-10 bg-brutal-dark text-white rounded-full flex items-center justify-center font-bold text-xl -mt-10 brutal-border">2</div>
+                    <h3 class="text-xl font-extrabold">Definir Critérios</h3>
+                    <p class="font-mono">Regras por remetente, palavras-chave ou assunto.</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-4xl text-slate-400"></i>
+                <div class="bg-sion-accent brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4">
+                    <div class="w-10 h-10 bg-brutal-dark text-white rounded-full flex items-center justify-center font-bold text-xl -mt-10 brutal-border">3</div>
+                    <h3 class="text-xl font-extrabold">Ação Automática</h3>
+                    <p class="font-mono">Selecione "Aplicar etiqueta" e "Ignorar Caixa de Entrada".</p>
+                </div>
+            </div>
+            
+            <div class="w-full max-w-6xl mx-auto bg-white brutal-border border-dashed p-8 rounded-md flex gap-8 items-center">
+                <div class="text-3xl font-extrabold w-1/3 flex items-center gap-4 text-sion-blue">
+                    <i class="fa-solid fa-bolt"></i> Automação Sion
+                </div>
+                <div class="font-mono text-xl flex-1 flex flex-col gap-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-file-excel text-green-600"></i> Preenchemos a <strong>Planilha V2</strong>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-code text-brutal-dark"></i> O Motor cria <strong>1 super-filtro</strong> para cada empresa
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-upload text-sion-blue"></i> Importamos o arquivo <strong>XML consolidado</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 5 de 7</div>
+        </div>
+
+        <!-- SLIDE 9: PASSO 6 -->
+        <div class="slide flex-col w-full" id="slide-9">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-eye"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">PASSO 6: O que aparece e o que fica oculto</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12">
+                <div class="flex-[1.2] bg-white brutal-border p-8 shadow-brutal rounded-md font-mono text-lg">
+                    <ul class="space-y-6">
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-filter text-sion-blue text-2xl"></i> Nem todas as etiquetas precisam aparecer na barra lateral.</li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-gear text-sion-blue text-2xl"></i> Configure em: <strong>Configurações > Etiquetas > Mostrar/Ocultar</strong>.</li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-star text-sion-accent text-2xl"></i> Etiquetas de alta prioridade (Rotinas) devem sempre estar visíveis.</li>
+                    </ul>
+                </div>
+                
+                <div class="flex-1 flex flex-col gap-6">
+                    <div class="bg-slate-200 brutal-border border-dashed p-6 rounded-md flex flex-col gap-4">
+                        <div class="font-mono font-bold text-xl text-center mb-2">Visibilidade</div>
+                        <div class="bg-white brutal-border p-3 flex justify-between items-center rounded-md font-bold font-mono text-lg shadow-brutal-sm">
+                            <span><i class="fa-solid fa-eye mr-2"></i> Mostrar</span>
+                            <i class="fa-solid fa-toggle-on text-sion-green text-3xl"></i>
+                        </div>
+                        <div class="bg-brutal-dark text-white brutal-border p-3 flex justify-between items-center rounded-md font-bold font-mono text-lg shadow-brutal-blue">
+                            <span><i class="fa-solid fa-envelope-open-text mr-2 text-sion-accent"></i> Mostrar se não lido</span>
+                            <i class="fa-solid fa-toggle-on text-sion-blue text-3xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-sion-accent brutal-border p-6 rounded-md shadow-brutal -rotate-2">
+                        <h3 class="text-2xl font-bold mb-2"><i class="fa-solid fa-bolt"></i> Dica de Ouro</h3>
+                        <p class="font-mono text-lg">Use a opção <strong>"Mostrar se não lido"</strong> para clientes secundários. A pasta só aparece na sua cara quando chega um e-mail novo!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 6 de 7</div>
+        </div>
+
+        <!-- SLIDE 10: PASSO 7 -->
+        <div class="slide flex-col w-full" id="slide-10">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Um bom sistema exige manutenção</h2>
+            </div>
+            
+            <div class="flex flex-wrap w-full max-w-6xl mx-auto gap-8 justify-center">
+                <div class="bg-sion-accent brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4 -rotate-2">
+                    <i class="fa-solid fa-calendar-week text-4xl"></i>
+                    <p class="font-mono text-lg font-bold">Reserve <strong>15 minutos por semana</strong> para revisar e arquivar e-mails acumulados.</p>
+                </div>
+                <div class="bg-white brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4 -rotate-1">
+                    <i class="fa-solid fa-trash-can text-4xl"></i>
+                    <p class="font-mono text-lg font-bold">Revise as regras a cada trimestre — <strong>elimine as etiquetas</strong> que não usa mais.</p>
+                </div>
+                <div class="bg-sion-light brutal-border p-6 w-80 shadow-brutal rounded-md flex flex-col gap-4 rotate-1 border-sion-blue">
+                    <i class="fa-solid fa-users text-4xl text-sion-blue"></i>
+                    <p class="font-mono text-lg font-bold text-sion-dark">Não guarde para você. Mantenha a <strong>Planilha V2</strong> atualizada para todo o setor.</p>
+                </div>
+            </div>
+            
+            <div class="w-11/12 mx-auto mt-12 bg-brutal-dark text-white brutal-border rounded-md p-6 shadow-brutal-yellow font-extrabold text-2xl text-center flex items-center justify-center gap-6">
+                <i class="fa-solid fa-brain text-sion-accent text-4xl"></i>
+                <span>O sistema de etiquetas é um organismo vivo — ajuste conforme a rotina evolui.</span>
+            </div>
+            
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Passo 7 de 7</div>
+        </div>
+
+        <!-- SLIDE 11: RESUMO (CHECKLIST) -->
+        <div class="slide flex-col w-full" id="slide-11">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-green text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Você completou o framework!</h2>
+            </div>
+            
+            <div class="w-full max-w-5xl mx-auto bg-white brutal-border p-10 rounded-md shadow-brutal relative">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-24 h-8 bg-brutal-dark rounded-sm"></div>
+                
+                <div class="grid grid-cols-2 gap-x-10 gap-y-6 mt-4">
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 1</span> Planejei minha estrutura
+                    </div>
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 2</span> Criei/Importei etiquetas
+                    </div>
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 3</span> Personalizei com cores
+                    </div>
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 4</span> Apliquei manualmente
+                    </div>
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 5</span> Importei os Filtros Auto
+                    </div>
+                    <div class="bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center gap-4">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 6</span> Gerenciei a visibilidade
+                    </div>
+                    <div class="col-span-2 bg-brutal-bg brutal-border p-4 rounded-md font-mono font-bold text-lg flex items-center justify-center gap-4 w-1/2 mx-auto">
+                        <i class="fa-solid fa-square-check text-sion-green text-2xl"></i>
+                        <span class="bg-sion-accent border border-brutal-dark px-2 rounded text-sm">Passo 7</span> Mantive a rotina
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-10/12 mx-auto mt-10 bg-sion-blue text-white brutal-border rounded-md p-6 shadow-brutal font-extrabold text-2xl text-center flex items-center justify-center gap-4 -rotate-1">
+                <i class="fa-solid fa-trophy text-sion-accent"></i> Agora temos um processo de organização confiável e escalável.
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold">Resumo</div>
+        </div>
+
+        <!-- SLIDE 12: CALL TO ACTION -->
+        <div class="slide flex-col w-full" id="slide-12">
+            <div class="flex items-center gap-5 mb-10 ml-10">
+                <div class="w-16 h-16 bg-sion-blue text-white rounded-md flex items-center justify-center text-3xl brutal-border shadow-brutal-sm">
+                    <i class="fa-solid fa-forward-step"></i>
+                </div>
+                <h2 class="text-5xl font-extrabold">Evolua sua organização digital</h2>
+            </div>
+            
+            <div class="flex w-full max-w-6xl mx-auto gap-12 items-center">
+                <div class="flex-[1.2] bg-white brutal-border p-10 shadow-brutal rounded-md">
+                    <h3 class="text-3xl font-extrabold mb-8 border-b-2 border-dashed border-brutal-dark pb-4 flex items-center gap-4">
+                        <i class="fa-solid fa-layer-group text-sion-blue"></i> Próximos Passos
+                    </h3>
+                    <ul class="font-mono text-lg space-y-6">
+                        <li class="flex items-start gap-4">
+                            <i class="fa-solid fa-users text-sion-blue text-2xl mt-1"></i> 
+                            <span>Mantenha a <strong>Planilha de Comunicações</strong> 100% preenchida.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <i class="fa-solid fa-calendar-check text-sion-blue text-2xl mt-1"></i> 
+                            <span>Integre suas pendências de e-mail ao <strong>Google Tasks</strong>.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <i class="fa-solid fa-check-double text-sion-blue text-2xl mt-1"></i> 
+                            <span>Pratique o <strong>Inbox Zero</strong>: leia, etiquete e ARQUIVE para limpar a visão.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="flex-1 flex justify-center">
+                    <div class="bg-sion-accent brutal-border p-12 shadow-brutal-lg rounded-md text-center relative rotate-3">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-sion-red rounded-full brutal-border shadow-brutal-sm"></div>
+                        <h3 class="text-4xl font-extrabold uppercase mb-6">Ação!</h3>
+                        <p class="font-mono text-2xl font-bold mb-6">Gere os arquivos no sistema e atualize seu Gmail hoje mesmo.</p>
+                        
+                        <button onclick="currentSlide = 0; updateSlides();" class="mt-4 inline-block bg-white brutal-border px-6 py-3 rounded-full font-bold text-xl hover:bg-slate-100 transition shadow-brutal-sm active:translate-y-1 active:shadow-none">
+                            <i class="fa-solid fa-rotate-left mr-2"></i> Recomeçar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 right-10 bg-white brutal-border rounded-full px-6 py-3 shadow-brutal-sm font-mono font-bold flex items-center gap-3">
+                <i class="fa-solid fa-flag-checkered text-sion-green"></i> Fim do Treinamento
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Controles de Navegação (Rodapé) -->
+    <footer class="w-full p-6 flex justify-between items-center bg-white border-t-2 border-slate-200 z-40 relative">
+        <div class="flex items-center gap-3">
+            <div class="bg-sion-blue text-white font-black text-xl w-10 h-10 flex items-center justify-center rounded-md brutal-border shadow-brutal-sm">S</div>
+            <span class="font-bold text-slate-800 text-lg">Sion Energia <span class="text-slate-400 font-normal text-sm ml-2">| Inovação Operacional</span></span>
+        </div>
+        
+        <div class="flex gap-4">
+            <button onclick="prevSlide()" class="w-12 h-12 rounded-full border-2 border-brutal-dark bg-white flex items-center justify-center text-brutal-dark hover:bg-slate-100 transition-all shadow-brutal-sm active:translate-y-1 active:shadow-none disabled:opacity-30 disabled:shadow-none disabled:translate-y-0" id="btn-prev" disabled>
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="nextSlide()" class="w-12 h-12 rounded-full brutal-border bg-sion-blue text-white flex items-center justify-center shadow-brutal-sm hover:bg-blue-600 transition-all active:translate-y-1 active:shadow-none" id="btn-next">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Lógica em JavaScript -->
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progress-bar');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Atualiza barra de progresso (calcula % baseado no index atual)
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+
+            // Atualiza botões
+            btnPrev.disabled = currentSlide === 0;
+            
+            if (currentSlide === slides.length - 1) {
+                btnNext.style.display = 'none';
+            } else {
+                btnNext.style.display = 'flex';
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+
+        // Navegação por teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        updateSlides();
+    </script>
+</body>
+</html>

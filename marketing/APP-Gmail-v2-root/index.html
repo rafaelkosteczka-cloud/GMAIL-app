@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ELEVE Gmail Redondo — Sua caixa cheia pode virar um sistema em 1 dia</title>
+<meta name="description" content="Método guiado para organizar Gmail caótico em 1 dia. Planilha, IA, etiquetas e filtros prontos. R$119, acesso único.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='3' y='9' width='22' height='16' rx='2.5' fill='%230f766e'/><path d='M3 11l11 7 11-7' stroke='%23fbfaf7' stroke-width='2' fill='none' stroke-linejoin='round'/><path d='M19 4l10 0 0 8-5-3-5 3z' fill='%23ef6f61'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #fbfaf7;
+  --bg-2: #f3f1ec;
+  --ink: #15171a;
+  --ink-soft: #4a4d54;
+  --ink-mute: #8a8d94;
+  --teal: #0f766e;
+  --teal-dark: #0a544e;
+  --mint: #d7f8ed;
+  --coral: #ef6f61;
+  --amber: #f5b942;
+  --blue: #2563eb;
+  --lavender: #e7ddff;
+  --line: rgba(21,23,26,0.08);
+  --shadow-sm: 0 1px 2px rgba(21,23,26,0.05);
+  --shadow-md: 0 8px 24px rgba(21,23,26,0.06);
+  --shadow-lg: 0 24px 60px rgba(21,23,26,0.10);
+  --radius: 8px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); }
+
+body {
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* ============ HEADER ============ */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 14px 24px;
+  background: rgba(251,250,247,0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+.logo svg { width: 28px; height: 28px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px;
+  border-radius: var(--radius);
+  font-family: inherit; font-weight: 600; font-size: 14px;
+  cursor: pointer; border: 0;
+  transition: all 0.18s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--teal); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-ghost { background: transparent; color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg); }
+.btn-large { padding: 18px 30px; font-size: 16px; border-radius: 10px; }
+
+/* ============ HERO v2 — Cinematic Laptop ============ */
+.hero {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fbfaf7 0%, #f0eadf 100%);
+}
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ambient-scene { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.amb-glow {
+  position: absolute;
+  top: 12%; right: 4%;
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(245,185,66,0.22), transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+.amb-glow.left {
+  top: auto; right: auto;
+  bottom: 8%; left: 6%;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(15,118,110,0.18), transparent 70%);
+}
+.desk-decor { position: absolute; }
+.desk-plant { bottom: 8%; left: 4%; width: 140px; }
+.desk-mug { bottom: 14%; right: 6%; width: 96px; }
+.desk-notebook { top: 18%; left: 8%; width: 150px; transform: rotate(-8deg); }
+.desk-pen { top: 22%; right: 9%; width: 90px; transform: rotate(20deg); }
+.desk-headphones { bottom: 10%; right: 18%; width: 110px; opacity: 0.7; }
+
+/* Laptop */
+.laptop-wrap {
+  position: relative;
+  z-index: 2;
+  will-change: transform;
+}
+.laptop {
+  width: 880px;
+  max-width: 92vw;
+  position: relative;
+  filter: drop-shadow(0 36px 60px rgba(0,0,0,0.20)) drop-shadow(0 8px 18px rgba(0,0,0,0.08));
+}
+.laptop-screen-bezel {
+  background: linear-gradient(180deg, #1a1c1f 0%, #0e1013 100%);
+  padding: 14px 14px 16px 14px;
+  border-radius: 18px 18px 4px 4px;
+  position: relative;
+}
+.laptop-screen-bezel::before {
+  content: '';
+  position: absolute;
+  top: 7px; left: 50%;
+  transform: translateX(-50%);
+  width: 7px; height: 7px;
+  background: #2a2c2f;
+  border-radius: 50%;
+  box-shadow: inset 0 0 2px rgba(255,255,255,0.2);
+}
+.laptop-screen {
+  background: white;
+  border-radius: 4px;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+.laptop-base {
+  height: 18px;
+  background: linear-gradient(180deg, #2a2c2f 0%, #1a1c1f 50%, #0e1013 100%);
+  border-radius: 0 0 16px 16px;
+  position: relative;
+  margin: 0 -24px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.20);
+}
+.laptop-base-notch {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 130px; height: 8px;
+  background: #0a0b0d;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Gmail mockup */
+.gmail {
+  width: 100%; height: 100%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  color: #202124;
+  overflow: hidden;
+}
+.gmail-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 16px;
+  border-bottom: 1px solid #e8eaed;
+  background: white;
+  flex-shrink: 0;
+}
+.gmail-burger { font-size: 16px; color: #5f6368; }
+.gmail-logo { display: flex; align-items: center; gap: 6px; font-weight: 500; color: #5f6368; font-size: 14px; }
+.gmail-logo-svg { width: 22px; height: 22px; }
+.gmail-search {
+  flex: 1;
+  display: flex; align-items: center; gap: 10px;
+  background: #f1f3f4;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: #5f6368;
+  font-size: 11px;
+  max-width: 480px;
+}
+.gmail-user-area { display: flex; align-items: center; gap: 12px; margin-left: auto; color: #5f6368; font-size: 13px; }
+.gmail-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a73e8, #4285f4);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 11px;
+}
+.gmail-body { flex: 1; display: flex; overflow: hidden; }
+.gmail-sidebar {
+  width: 19%;
+  min-width: 140px;
+  padding: 10px 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  font-size: 11px;
+  overflow: hidden;
+}
+.gmail-compose {
+  background: #c2e7ff;
+  color: #001d35;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 11px;
+  text-align: left;
+  display: flex; align-items: center; gap: 8px;
+  font-family: inherit;
+  width: 78%;
+  margin-bottom: 10px;
+}
+.gmail-compose .plus { font-size: 14px; line-height: 1; }
+.gmail-nav { list-style: none; padding: 0; margin: 0; }
+.gmail-nav li {
+  padding: 5px 12px;
+  border-radius: 100px 0 0 100px;
+  display: flex; align-items: center; gap: 12px;
+  color: #202124;
+  font-size: 11px;
+  margin: 1px 0;
+}
+.gmail-nav li.active { background: #d3e3fd; font-weight: 700; }
+.gmail-nav li .ic { font-size: 12px; opacity: 0.85; width: 14px; }
+.gmail-nav li .badge { margin-left: auto; font-size: 10px; font-weight: 600; color: #1a73e8; }
+.gmail-nav li.active .badge { color: #001d35; }
+.gmail-labels-section {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e8eaed;
+  margin-right: 8px;
+}
+.gmail-labels-section h5 {
+  font-size: 10px;
+  color: #5f6368;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 12px 6px;
+  margin: 0;
+}
+.gmail-labels { list-style: none; padding: 0; margin: 0; }
+.gmail-labels li {
+  padding: 4px 12px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px;
+  color: #202124;
+  border-radius: 100px 0 0 100px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease, background 0.2s ease;
+}
+.gmail-labels li.visible { opacity: 1; transform: translateX(0); }
+.gmail-labels li .label-dot {
+  width: 11px; height: 11px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.gmail-labels li .label-count {
+  margin-left: auto;
+  color: #5f6368;
+  font-size: 10px;
+}
+
+.gmail-list { flex: 1; overflow: hidden; background: white; display: flex; flex-direction: column; }
+.gmail-tabs {
+  display: flex;
+  border-bottom: 1px solid #e8eaed;
+  padding: 0 8px;
+  background: white;
+  flex-shrink: 0;
+}
+.gmail-tabs .tab {
+  padding: 12px 22px;
+  font-size: 11px;
+  color: #5f6368;
+  border-bottom: 3px solid transparent;
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 500;
+}
+.gmail-tabs .tab.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 700; }
+.gmail-tabs .tab small { color: #5f6368; font-weight: 400; font-size: 10px; }
+.gmail-rows { overflow: hidden; flex: 1; }
+.gmail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  border-bottom: 1px solid #f1f3f4;
+  font-size: 11px;
+  position: relative;
+  transition: background 0.2s ease;
+}
+.gmail-row:hover { background: #f5f6f7; }
+.gmail-row .check { width: 11px; height: 11px; border: 1.5px solid #5f6368; border-radius: 1px; flex-shrink: 0; }
+.gmail-row .star { color: #dadce0; font-size: 11px; flex-shrink: 0; line-height: 1; }
+.gmail-row .from { width: 18%; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.gmail-row .subj { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 8px; }
+.gmail-row .subj b { font-weight: 600; color: #202124; }
+.gmail-row .subj span.preview { color: #5f6368; font-weight: 400; }
+.gmail-row .pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-right: 6px;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gmail-row.has-label .pill { opacity: 1; transform: scale(1); }
+.gmail-row .time { color: #5f6368; font-size: 10px; flex-shrink: 0; min-width: 40px; text-align: right; }
+.gmail-row.unread .from, .gmail-row.unread .subj b { color: #202124; font-weight: 700; }
+.gmail-row.unread { background: white; }
+.gmail-row.read .from { font-weight: 400; color: #5f6368; }
+.gmail-row.read .subj b { font-weight: 400; color: #5f6368; }
+.gmail-row.read .subj span.preview { color: #80868b; }
+
+.pill.urg { background: rgba(239,111,97,0.18); color: #c44537; }
+.pill.cli { background: rgba(15,118,110,0.18); color: #0a544e; }
+.pill.fin { background: rgba(245,185,66,0.25); color: #92670c; }
+.pill.foll { background: #e7ddff; color: #5a3fb1; }
+.pill.dir { background: rgba(37,99,235,0.18); color: #1d4ed8; }
+.pill.notas { background: rgba(155,217,192,0.45); color: #2d6b58; }
+
+.scan-line {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 60px;
+  background: linear-gradient(180deg, transparent, rgba(15,118,110,0.20), transparent);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 8;
+}
+
+.floating-pool {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+.floating-pill {
+  position: absolute;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.20), 0 2px 6px rgba(0,0,0,0.10);
+  white-space: nowrap;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.floating-pill .dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Hero text overlays */
+.hero-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 64px;
+  pointer-events: none;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.hero-content > * { pointer-events: auto; }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: rgba(15,118,110,0.10);
+  color: var(--teal-dark);
+  border-radius: 100px;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 28px;
+  backdrop-filter: blur(8px);
+}
+.hero-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+.hero h1, .phase2 h2, .phase3 h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+  color: var(--ink);
+}
+.hero h1 {
+  font-size: clamp(40px, 6.4vw, 88px);
+  max-width: 16ch;
+  margin-bottom: 24px;
+}
+.hero h1 em { font-style: italic; color: var(--teal); }
+.hero p.lead {
+  font-size: clamp(17px, 1.4vw, 21px);
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin-bottom: 36px;
+}
+.hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+.phase2, .phase3 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  width: 90%;
+  max-width: 760px;
+  padding: 0 24px;
+}
+.phase2 .hero-tag { background: rgba(239,111,97,0.16); color: #c44537; }
+.phase2 .hero-tag .dot { background: var(--coral); }
+.phase2 h2, .phase3 h2 {
+  font-size: clamp(32px, 4.8vw, 60px);
+  margin-bottom: 14px;
+}
+.phase2 h2 em { font-style: italic; color: var(--coral); }
+.phase3 h2 em { font-style: italic; color: var(--teal); }
+.phase3 p { color: var(--ink-soft); font-size: 17px; }
+
+.hero-counter {
+  position: absolute;
+  bottom: 56px; right: 56px;
+  z-index: 7;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.hero-counter .num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  transition: color 0.4s ease;
+}
+.hero-counter.organized .num { color: var(--teal); }
+.hero-counter.alert .num { color: var(--coral); animation: shake 0.6s ease-in-out infinite; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+.hero-counter .label {
+  font-size: 12px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  margin-top: 8px;
+  font-weight: 500;
+}
+.scroll-hint {
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  font-size: 12px; color: var(--ink-mute);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.scroll-hint .arrow {
+  width: 1px; height: 28px; background: var(--ink-mute);
+  position: relative;
+}
+.scroll-hint .arrow::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 6px; height: 6px;
+  border-right: 1px solid var(--ink-mute);
+  border-bottom: 1px solid var(--ink-mute);
+}
+
+/* ============ SECTION BASE ============ */
+.section { padding: 140px 0; position: relative; }
+.section-eyebrow {
+  font-size: 12px; font-weight: 600; color: var(--teal);
+  text-transform: uppercase; letter-spacing: 0.14em;
+  margin-bottom: 18px; display: inline-block;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 4.8vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  max-width: 22ch;
+}
+.section-title em { font-style: italic; color: var(--teal); }
+.section-lead { font-size: 19px; color: var(--ink-soft); max-width: 60ch; line-height: 1.5; }
+
+/* ============ DOR ============ */
+.section-dor { background: var(--bg); }
+.chaos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 64px; }
+.chaos-card {
+  background: white; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px; box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.chaos-card:nth-child(2n) { transform: rotate(-0.6deg); }
+.chaos-card:nth-child(3n) { transform: rotate(0.4deg); }
+.chaos-card:hover { transform: translateY(-3px) rotate(0deg); box-shadow: var(--shadow-md); }
+.chaos-card .from { font-size: 12px; color: var(--ink-mute); margin-bottom: 4px; }
+.chaos-card .subj { font-weight: 600; margin-bottom: 6px; font-size: 15px; padding-right: 80px; }
+.chaos-card .prev { font-size: 13px; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.chaos-card .badge {
+  position: absolute; top: 14px; right: 14px;
+  padding: 3px 9px; border-radius: 100px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.chaos-card .badge.urgent { background: rgba(239,111,97,0.15); color: var(--coral); }
+.chaos-card .badge.unread { background: rgba(37,99,235,0.12); color: var(--blue); }
+.chaos-card .badge.lost { background: rgba(21,23,26,0.08); color: var(--ink-soft); }
+
+/* ============ CALCULADORA ============ */
+.section-calc { background: var(--ink); color: var(--bg); }
+.section-calc .section-eyebrow { color: var(--amber); }
+.section-calc .section-title { color: var(--bg); }
+.section-calc .section-title em { color: var(--amber); }
+.section-calc .section-lead { color: rgba(251,250,247,0.65); }
+.calc-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; margin-top: 64px; }
+@media (max-width: 900px) { .calc-wrap { grid-template-columns: 1fr; gap: 36px; } }
+.calc-inputs { display: flex; flex-direction: column; gap: 32px; }
+.calc-input label { display: block; font-size: 13px; color: rgba(251,250,247,0.55); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+.calc-input .row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.calc-input .val { font-family: 'Instrument Serif', serif; font-size: 38px; line-height: 1; color: var(--bg); font-variant-numeric: tabular-nums; }
+.calc-input .unit { color: rgba(251,250,247,0.5); font-size: 14px; }
+.calc-input input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: rgba(251,250,247,0.15); border-radius: 100px; outline: none; cursor: pointer; }
+.calc-input input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--amber); cursor: pointer; box-shadow: 0 0 0 4px rgba(245,185,66,0.18); transition: transform 0.15s ease; }
+.calc-input input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.calc-input input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--amber); cursor: pointer; border: 0; }
+.calc-result {
+  background: rgba(251,250,247,0.04);
+  border: 1px solid rgba(251,250,247,0.10);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+}
+.calc-result .label { font-size: 12px; color: rgba(251,250,247,0.55); text-transform: uppercase; letter-spacing: 0.10em; margin-bottom: 14px; font-weight: 600; }
+.calc-result .big { font-family: 'Instrument Serif', serif; font-size: clamp(48px, 6vw, 88px); line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; margin-bottom: 12px; letter-spacing: -0.02em; }
+.calc-result .sub { color: rgba(251,250,247,0.65); font-size: 14px; }
+.calc-result hr { border: 0; border-top: 1px solid rgba(251,250,247,0.1); margin: 28px 0; }
+.calc-result .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.calc-result .breakdown div { font-size: 12px; color: rgba(251,250,247,0.55); text-transform: uppercase; letter-spacing: 0.06em; }
+.calc-result .breakdown strong { display: block; color: var(--bg); font-size: 26px; font-family: 'Instrument Serif', serif; font-weight: 400; margin-top: 6px; }
+
+/* ============ METODO ============ */
+.section-metodo { background: var(--bg); }
+.metodo-pipeline { margin-top: 80px; position: relative; }
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; position: relative; }
+.steps::before { content: ''; position: absolute; top: 56px; left: 7%; right: 7%; height: 2px; background: linear-gradient(to right, var(--mint) 0%, var(--teal) 100%); z-index: 0; opacity: 0.4; }
+@media (max-width: 900px) { .steps { grid-template-columns: 1fr; gap: 12px; } .steps::before { display: none; } }
+.step { background: white; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 28px 22px; position: relative; z-index: 1; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.step.active { border-color: var(--teal); transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.step .num { width: 36px; height: 36px; border-radius: 50%; background: var(--mint); color: var(--teal-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; margin-bottom: 18px; transition: all 0.3s ease; }
+.step.active .num { background: var(--teal); color: white; transform: scale(1.08); }
+.step h4 { font-size: 16px; margin-bottom: 8px; font-weight: 600; letter-spacing: -0.01em; }
+.step p { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+
+/* ============ PRODUTO ============ */
+.section-produto { background: var(--bg-2); }
+.kit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 64px; }
+.kit-item { background: white; padding: 28px; border-radius: var(--radius-lg); border: 1px solid var(--line); transition: all 0.25s ease; }
+.kit-item:hover { border-color: var(--teal); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.kit-item .icon { width: 40px; height: 40px; padding: 9px; background: var(--mint); border-radius: 10px; color: var(--teal-dark); margin-bottom: 18px; }
+.kit-item .icon svg { width: 100%; height: 100%; display: block; }
+.kit-item h4 { font-size: 17px; margin-bottom: 6px; }
+.kit-item p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; }
+.spreadsheet-mock { margin-top: 80px; background: white; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); }
+.spreadsheet-mock .ss-head { background: var(--bg-2); padding: 12px 18px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--line); }
+.spreadsheet-mock .dots { display: flex; gap: 6px; }
+.spreadsheet-mock .dots span { width: 11px; height: 11px; border-radius: 50%; }
+.spreadsheet-mock .dots span:nth-child(1) { background: #ff5f57; }
+.spreadsheet-mock .dots span:nth-child(2) { background: #ffbd2e; }
+.spreadsheet-mock .dots span:nth-child(3) { background: #28c840; }
+.spreadsheet-mock .ss-title { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+.spreadsheet-mock table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.spreadsheet-mock th { background: var(--bg-2); padding: 12px 18px; text-align: left; font-weight: 600; font-size: 12px; color: var(--ink-soft); border-bottom: 1px solid var(--line); text-transform: uppercase; letter-spacing: 0.05em; }
+.spreadsheet-mock td { padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.spreadsheet-mock tr:last-child td { border-bottom: 0; }
+.tag-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+.tag-pill.urg { background: rgba(239,111,97,0.15); color: var(--coral); }
+.tag-pill.cli { background: rgba(15,118,110,0.12); color: var(--teal-dark); }
+.tag-pill.fin { background: rgba(245,185,66,0.20); color: #92670c; }
+.tag-pill.foll { background: var(--lavender); color: #5a3fb1; }
+.tag-pill.diretoria { background: rgba(37,99,235,0.12); color: var(--blue); }
+
+/* ============ ANTES/DEPOIS ============ */
+.section-ad { background: var(--bg); }
+.ba-wrap { margin-top: 64px; position: relative; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line); user-select: none; height: 580px; box-shadow: var(--shadow-lg); }
+.ba-side { position: absolute; inset: 0; padding: 32px; overflow: hidden; }
+.ba-side.before { background: linear-gradient(180deg, #f5f3ee 0%, #e8e4dc 100%); }
+.ba-side.after { background: linear-gradient(180deg, #ffffff 0%, var(--mint) 100%); clip-path: inset(0 0 0 50%); }
+.ba-handle { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: var(--ink); cursor: ew-resize; z-index: 5; touch-action: none; }
+.ba-handle::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; background: var(--ink); box-shadow: 0 6px 20px rgba(0,0,0,0.25); transition: transform 0.2s ease; }
+.ba-handle:hover::before { transform: translate(-50%, -50%) scale(1.06); }
+.ba-handle::after { content: '⇆'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--bg); font-size: 22px; font-weight: 700; pointer-events: none; z-index: 1; }
+.ba-label { position: absolute; top: 24px; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; }
+.ba-label.b { left: 24px; background: rgba(21,23,26,0.85); color: var(--bg); }
+.ba-label.a { right: 24px; background: var(--teal); color: var(--bg); }
+.ba-stat { position: absolute; bottom: 24px; font-size: 12px; font-weight: 500; }
+.ba-stat.b { left: 24px; color: var(--ink-mute); }
+.ba-stat.a { right: 24px; color: var(--teal-dark); font-weight: 600; }
+.ba-list { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 56px; max-width: 540px; }
+.ba-row { background: rgba(255,255,255,0.7); padding: 11px 14px; border-radius: 6px; font-size: 13px; border-left: 3px solid rgba(21,23,26,0.15); display: flex; gap: 10px; align-items: center; }
+.ba-row.urg-row { border-left-color: var(--coral); }
+.ba-side.after .ba-row { background: white; border-left: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.tag-row-line { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+
+/* ============ OFERTA ============ */
+.section-oferta { background: var(--ink); color: var(--bg); }
+.section-oferta .section-eyebrow { color: var(--amber); }
+.section-oferta .section-title { color: var(--bg); }
+.section-oferta .section-title em { color: var(--mint); }
+.section-oferta .section-lead { color: rgba(251,250,247,0.7); }
+.oferta-card { background: linear-gradient(180deg, #1d2024 0%, #0e1013 100%); border: 1px solid rgba(251,250,247,0.10); border-radius: 20px; padding: 56px 48px; max-width: 720px; margin: 64px auto 0; text-align: center; position: relative; overflow: hidden; }
+.oferta-card::before { content: ''; position: absolute; top: -120px; left: 50%; transform: translateX(-50%); width: 420px; height: 420px; background: radial-gradient(circle, rgba(15,118,110,0.5) 0%, transparent 60%); filter: blur(40px); pointer-events: none; }
+.oferta-card > * { position: relative; z-index: 1; }
+.oferta-card .tag { display: inline-block; font-size: 12px; color: var(--mint); text-transform: uppercase; letter-spacing: 0.10em; font-weight: 600; background: rgba(15,118,110,0.18); padding: 6px 14px; border-radius: 100px; }
+.oferta-card .price { font-family: 'Instrument Serif', serif; font-size: 96px; line-height: 1; margin: 24px 0 8px; letter-spacing: -0.03em; }
+.oferta-card .price small { font-size: 28px; opacity: 0.6; vertical-align: top; margin-right: 4px; line-height: 1.2; }
+.oferta-card .desc { color: rgba(251,250,247,0.7); margin-bottom: 36px; font-size: 15px; }
+.oferta-card .btn-primary { background: var(--bg); color: var(--ink); }
+.oferta-card .btn-primary:hover { background: var(--mint); color: var(--teal-dark); }
+.oferta-card ul { list-style: none; text-align: left; max-width: 380px; margin: 36px auto 0; display: grid; gap: 10px; }
+.oferta-card li { padding-left: 28px; position: relative; color: rgba(251,250,247,0.85); font-size: 14px; }
+.oferta-card li::before { content: '✓'; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+
+/* ============ FAQ ============ */
+.section-faq { background: var(--bg); padding: 140px 0; }
+.faq-list { margin-top: 56px; max-width: 760px; }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-q { width: 100%; background: transparent; border: 0; padding: 24px 0; display: flex; justify-content: space-between; align-items: center; font-family: inherit; font-size: 17px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: left; transition: color 0.2s ease; }
+.faq-q:hover { color: var(--teal); }
+.faq-q .plus { font-size: 22px; color: var(--teal); transition: transform 0.3s ease; font-weight: 400; flex-shrink: 0; margin-left: 16px; }
+.faq-item.open .plus { transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
+.faq-a p { color: var(--ink-soft); padding-bottom: 24px; padding-right: 40px; line-height: 1.6; font-size: 15px; }
+.faq-item.open .faq-a { max-height: 500px; }
+
+/* ============ FOOTER ============ */
+.footer { background: var(--ink); color: rgba(251,250,247,0.55); padding: 56px 0 36px; }
+.footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; align-items: center; }
+.footer .logo { color: var(--bg); }
+.footer p { font-size: 13px; }
+
+.fade-up { opacity: 0; transform: translateY(20px); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .fade-up { opacity: 1; transform: none; }
+  .hero-tag .dot { animation: none; }
+}
+
+@media (max-width: 768px) {
+  .hero-content { padding: 0 24px; }
+  .hero-counter { right: 20px; bottom: 20px; }
+  .hero-counter .num { font-size: 44px; }
+  .scroll-hint { display: none; }
+  .laptop { width: 100%; }
+  .desk-decor { display: none; }
+  .section { padding: 88px 0; }
+  .oferta-card { padding: 40px 24px; }
+  .oferta-card .price { font-size: 76px; }
+  .calc-result { padding: 28px; }
+  .header { padding: 12px 16px; }
+  .logo span { display: none; }
+  .ba-wrap { height: 520px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="9" width="22" height="16" rx="2.5" fill="#0f766e"/>
+        <path d="M3 11l11 7 11-7" stroke="#fbfaf7" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M19 4l10 0 0 8-5-3-5 3z" fill="#ef6f61"/>
+      </svg>
+      <span>ELEVE Gmail Redondo</span>
+    </a>
+    <a href="#oferta" class="btn btn-primary">Quero organizar meu Gmail</a>
+  </div>
+</header>
+
+<!-- ============ HERO v2 ============ -->
+<section class="hero" id="hero">
+  <div class="hero-stage">
+
+    <!-- Ambient -->
+    <div class="ambient-scene" id="ambient-scene">
+      <div class="amb-glow"></div>
+      <div class="amb-glow left"></div>
+
+      <svg class="desk-decor desk-plant" viewBox="0 0 80 110" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="40" cy="100" rx="22" ry="5" fill="#000" opacity="0.1"/>
+        <path d="M22 70 L18 100 L62 100 L58 70 Z" fill="#a17c52"/>
+        <ellipse cx="40" cy="70" rx="20" ry="4" fill="#7a5e3d"/>
+        <path d="M40 70 Q 30 50 28 30 M40 70 Q 50 52 52 32 M40 70 Q 40 45 40 24" stroke="#0f766e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="28" cy="32" rx="7" ry="11" fill="#0f766e" opacity="0.85" transform="rotate(-15 28 32)"/>
+        <ellipse cx="52" cy="34" rx="6" ry="10" fill="#0a544e" opacity="0.85" transform="rotate(20 52 34)"/>
+        <ellipse cx="40" cy="22" rx="6" ry="9" fill="#0f766e" opacity="0.95"/>
+        <ellipse cx="34" cy="46" rx="5" ry="8" fill="#0a544e" opacity="0.7" transform="rotate(-30 34 46)"/>
+      </svg>
+
+      <svg class="desk-decor desk-mug" viewBox="0 0 70 80" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="35" cy="74" rx="22" ry="4" fill="#000" opacity="0.12"/>
+        <path d="M14 26 L14 68 Q 14 74 20 74 L46 74 Q 52 74 52 68 L52 26 Z" fill="#fbfaf7" stroke="#15171a" stroke-width="2"/>
+        <ellipse cx="33" cy="26" rx="19" ry="3.5" fill="#15171a"/>
+        <ellipse cx="33" cy="26" rx="15" ry="2.5" fill="#3a2820"/>
+        <path d="M52 36 Q 64 38 64 50 Q 64 62 52 64" stroke="#15171a" stroke-width="2" fill="none"/>
+        <path d="M22 14 Q 24 6 22 0 M30 12 Q 32 4 30 -2 M38 14 Q 40 6 38 0" stroke="#15171a" stroke-width="1.2" fill="none" opacity="0.45"/>
+      </svg>
+
+      <svg class="desk-decor desk-notebook" viewBox="0 0 100 70" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="6" width="96" height="60" rx="3" fill="#15171a"/>
+        <rect x="0" y="8" width="96" height="56" rx="2" fill="#fbfaf7"/>
+        <line x1="8" y1="18" x2="80" y2="18" stroke="#cfcec9" stroke-width="1.2"/>
+        <line x1="8" y1="28" x2="86" y2="28" stroke="#cfcec9" stroke-width="1.2"/>
+        <line x1="8" y1="38" x2="64" y2="38" stroke="#cfcec9" stroke-width="1.2"/>
+        <line x1="8" y1="48" x2="78" y2="48" stroke="#cfcec9" stroke-width="1.2"/>
+        <line x1="8" y1="58" x2="50" y2="58" stroke="#cfcec9" stroke-width="1.2"/>
+        <circle cx="86" cy="58" r="2.5" fill="#ef6f61"/>
+      </svg>
+
+      <svg class="desk-decor desk-pen" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="11" width="78" height="8" rx="2" fill="#0f766e"/>
+        <polygon points="86,11 94,15 86,19" fill="#15171a"/>
+        <rect x="0" y="13" width="10" height="4" rx="1.5" fill="#ef6f61"/>
+        <line x1="20" y1="11" x2="20" y2="19" stroke="#0a544e" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <!-- Laptop -->
+    <div class="laptop-wrap" id="laptop-wrap">
+      <div class="laptop">
+        <div class="laptop-screen-bezel">
+          <div class="laptop-screen">
+            <div class="gmail" id="gmail-mock">
+              <header class="gmail-topbar">
+                <div class="gmail-burger">≡</div>
+                <div class="gmail-logo">
+                  <svg class="gmail-logo-svg" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="9" width="22" height="16" rx="2.5" fill="#0f766e"/>
+                    <path d="M3 11l11 7 11-7" stroke="#fbfaf7" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                    <path d="M19 4l10 0 0 8-5-3-5 3z" fill="#ef6f61"/>
+                  </svg>
+                  <span>Inbox</span>
+                </div>
+                <div class="gmail-search">
+                  <span>🔍</span>
+                  Pesquisar e-mail
+                </div>
+                <div class="gmail-user-area">
+                  <span>?</span>
+                  <span>⚙</span>
+                  <div class="gmail-avatar">R</div>
+                </div>
+              </header>
+
+              <div class="gmail-body">
+                <aside class="gmail-sidebar">
+                  <button class="gmail-compose"><span class="plus">+</span> Escrever</button>
+                  <ul class="gmail-nav">
+                    <li class="active"><span class="ic">📥</span>Caixa<span class="badge" id="inbox-count">34.218</span></li>
+                    <li><span class="ic">⭐</span>Estrela</li>
+                    <li><span class="ic">🕒</span>Adiados</li>
+                    <li><span class="ic">📤</span>Enviados</li>
+                    <li><span class="ic">📝</span>Rascunhos</li>
+                  </ul>
+                  <div class="gmail-labels-section">
+                    <h5>Marcadores</h5>
+                    <ul class="gmail-labels" id="gmail-labels">
+                      <li data-label="urg"><span class="label-dot" style="background:#ef6f61"></span>Urgente<span class="label-count">12</span></li>
+                      <li data-label="cli"><span class="label-dot" style="background:#0f766e"></span>Clientes<span class="label-count">84</span></li>
+                      <li data-label="fin"><span class="label-dot" style="background:#f5b942"></span>Financeiro<span class="label-count">37</span></li>
+                      <li data-label="foll"><span class="label-dot" style="background:#b39ddb"></span>Follow-up<span class="label-count">21</span></li>
+                      <li data-label="dir"><span class="label-dot" style="background:#2563eb"></span>Diretoria<span class="label-count">8</span></li>
+                      <li data-label="notas"><span class="label-dot" style="background:#9bd9c0"></span>Notas<span class="label-count">15</span></li>
+                    </ul>
+                  </div>
+                </aside>
+
+                <main class="gmail-list">
+                  <div class="gmail-tabs">
+                    <div class="tab active">📬 Principal</div>
+                    <div class="tab">🏷 Promoções <small>100 novos</small></div>
+                    <div class="tab">👥 Social <small>80 novos</small></div>
+                  </div>
+                  <div class="gmail-rows" id="gmail-rows"></div>
+                </main>
+              </div>
+
+              <div class="scan-line" id="scan-line"></div>
+            </div>
+          </div>
+        </div>
+        <div class="laptop-base"><div class="laptop-base-notch"></div></div>
+      </div>
+    </div>
+
+    <!-- Floating pills overlay -->
+    <div class="floating-pool" id="floating-pool"></div>
+
+    <!-- Hero text phase 1 -->
+    <div class="hero-content" id="hero-content">
+      <span class="hero-tag"><span class="dot"></span> método guiado · 1 dia</span>
+      <h1>Sua caixa cheia pode virar um <em>sistema</em> em 1 dia.</h1>
+      <p class="lead">Mapeie seus e-mails, crie etiquetas inteligentes e gere filtros que deixam o Gmail trabalhando por você. Sem virar especialista em automação.</p>
+      <div class="hero-actions">
+        <a href="#oferta" class="btn btn-primary btn-large">Quero organizar meu Gmail</a>
+        <a href="#metodo" class="btn btn-ghost">Ver o método →</a>
+      </div>
+    </div>
+
+    <!-- Phase 2 — chaos -->
+    <div class="phase2" id="phase2">
+      <span class="hero-tag"><span class="dot"></span> e se o problema não for você?</span>
+      <h2>34.218 motivos pra fechar o Gmail e <em>deixar pra depois</em>.</h2>
+    </div>
+
+    <!-- Phase 3 — organized -->
+    <div class="phase3" id="phase3">
+      <h2>Mesma caixa. <em>Outra cabeça.</em></h2>
+      <p>6 etiquetas. 0 não lidos. Você no comando.</p>
+    </div>
+
+    <div class="hero-counter" id="hero-counter">
+      <div class="num" id="hero-num">34.218</div>
+      <div class="label" id="hero-label">e-mails na sua caixa</div>
+    </div>
+
+    <div class="scroll-hint" id="scroll-hint">role para ver<div class="arrow"></div></div>
+  </div>
+</section>
+
+<!-- DOR -->
+<section class="section section-dor" id="dor">
+  <div class="container">
+    <span class="section-eyebrow">o caos é familiar</span>
+    <h2 class="section-title">Você abre o Gmail, sente um aperto e <em>fecha de novo</em>.</h2>
+    <p class="section-lead">Caixa lotada não é falta de organização — é falta de método. Enquanto você procura o e-mail certo, coisas importantes ficam invisíveis.</p>
+    <div class="chaos-grid" id="chaos-grid"></div>
+  </div>
+</section>
+
+<!-- CALCULADORA -->
+<section class="section section-calc" id="calculadora">
+  <div class="container">
+    <span class="section-eyebrow">calculadora do caos</span>
+    <h2 class="section-title">Quanto a sua caixa desorganizada <em>custa por ano</em>?</h2>
+    <p class="section-lead">Ajuste os controles e descubra o prejuízo anual. Os números costumam assustar.</p>
+    <div class="calc-wrap">
+      <div class="calc-inputs">
+        <div class="calc-input">
+          <label>Salário médio mensal por pessoa</label>
+          <div class="row"><span class="val" id="v-salario">R$ 8.000</span></div>
+          <input type="range" id="r-salario" min="2000" max="40000" step="500" value="8000">
+        </div>
+        <div class="calc-input">
+          <label>Pessoas afetadas pela bagunça</label>
+          <div class="row"><span class="val" id="v-pessoas">3</span><span class="unit">pessoas</span></div>
+          <input type="range" id="r-pessoas" min="1" max="50" step="1" value="3">
+        </div>
+        <div class="calc-input">
+          <label>Minutos perdidos por dia procurando e-mail</label>
+          <div class="row"><span class="val" id="v-min">35</span><span class="unit">min/dia</span></div>
+          <input type="range" id="r-min" min="5" max="180" step="5" value="35">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="label">Prejuízo anual estimado</div>
+        <div class="big" id="calc-big">R$ 0</div>
+        <div class="sub">Considera 220 dias úteis e 8h por dia de trabalho.</div>
+        <hr>
+        <div class="breakdown">
+          <div>Horas perdidas/ano <strong id="b-horas">0h</strong></div>
+          <div>Por pessoa/mês <strong id="b-pessoa">R$ 0</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METODO -->
+<section class="section section-metodo" id="metodo">
+  <div class="container">
+    <span class="section-eyebrow">método em 5 passos</span>
+    <h2 class="section-title">Da bagunça ao sistema — sem aprender <em>automação</em>.</h2>
+    <p class="section-lead">Cada etapa é guiada por uma planilha inteligente e um menu no Apps Script. Você aprova; a IA executa.</p>
+    <div class="metodo-pipeline">
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h4>Escanear a caixa</h4><p>Um script lê remetentes e assuntos dos últimos meses e devolve uma planilha pronta.</p></div>
+        <div class="step"><div class="num">2</div><h4>Agrupar remetentes</h4><p>Você vê padrões: faturas, clientes, notificações. Marca o que é o quê.</p></div>
+        <div class="step"><div class="num">3</div><h4>Refinar com IA</h4><p>A IA sugere etiquetas, prioridades e regras. Você só aprova ou ajusta.</p></div>
+        <div class="step"><div class="num">4</div><h4>Aprovar etiquetas</h4><p>Revisa o conjunto final na própria planilha — com cores e categorias.</p></div>
+        <div class="step"><div class="num">5</div><h4>Aplicar no Gmail</h4><p>O Apps Script gera filtros, cria etiquetas e organiza tudo de uma vez.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUTO -->
+<section class="section section-produto" id="produto">
+  <div class="container">
+    <span class="section-eyebrow">o que você recebe</span>
+    <h2 class="section-title">Um <em>kit completo</em> para sair do zero — em uma tarde.</h2>
+    <p class="section-lead">Tudo já configurado. Você abre, segue o passo a passo e termina o dia com Gmail organizado.</p>
+    <div class="kit-grid">
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div><h4>Planilha inteligente</h4><p>Estrutura pronta com colunas, fórmulas e validações. Só preencher.</p></div>
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><h4>Apps Script com menu</h4><p>Botões prontos no menu da planilha — sem editar código.</p></div>
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div><h4>Painel de progresso</h4><p>Veja em tempo real quantos e-mails já foram organizados.</p></div>
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div><h4>Gerador de filtros</h4><p>Os filtros do Gmail são criados automaticamente, com regras claras.</p></div>
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><h4>Implantação em 1 dia</h4><p>Roteiro de 6h para sair do caos e ter tudo no ar até o fim do expediente.</p></div>
+      <div class="kit-item"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><h4>Checklist semanal</h4><p>Rotina simples para a caixa não voltar ao caos. Toma 10 minutos.</p></div>
+    </div>
+    <div class="spreadsheet-mock">
+      <div class="ss-head"><div class="dots"><span></span><span></span><span></span></div><div class="ss-title">ELEVE_Gmail_Redondo · Mapeamento</div></div>
+      <table>
+        <thead><tr><th>Remetente</th><th>Grupo</th><th>Prioridade</th><th>Etiqueta</th><th>Status</th></tr></thead>
+        <tbody id="ss-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ANTES/DEPOIS -->
+<section class="section section-ad">
+  <div class="container">
+    <span class="section-eyebrow">antes & depois</span>
+    <h2 class="section-title">Mesma caixa. <em>Outra cabeça.</em></h2>
+    <p class="section-lead">Arraste para comparar. À esquerda, o caos atual. À direita, sua caixa depois do método.</p>
+    <div class="ba-wrap" id="ba">
+      <div class="ba-side before">
+        <div class="ba-label b">Antes</div>
+        <div class="ba-list">
+          <div class="ba-row urg-row">⚠️ Urgente: aprovar férias da Maria</div>
+          <div class="ba-row">Newsletter — 5 hábitos produtivos</div>
+          <div class="ba-row">NF-e #28341 (escondido entre spams)</div>
+          <div class="ba-row urg-row">⚠️ Boleto vence amanhã</div>
+          <div class="ba-row">Re: proposta enviada (sem resposta)</div>
+          <div class="ba-row">LinkedIn: 12 novas conexões</div>
+          <div class="ba-row">Spam: oferta imperdível...</div>
+          <div class="ba-row">Re: reagendar call?</div>
+        </div>
+        <div class="ba-stat b">34.218 e-mails · 0 etiquetas</div>
+      </div>
+      <div class="ba-side after">
+        <div class="ba-label a">Depois</div>
+        <div class="ba-list">
+          <div class="tag-row-line">
+            <span class="tag-pill urg">● Urgente (12)</span>
+            <span class="tag-pill cli">● Clientes (84)</span>
+            <span class="tag-pill fin">● Financeiro (37)</span>
+            <span class="tag-pill foll">● Follow-up (21)</span>
+            <span class="tag-pill diretoria">● Diretoria (8)</span>
+          </div>
+          <div class="ba-row"><span class="tag-pill urg">●</span>Aprovar férias — Maria · RH</div>
+          <div class="ba-row"><span class="tag-pill cli">●</span>Mendes — proposta revisada</div>
+          <div class="ba-row"><span class="tag-pill fin">●</span>Boleto · vencimento 12/05</div>
+          <div class="ba-row"><span class="tag-pill cli">●</span>Lara — reagendar call</div>
+          <div class="ba-row"><span class="tag-pill foll">●</span>Notas da reunião 3a</div>
+          <div class="ba-row"><span class="tag-pill diretoria">●</span>Reunião com diretoria</div>
+        </div>
+        <div class="ba-stat a">organizado · 6 etiquetas ativas</div>
+      </div>
+      <div class="ba-handle" id="ba-handle"></div>
+    </div>
+  </div>
+</section>
+
+<!-- OFERTA -->
+<section class="section section-oferta" id="oferta">
+  <div class="container">
+    <span class="section-eyebrow">acesso único</span>
+    <h2 class="section-title">Pronto para deixar o Gmail <em>trabalhando por você</em>?</h2>
+    <p class="section-lead">Feito para quem quer organizar o Gmail sem aprender automação do zero.</p>
+    <div class="oferta-card">
+      <div class="tag">ELEVE Gmail Redondo</div>
+      <div class="price"><small>R$</small>119</div>
+      <div class="desc">acesso único · sem mensalidade</div>
+      <a href="#" class="btn btn-primary btn-large">Quero entrar no lançamento</a>
+      <ul>
+        <li>Planilha inteligente pronta</li>
+        <li>Apps Script com menu guiado</li>
+        <li>Painel de progresso visual</li>
+        <li>Gerador de filtros do Gmail</li>
+        <li>Roteiro de implantação em 1 dia</li>
+        <li>Checklist de manutenção semanal</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section section-faq" id="faq">
+  <div class="container">
+    <span class="section-eyebrow">perguntas frequentes</span>
+    <h2 class="section-title">Antes de comprar, é justo <em>perguntar</em>.</h2>
+    <div class="faq-list" id="faq-list"></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <a href="#" class="logo">
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="3" y="9" width="22" height="16" rx="2.5" fill="#0f766e"/>
+        <path d="M3 11l11 7 11-7" stroke="#fbfaf7" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <path d="M19 4l10 0 0 8-5-3-5 3z" fill="#ef6f61"/>
+      </svg>
+      <span>ELEVE Gmail Redondo</span>
+    </a>
+    <p>© 2026 · Feito para quem quer Gmail redondo.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<script>
+(function () {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+
+  if (window.Lenis && !reduceMotion) {
+    const lenis = new Lenis({ lerp: 0.085 });
+    lenis.on('scroll', () => { if (window.ScrollTrigger) ScrollTrigger.update(); });
+    if (window.gsap) {
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+    }
+  }
+
+  /* ====================================================================
+     GMAIL ROWS GENERATION
+  ==================================================================== */
+  const senderData = [
+    { from: 'Banco Itaú',         subj: 'Sua fatura vence em 2 dias',          preview: 'Evite juros — boleto disponível na área logada.',           label: 'fin',   time: '15:20', unread: true },
+    { from: 'Cliente Mendes',     subj: 'Re: proposta enviada quinta',         preview: 'Voltei aqui pra cobrar... vocês conseguem revisar até hoje?', label: 'cli',   time: '13:47', unread: true },
+    { from: 'Maria — RH',         subj: 'URGENTE: aprovar férias da Maria',    preview: 'O prazo termina hoje. Por favor, responder com aprovação...', label: 'urg',   time: '13:01', unread: true },
+    { from: 'NF-e Sistema',       subj: 'Sua nota fiscal nº 28.341',           preview: 'Segue em anexo o XML e o PDF da nota fiscal eletrônica...',  label: 'fin',   time: '12:06', unread: true },
+    { from: 'Diretoria',          subj: 'Reunião 3a feira 14h',                preview: 'Pauta da reunião segue em anexo. Obrigado.',                  label: 'dir',   time: '11:58', unread: true },
+    { from: 'LinkedIn',           subj: '12 novas conexões esta semana',       preview: 'Você apareceu em 47 buscas. Veja quem está olhando...',       label: null,    time: '11:09', unread: false },
+    { from: 'Newsletter',         subj: '5 hábitos de pessoas produtivas',     preview: 'Esta semana, separamos os artigos mais lidos sobre...',       label: null,    time: '7 mai', unread: false },
+    { from: 'Cliente Lara',       subj: 'Reagendar call?',                     preview: 'Oi, consegue na 5a feira às 15h?',                            label: 'cli',   time: '7 mai', unread: true },
+    { from: 'Boleto',             subj: 'Boleto vence amanhã',                 preview: 'Não esqueça de pagar antes do vencimento.',                   label: 'fin',   time: '7 mai', unread: true },
+    { from: 'cliente.silva@',     subj: 'Notas da reunião 3a',                 preview: 'Conforme conversado, segue em anexo as notas...',             label: 'notas', time: '7 mai', unread: false },
+    { from: 'Spam Detector',      subj: 'Oferta imperdível!!!',                preview: 'Você ganhou um prêmio especial...',                            label: null,    time: '6 mai', unread: false },
+    { from: 'Apps Script',        subj: 'Re: documentação atualizada',         preview: 'A documentação foi atualizada. Veja em anexo...',             label: 'foll',  time: '6 mai', unread: true },
+    { from: 'Newsletter X',       subj: 'O que rolou esta semana',             preview: 'Top 5 notícias da semana que você não pode perder...',        label: null,    time: '6 mai', unread: false },
+    { from: 'cliente.fonseca',    subj: 'Re: Re: Re: orçamento',               preview: 'Aprovamos! Pode seguir com a próxima etapa.',                 label: 'cli',   time: '6 mai', unread: true },
+    { from: 'Zoom',               subj: 'Gravação disponível',                 preview: 'Sua reunião foi gravada e está disponível...',                label: null,    time: '5 mai', unread: false }
+  ];
+
+  const rowsEl = document.getElementById('gmail-rows');
+  senderData.forEach((d, i) => {
+    const row = document.createElement('div');
+    row.className = `gmail-row ${d.unread ? 'unread' : 'read'}`;
+    row.dataset.label = d.label || '';
+    row.innerHTML = `
+      <div class="check"></div>
+      <div class="star">☆</div>
+      <div class="from">${d.from}</div>
+      <div class="subj"><b>${d.subj}</b> <span class="preview">— ${d.preview}</span></div>
+      <span class="pill ${d.label || ''}">${d.label ? d.label.toUpperCase() : ''}</span>
+      <div class="time">${d.time}</div>
+    `;
+    rowsEl.appendChild(row);
+  });
+
+  /* ====================================================================
+     SCROLL STORYTELLING (HERO)
+  ==================================================================== */
+  const laptopWrap = document.getElementById('laptop-wrap');
+  const ambient = document.getElementById('ambient-scene');
+  const heroContent = document.getElementById('hero-content');
+  const phase2 = document.getElementById('phase2');
+  const phase3 = document.getElementById('phase3');
+  const heroCounter = document.getElementById('hero-counter');
+  const heroNum = document.getElementById('hero-num');
+  const heroLabel = document.getElementById('hero-label');
+  const inboxCountEl = document.getElementById('inbox-count');
+  const scrollHint = document.getElementById('scroll-hint');
+  const labelItems = document.querySelectorAll('#gmail-labels li');
+  const rows = document.querySelectorAll('.gmail-row');
+  const scanLine = document.getElementById('scan-line');
+  const floatingPool = document.getElementById('floating-pool');
+
+  let labelsRevealed = false;
+  let pillsRevealed = false;
+
+  function revealLabels() {
+    if (labelsRevealed) return;
+    labelsRevealed = true;
+    labelItems.forEach((li, i) => {
+      setTimeout(() => li.classList.add('visible'), i * 110);
+    });
+  }
+  function hideLabels() {
+    labelsRevealed = false;
+    labelItems.forEach(li => li.classList.remove('visible'));
+  }
+  function revealPills() {
+    if (pillsRevealed) return;
+    pillsRevealed = true;
+    rows.forEach((row, i) => {
+      if (row.dataset.label) {
+        setTimeout(() => row.classList.add('has-label'), i * 60);
+      }
+    });
+  }
+  function hidePills() {
+    pillsRevealed = false;
+    rows.forEach(row => row.classList.remove('has-label'));
+  }
+
+  if (window.gsap && window.ScrollTrigger) {
+    // Master timeline pinned to hero
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: '+=420%',
+        scrub: 1,
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          const p = self.progress;
+
+          // Counter behavior
+          if (p < 0.45) {
+            heroNum.textContent = '34.218';
+            heroLabel.textContent = 'e-mails na sua caixa';
+            heroCounter.classList.remove('organized', 'alert');
+          } else if (p < 0.55) {
+            heroCounter.classList.add('alert');
+            heroCounter.classList.remove('organized');
+            heroLabel.textContent = 'e-mails ignorados';
+          } else if (p < 0.92) {
+            heroCounter.classList.remove('alert');
+            heroCounter.classList.remove('organized');
+            const cascade = (p - 0.55) / 0.37;
+            const remaining = Math.round(34218 * (1 - cascade));
+            heroNum.textContent = remaining.toLocaleString('pt-BR');
+            inboxCountEl.textContent = remaining.toLocaleString('pt-BR');
+            heroLabel.textContent = 'organizando…';
+          } else {
+            heroCounter.classList.add('organized');
+            heroCounter.classList.remove('alert');
+            heroNum.textContent = '0';
+            inboxCountEl.textContent = '0';
+            heroLabel.textContent = 'organizado';
+          }
+
+          // Reveal labels & pills based on progress
+          if (p > 0.55) revealLabels();
+          else hideLabels();
+
+          if (p > 0.62) revealPills();
+          else hidePills();
+        }
+      }
+    });
+
+    // Phase A → B: laptop scales up, ambient fades, hero text fades
+    tl.fromTo(laptopWrap, { scale: 0.62, y: 0 }, { scale: 1.55, y: -10, ease: 'power2.inOut', duration: 0.45 }, 0)
+      .to(ambient, { opacity: 0, ease: 'power2.in', duration: 0.35 }, 0)
+      .to(heroContent, { opacity: 0, y: -30, ease: 'power2.in', duration: 0.30 }, 0.10)
+      .to(scrollHint, { opacity: 0, duration: 0.10 }, 0)
+
+      // Phase B: phase2 text appears
+      .fromTo(phase2, { opacity: 0, y: 20 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.15 }, 0.42)
+      .to(phase2, { opacity: 1, duration: 0.10 }, 0.55)
+
+      // Scan line sweeps the screen as IA scans
+      .to(scanLine, { opacity: 0.7, duration: 0.05 }, 0.55)
+      .to(scanLine, {
+        '--y': '100%',
+        duration: 0.30,
+        ease: 'none',
+        onUpdate: function () {
+          const p = this.progress();
+          scanLine.style.top = (p * 80) + '%';
+        }
+      }, 0.55)
+      .to(scanLine, { opacity: 0, duration: 0.05 }, 0.85)
+
+      // Phase 2 fades, Phase 3 appears
+      .to(phase2, { opacity: 0, y: -20, ease: 'power2.in', duration: 0.10 }, 0.86)
+      .fromTo(phase3, { opacity: 0, y: 20 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.15 }, 0.86);
+
+    // Floating pills animation: bouncy entry into sidebar
+    const labelData = [
+      { name: 'Urgente', color: '#ef6f61' },
+      { name: 'Clientes', color: '#0f766e' },
+      { name: 'Financeiro', color: '#f5b942' },
+      { name: 'Follow-up', color: '#b39ddb' },
+      { name: 'Diretoria', color: '#2563eb' },
+      { name: 'Notas', color: '#9bd9c0' }
+    ];
+
+    // Create floating pills
+    const floaters = labelData.map((d, i) => {
+      const pill = document.createElement('div');
+      pill.className = 'floating-pill';
+      pill.innerHTML = `<span class="dot" style="background:${d.color}"></span>${d.name}`;
+      floatingPool.appendChild(pill);
+      return pill;
+    });
+
+    // Solitaire-style bounce: pills enter from random outer positions
+    // and bounce 3 times before settling onto the laptop sidebar area.
+    function getStageRect() { return floatingPool.getBoundingClientRect(); }
+    function getLabelTargetRect(idx) {
+      const li = labelItems[idx];
+      if (!li) return null;
+      const stage = getStageRect();
+      const r = li.getBoundingClientRect();
+      return {
+        x: r.left - stage.left + r.width / 2,
+        y: r.top - stage.top + r.height / 2
+      };
+    }
+
+    function bounceIn(p, origin, target, peak) {
+      const e = 1 - Math.pow(1 - p, 3);
+      const x = origin.x + (target.x - origin.x) * e;
+      let y;
+      if (p < 0.55) {
+        const lt = p / 0.55;
+        const linY = origin.y + (target.y - origin.y) * lt;
+        y = linY - Math.sin(lt * Math.PI) * peak;
+      } else if (p < 0.80) {
+        const lt = (p - 0.55) / 0.25;
+        y = target.y - Math.sin(lt * Math.PI) * peak * 0.42;
+      } else if (p < 0.94) {
+        const lt = (p - 0.80) / 0.14;
+        y = target.y - Math.sin(lt * Math.PI) * peak * 0.15;
+      } else { y = target.y; }
+      return { x, y };
+    }
+
+    floaters.forEach((pill, i) => {
+      const sideSign = i % 2 === 0 ? -1 : 1;
+      const stage = getStageRect();
+      const origin = {
+        x: stage.width / 2 + sideSign * (stage.width * 0.55),
+        y: -80 - Math.random() * 100
+      };
+      const peak = 80 + Math.random() * 80;
+      const startProgress = 0.55 + i * 0.04;
+      const flightDur = 0.15;
+
+      const obj = { p: 0 };
+      tl.to(obj, {
+        p: 1,
+        duration: flightDur,
+        ease: 'none',
+        onUpdate: () => {
+          const target = getLabelTargetRect(i);
+          if (!target) return;
+          const pos = bounceIn(obj.p, origin, target, peak);
+          pill.style.opacity = obj.p < 0.05 ? obj.p * 20 : (obj.p > 0.92 ? Math.max(0, (1 - obj.p) * 12) : 1);
+          pill.style.transform = `translate(${pos.x - 70}px, ${pos.y - 14}px) scale(${obj.p > 0.92 ? 0.6 : 1})`;
+        }
+      }, startProgress);
+    });
+  }
+
+  /* ====================================================================
+     CHAOS CARDS
+  ==================================================================== */
+  const chaosData = [
+    { from: 'cliente.mendes@empresa.com', subj: 'Re: Proposta enviada quinta', prev: 'Voltei aqui pra cobrar… vocês conseguem revisar até hoje?', badge: 'urgent', tag: 'Urgente' },
+    { from: 'banco@instituicao.com.br', subj: 'Sua fatura vence em 2 dias', prev: 'Evite juros — boleto disponível na área logada.', badge: 'unread', tag: 'Não lido' },
+    { from: 'newsletter@medium.com', subj: '5 hábitos de pessoas produtivas', prev: 'Esta semana, separamos os artigos mais lidos sobre…', badge: 'lost', tag: 'Distração' },
+    { from: 'NF-e Sistema', subj: 'Sua nota fiscal nº 28.341', prev: 'Segue em anexo o XML e o PDF da nota fiscal eletrônica…', badge: 'unread', tag: 'Sem etiqueta' },
+    { from: 'rh@empresa.com', subj: 'URGENTE: aprovar férias da Maria', prev: 'O prazo termina hoje. Por favor, responder com aprovação…', badge: 'urgent', tag: 'Quase perdido' },
+    { from: 'LinkedIn', subj: '12 novas conexões esta semana', prev: 'Você apareceu em 47 buscas. Veja quem está olhando…', badge: 'lost', tag: 'Distração' }
+  ];
+  const chaosGrid = document.getElementById('chaos-grid');
+  chaosData.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'chaos-card fade-up';
+    div.innerHTML = `<span class="badge ${c.badge}">${c.tag}</span><div class="from">${c.from}</div><div class="subj">${c.subj}</div><div class="prev">${c.prev}</div>`;
+    chaosGrid.appendChild(div);
+  });
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('#chaos-grid .chaos-card').forEach((el, i) => {
+      gsap.to(el, { opacity: 1, y: 0, duration: 0.7, delay: i * 0.06, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 88%' }});
+    });
+  }
+
+  /* CALCULADORA */
+  const rSal = document.getElementById('r-salario');
+  const rPess = document.getElementById('r-pessoas');
+  const rMin = document.getElementById('r-min');
+  const vSal = document.getElementById('v-salario');
+  const vPess = document.getElementById('v-pessoas');
+  const vMin = document.getElementById('v-min');
+  const calcBig = document.getElementById('calc-big');
+  const bHoras = document.getElementById('b-horas');
+  const bPessoa = document.getElementById('b-pessoa');
+  const fmtBR = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+  const calcAnim = { v: 0 };
+  function recalc() {
+    const sal = +rSal.value, pess = +rPess.value, min = +rMin.value;
+    vSal.textContent = fmtBR(sal); vPess.textContent = pess; vMin.textContent = min;
+    const horasPessoaAno = (min / 60) * 220;
+    const custoHora = sal / 220 / 8;
+    const total = horasPessoaAno * custoHora * pess;
+    const porPessoaMes = (horasPessoaAno * custoHora) / 12;
+    if (window.gsap) {
+      gsap.to(calcAnim, { v: total, duration: 0.5, ease: 'power2.out', onUpdate: () => calcBig.textContent = fmtBR(calcAnim.v) });
+    } else { calcBig.textContent = fmtBR(total); }
+    bHoras.textContent = Math.round(horasPessoaAno * pess) + 'h';
+    bPessoa.textContent = fmtBR(porPessoaMes);
+  }
+  [rSal, rPess, rMin].forEach(el => el.addEventListener('input', recalc));
+  recalc();
+
+  /* METODO STEP HIGHLIGHT */
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('.step').forEach(step => {
+      ScrollTrigger.create({ trigger: step, start: 'top 75%', onEnter: () => step.classList.add('active'), onLeaveBack: () => step.classList.remove('active') });
+    });
+  }
+
+  /* SPREADSHEET MOCK */
+  const ssBody = document.getElementById('ss-body');
+  const ssRows = [
+    { from: 'cliente.mendes@empresa.com', grupo: 'Clientes', prio: 'Alta', tag: '<span class="tag-pill cli">Clientes</span>', status: '✓' },
+    { from: 'banco@instituicao.com.br', grupo: 'Financeiro', prio: 'Média', tag: '<span class="tag-pill fin">Financeiro</span>', status: '✓' },
+    { from: 'rh@empresa.com', grupo: 'Equipe', prio: 'Alta', tag: '<span class="tag-pill urg">Urgente</span>', status: '✓' },
+    { from: 'NF-e Sistema', grupo: 'Documentos', prio: 'Baixa', tag: '<span class="tag-pill fin">Financeiro</span>', status: '✓' },
+    { from: 'newsletter@medium.com', grupo: 'Conteúdo', prio: 'Baixa', tag: '<span class="tag-pill foll">Follow-up</span>', status: '✓' },
+    { from: 'diretoria@empresa.com', grupo: 'Diretoria', prio: 'Alta', tag: '<span class="tag-pill diretoria">Diretoria</span>', status: '✓' }
+  ];
+  ssRows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.style.opacity = '0';
+    tr.innerHTML = `<td>${r.from}</td><td>${r.grupo}</td><td>${r.prio}</td><td>${r.tag}</td><td style="color:var(--teal);font-weight:700">${r.status}</td>`;
+    ssBody.appendChild(tr);
+  });
+  if (window.gsap && window.ScrollTrigger) {
+    ScrollTrigger.create({ trigger: '.spreadsheet-mock', start: 'top 80%', once: true,
+      onEnter: () => gsap.utils.toArray('.spreadsheet-mock tbody tr').forEach((tr, i) => gsap.to(tr, { opacity: 1, duration: 0.4, delay: i * 0.18 }))
+    });
+  }
+
+  /* ANTES/DEPOIS */
+  const ba = document.getElementById('ba');
+  const baHandle = document.getElementById('ba-handle');
+  const baAfterEl = ba.querySelector('.ba-side.after');
+  let dragging = false;
+  function setBA(pct) {
+    pct = Math.max(0, Math.min(100, pct));
+    baHandle.style.left = pct + '%';
+    baAfterEl.style.clipPath = `inset(0 0 0 ${pct}%)`;
+  }
+  function startDrag(e) { dragging = true; if (e.cancelable) e.preventDefault(); }
+  function endDrag() { dragging = false; }
+  function moveDrag(e) {
+    if (!dragging) return;
+    const rect = ba.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    setBA(((clientX - rect.left) / rect.width) * 100);
+  }
+  baHandle.addEventListener('mousedown', startDrag);
+  baHandle.addEventListener('touchstart', startDrag, { passive: false });
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('touchmove', moveDrag, { passive: false });
+  ba.addEventListener('click', (e) => {
+    if (e.target === baHandle) return;
+    const rect = ba.getBoundingClientRect();
+    setBA(((e.clientX - rect.left) / rect.width) * 100);
+  });
+  setBA(50);
+  if (window.gsap && window.ScrollTrigger) {
+    ScrollTrigger.create({ trigger: ba, start: 'top 70%', once: true,
+      onEnter: () => {
+        const obj = { p: 50 };
+        gsap.to(obj, { p: 25, duration: 0.7, ease: 'power2.inOut', yoyo: true, repeat: 1, onUpdate: () => setBA(obj.p) });
+      }
+    });
+  }
+
+  /* FAQ */
+  const faqData = [
+    { q: 'Preciso saber programar?', a: 'Não. Tudo é guiado por uma planilha com menu próprio. Você clica em botões e revisa o que a IA sugere — em nenhum momento precisa abrir ou editar código.' },
+    { q: 'Funciona em qualquer Gmail?', a: 'Funciona em contas Gmail pessoais e contas Google Workspace (corporativas). Em algumas empresas o admin pode restringir Apps Script — nesse caso o time de TI libera com 1 clique.' },
+    { q: 'A IA lê meus e-mails?', a: 'A IA recebe apenas remetentes e assuntos (não o corpo dos e-mails) para sugerir agrupamentos e etiquetas. Tudo roda na sua conta — nenhum dado vai para servidores externos sem sua autorização.' },
+    { q: 'Posso adaptar para minha empresa?', a: 'Sim. As categorias, etiquetas e regras são totalmente customizáveis na própria planilha. Você pode rodar a mesma metodologia para você, para seu time ou para clientes.' },
+    { q: 'Quanto tempo demora?', a: 'O método foi pensado para 1 dia: 2-3h de scan e agrupamento, 1h de IA + revisão, 1h de aplicação. Caixa muito grande pode virar 2 tardes.' },
+    { q: 'Isso substitui o Gmail?', a: 'Não — pelo contrário. O método configura o próprio Gmail (etiquetas e filtros nativos) para que ele trabalhe melhor pra você. Você continua usando o Gmail, só que organizado.' }
+  ];
+  const faqList = document.getElementById('faq-list');
+  faqData.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'faq-item';
+    div.innerHTML = `<button class="faq-q"><span>${item.q}</span><span class="plus">+</span></button><div class="faq-a"><p>${item.a}</p></div>`;
+    faqList.appendChild(div);
+    div.querySelector('.faq-q').addEventListener('click', () => div.classList.toggle('open'));
+  });
+
+  /* SECTION FADE-INS */
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.utils.toArray('.section .section-title, .section .section-eyebrow, .section .section-lead, .section .step, .section .kit-item').forEach(el => {
+      gsap.fromTo(el, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 88%' }});
+    });
+  }
+
+  /* Smooth-scroll for anchor links */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) {
+        const target = document.querySelector(id);
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

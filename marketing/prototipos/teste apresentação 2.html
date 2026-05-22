@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass: Automação Sion</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Fonte Google Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        sion: {
+                            blue: '#0056b3',
+                            light: '#e6f0fa',
+                            dark: '#003d82',
+                            accent: '#FFD04B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 40px 40px;
+            overflow: hidden;
+        }
+        
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card-shadow {
+            box-shadow: 8px 8px 0px rgba(15, 23, 42, 0.15);
+            border: 2px solid #1e293b;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between text-slate-800 relative">
+
+    <!-- Indicador de Progresso -->
+    <div class="w-full h-2 bg-slate-200 fixed top-0 left-0 z-50">
+        <div id="progress-bar" class="h-full bg-sion-blue transition-all duration-500 w-1/5"></div>
+    </div>
+
+    <main class="flex-1 flex items-center justify-center p-8 relative w-full max-w-7xl mx-auto h-full">
+
+        <!-- SLIDE 1: CAPA -->
+        <div class="slide active flex-col items-center text-center w-full" id="slide-1">
+            <div class="bg-white p-16 rounded-3xl card-shadow max-w-4xl w-full relative">
+                <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-sion-blue text-white w-20 h-20 flex items-center justify-center rounded-2xl shadow-lg rotate-3 border-2 border-slate-800">
+                    <i class="fa-solid fa-graduation-cap text-4xl"></i>
+                </div>
+                <h2 class="text-sion-blue font-bold tracking-widest uppercase text-sm mb-4 mt-4">Treinamento & Alinhamento Estratégico</h2>
+                <h1 class="text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
+                    Caixa de Entrada <span class="text-transparent bg-clip-text bg-gradient-to-r from-sion-blue to-blue-500">Inteligente</span>
+                </h1>
+                <p class="text-xl text-slate-500 mb-10 max-w-2xl mx-auto">
+                    Como transformamos a organização de e-mails da Sion em um processo automatizado, confiável e à prova de falhas.
+                </p>
+                <div class="inline-flex items-center gap-3 bg-sion-light px-6 py-3 rounded-full text-sion-dark font-bold border-2 border-sion-blue shadow-sm">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span>Pressione a seta para a Direita para começar</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: A DOR -->
+        <div class="slide flex-col w-full" id="slide-2">
+            <h2 class="text-sion-blue font-bold tracking-widest uppercase text-sm mb-2">Diagnosticando o Problema</h2>
+            <h1 class="text-5xl font-extrabold text-slate-900 mb-12">O que nos trava hoje?</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+                <div class="bg-white p-8 rounded-2xl card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-100 text-red-600 px-3 py-1 font-bold text-sm border-b-2 border-l-2 border-slate-800 rounded-bl-lg">Dor 1</div>
+                    <i class="fa-solid fa-hourglass-half text-4xl text-red-500 mb-6 mt-4"></i>
+                    <h3 class="text-xl font-bold mb-3">Desperdício de Tempo</h3>
+                    <p class="text-slate-600">Criar e manter filtros manualmente no Gmail é um trabalho de formiga. Horas da equipe são gastas apenas organizando gavetas em vez de faturar.</p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-orange-100 text-orange-600 px-3 py-1 font-bold text-sm border-b-2 border-l-2 border-slate-800 rounded-bl-lg">Dor 2</div>
+                    <i class="fa-solid fa-triangle-exclamation text-4xl text-orange-500 mb-6 mt-4"></i>
+                    <h3 class="text-xl font-bold mb-3">Falta de Confiabilidade</h3>
+                    <p class="text-slate-600">Se o cliente muda de e-mail ou a UC não é mapeada, a informação se perde no mar da Caixa de Entrada. O risco de erro humano é alto.</p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl card-shadow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-yellow-100 text-yellow-600 px-3 py-1 font-bold text-sm border-b-2 border-l-2 border-slate-800 rounded-bl-lg">Dor 3</div>
+                    <i class="fa-solid fa-arrow-trend-down text-4xl text-yellow-500 mb-6 mt-4"></i>
+                    <h3 class="text-xl font-bold mb-3">Gargalo de Crescimento</h3>
+                    <p class="text-slate-600">A organização atual mora "na cabeça" de cada analista. Entraram 50 clientes novos? O sistema manual não escala.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: ALINHAMENTO ESTRATÉGICO -->
+        <div class="slide flex-col w-full" id="slide-3">
+            <h2 class="text-sion-blue font-bold tracking-widest uppercase text-sm mb-2">A Visão de Negócio</h2>
+            <h1 class="text-5xl font-extrabold text-slate-900 mb-12">Objetivos Estratégicos</h1>
+            
+            <div class="bg-slate-800 text-white p-12 rounded-3xl card-shadow w-full">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="text-center">
+                        <div class="bg-sion-blue w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-6 border-4 border-white">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-sion-accent">Organização</h3>
+                        <p class="text-slate-300 text-lg">Uma única base de dados (Planilha V2) dita as regras para toda a empresa. Padronização absoluta da estrutura de pastas.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-sion-blue w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-6 border-4 border-white">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-sion-accent">Confiabilidade</h3>
+                        <p class="text-slate-300 text-lg">Filtros blindados. O sistema rastreia múltiplos e-mails e UCs em conjunto, garantindo que nada passe despercebido.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-sion-blue w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl mb-6 border-4 border-white">
+                            <i class="fa-solid fa-rocket"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-sion-accent">Poupar Tempo</h3>
+                        <p class="text-slate-300 text-lg">O que levava dias para configurar manualmente, a nossa automação compila e aplica em exatamente 3 segundos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: A SOLUÇÃO TÉCNICA -->
+        <div class="slide flex-col w-full" id="slide-4">
+            <h2 class="text-sion-blue font-bold tracking-widest uppercase text-sm mb-2">Como Funciona?</h2>
+            <h1 class="text-5xl font-extrabold text-slate-900 mb-12">A Engenharia por Trás</h1>
+            
+            <div class="flex flex-col md:flex-row gap-6 w-full items-stretch">
+                <!-- Passo 1 -->
+                <div class="flex-1 bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                    <div class="text-sion-blue text-5xl mb-4"><i class="fa-solid fa-file-excel"></i></div>
+                    <h3 class="text-xl font-bold mb-2">1. O Input (Planilha)</h3>
+                    <p class="text-slate-600 text-sm">A equipe preenche os dados de forma simples na Planilha de Comunicações, definindo o e-mail, a UC e as regras (Arquivar, Encaminhar).</p>
+                </div>
+                <!-- Seta -->
+                <div class="hidden md:flex items-center justify-center text-slate-400 text-3xl">
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </div>
+                <!-- Passo 2 -->
+                <div class="flex-1 bg-sion-blue text-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center transform scale-105 z-10 border-2 border-slate-800">
+                    <div class="text-sion-accent text-5xl mb-4"><i class="fa-solid fa-microchip"></i></div>
+                    <h3 class="text-xl font-bold mb-2">2. O Motor (Python)</h3>
+                    <p class="text-slate-200 text-sm">Nosso script consolida os dados. Se um cliente tem 10 e-mails, o motor não cria 10 filtros, ele os agrupa em uma única super-regra inteligente.</p>
+                </div>
+                <!-- Seta -->
+                <div class="hidden md:flex items-center justify-center text-slate-400 text-3xl">
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </div>
+                <!-- Passo 3 -->
+                <div class="flex-1 bg-white p-8 rounded-2xl card-shadow flex flex-col items-center text-center">
+                    <div class="text-green-600 text-5xl mb-4"><i class="fa-brands fa-google"></i></div>
+                    <h3 class="text-xl font-bold mb-2">3. O Output (Gmail)</h3>
+                    <p class="text-slate-600 text-sm">Geração de 2 arquivos seguros (Estrutura e Filtros Consolidados) que o Gmail lê nativamente, atualizando toda a caixa de entrada na hora.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: GUIA PRÁTICO -->
+        <div class="slide flex-col w-full" id="slide-5">
+            <h2 class="text-sion-blue font-bold tracking-widest uppercase text-sm mb-2">Manual da Equipe</h2>
+            <h1 class="text-5xl font-extrabold text-slate-900 mb-12">Como usar no dia a dia?</h1>
+            
+            <div class="bg-white p-10 rounded-3xl card-shadow w-full max-w-5xl mx-auto">
+                <ol class="space-y-6">
+                    <li class="flex items-start gap-4">
+                        <div class="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">1</div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Atualize a Base de Dados</h4>
+                            <p class="text-slate-600 mt-1">Sempre que entrar um cliente novo ou uma nova UC, cadastre na aba "Comunicações Sion". A aba "Regras Auto" vai puxar tudo sozinha.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">2</div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Gere os Arquivos Consolidados</h4>
+                            <p class="text-slate-600 mt-1">O gestor roda o nosso motor de automação (no Colab). Ele vai baixar dois arquivos: <strong>1_SION_ESTRUTURA...</strong> e <strong>2_SION_FILTROS...</strong></p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="bg-slate-800 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">3</div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Importe no Gmail</h4>
+                            <p class="text-slate-600 mt-1">Vá nas Configurações do Gmail > Filtros > Importar. Suba primeiro a Estrutura (para criar as pastas) e depois os Filtros Consolidados.</p>
+                        </div>
+                    </li>
+                </ol>
+                
+                <div class="mt-10 flex justify-center">
+                    <button onclick="currentSlide = 0; updateSlides();" class="bg-sion-blue text-white px-8 py-4 rounded-xl font-bold hover:bg-sion-dark transition-colors shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i> Finalizar Treinamento
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Controles de Navegação (Rodapé) -->
+    <footer class="w-full p-6 flex justify-between items-center bg-white border-t-2 border-slate-200 z-40">
+        <div class="flex items-center gap-3">
+            <div class="bg-sion-blue text-white font-black text-xl w-10 h-10 flex items-center justify-center rounded-lg">S</div>
+            <span class="font-bold text-slate-800 text-lg">Sion Energia <span class="text-slate-400 font-normal text-sm ml-2">| Inovação Operacional</span></span>
+        </div>
+        
+        <div class="flex gap-4">
+            <button onclick="prevSlide()" class="w-12 h-12 rounded-full border-2 border-slate-300 flex items-center justify-center text-slate-600 hover:border-sion-blue hover:text-sion-blue hover:bg-sion-light transition-all disabled:opacity-30 disabled:hover:border-slate-300" id="btn-prev" disabled>
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button onclick="nextSlide()" class="w-12 h-12 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg hover:bg-black transition-all" id="btn-next">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Lógica em JavaScript -->
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progress-bar');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Atualiza barra de progresso
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+
+            // Atualiza os botões
+            btnPrev.disabled = currentSlide === 0;
+            
+            if (currentSlide === slides.length - 1) {
+                btnNext.style.display = 'none';
+            } else {
+                btnNext.style.display = 'flex';
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        updateSlides();
+    </script>
+</body>
+</html>

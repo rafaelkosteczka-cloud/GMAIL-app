@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Inbox Fighter</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#07090f; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:'Courier New',monospace; color:#fff; user-select:none; }
+#wrap { display:flex; flex-direction:column; align-items:center; gap:10px; }
+canvas { border-radius:16px; border:1px solid rgba(255,255,255,.07); cursor:crosshair; display:block; }
+#hud { display:flex; align-items:center; gap:20px; font-size:12px; color:rgba(255,255,255,.4); }
+#stage-label { font-size:13px; font-weight:700; letter-spacing:.06em; min-width:200px; text-align:center; transition:color .5s; }
+#hint { font-size:10px; color:rgba(255,255,255,.2); }
+#btn-reset { padding:6px 16px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:rgba(255,255,255,.4); cursor:pointer; font-size:11px; font-family:inherit; transition:all .2s; }
+#btn-reset:hover { background:rgba(255,255,255,.12); color:#fff; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="740" height="430"></canvas>
+  <div id="hud">
+    <span id="stage-label">Sentado na mesa…</span>
+    <span id="hint">SPACE atacar · ← → mover</span>
+    <button id="btn-reset">↺ Reset</button>
+  </div>
+</div>
+<script>
+(function(){
+var C=document.getElementById('c'),ctx=C.getContext('2d'),W=C.width,H=C.height;
+var FLOOR=340,BASE_X=110;
+function lerp(a,b,t){return a+(b-a)*t;}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+/* ── Senders ── */
+var SENDERS=[
+  {name:'noreply@banco',chip:'!',cBg:'#fee2e2',cFg:'#991b1b',avBg:'#ef4444',avL:'!'},
+  {name:'Newsletter',chip:'PROMO',cBg:'#ede9fe',cFg:'#5b21b6',avBg:'#8b5cf6',avL:'N'},
+  {name:'Marketing',chip:'SPAM',cBg:'#fee2e2',cFg:'#991b1b',avBg:'#f97316',avL:'M'},
+  {name:'LinkedIn',chip:'Social',cBg:'#dbeafe',cFg:'#1e40af',avBg:'#0ea5e9',avL:'in'},
+];
+var STAGES=[
+  {name:'Normal',          col:'#9ca3af',fOff:0, hov:0 },
+  {name:'Despertando…',    col:'#fbbf24',fOff:-4,hov:3 },
+  {name:'⚡ Super Saiyajin!',col:'#f59e0b',fOff:-20,hov:10},
+  {name:'💥 Ultra Instinto!!',col:'#93c5fd',fOff:-34,hov:16},
+];
+var BPHASES=[
+  {lbl:'INBOX',   cnt:'999+',aura:'rgba(239,68,68,.18)', bord:'#ef4444',atkInt:165,thresh:600},
+  {lbl:'INBOX',   cnt:'666+',aura:'rgba(249,115,22,.22)',bord:'#f97316',atkInt:115,thresh:400},
+  {lbl:'URGENTE', cnt:'333+',aura:'rgba(220,38,38,.28)', bord:'#dc2626',atkInt:75, thresh:200},
+  {lbl:'⚠ SPAM',  cnt:'999+',aura:'rgba(124,58,237,.32)',bord:'#7c3aed',atkInt:42, thresh:100},
+];
+
+/* ── State ── */
+var gs='intro',introF=0,winF=0,loseF=0;
+var px=BASE_X,py=FLOOR,pCombo=0,pStage=0,pHP=100,pInv=0,pVX=0,pVY=0,pKi=0;
+var pAtk=false,pAtkF=0,pSpec=false,pSpecF=0,pSpecHit=false;
+var charX=BASE_X,charY=FLOOR;
+var BOSS_MAX_HP=600,BOSS_MINION_TRIGGER=Math.floor(BOSS_MAX_HP*.7);
+var bHP=BOSS_MAX_HP,bPhase=0,bFlash=0,bShake=0,bAtkT=165,bBobT=0;
+var BOSS_X=590,BOSS_Y=60;
+var bossRageSummoned=false,bossIntentT=0;
+var keys={l:false,r:false,up:false,down:false};
+var pState = 'idle';
+var lastAttack = '';
+var comboBuffer = [];
+var comboTimer = 0;
+var attackChain = 0;
+var pAttackBase = 'jab';
+var comboText = '';
+var comboTextTimer = 0;
+var cutinT=0,cutinText='',cutinColor='#facc15',cutinKind='hero';
+
+var ASSETS = {
+  hero_idle: new Image(),
+  hero_jab_start: new Image(), hero_jab_active: new Image(), hero_jab_recover: new Image(),
+  hero_cross_start: new Image(), hero_cross_active: new Image(),
+  hero_kick_start: new Image(), hero_kick_active: new Image(),
+  hero_special_charge: new Image(), hero_special_fire: new Image(),
+  hero_win: new Image(),
+  boss_idle: new Image(), boss_hit: new Image()
+};
+
+function makeSvgUri(svgString) {
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+}
+
+function getHeroSVG(level, pose) {
+  let hairCol = level >= 3 ? '#e2e8f0' : (level >= 1 ? '#fde047' : '#1f2937');
+  let strokeCol = level >= 3 ? '#94a3b8' : (level >= 1 ? '#ca8a04' : '#111827');
+  let hairGlow = level >= 1 ? `<circle cx="50" cy="15" r="50" fill="${hairCol}" opacity="0.4" filter="blur(6px)"/>` : '';
+  let mColor = level >= 3 ? '#e2e8f0' : (level >= 1 ? '#ca8a04' : '#ea4335');
+  const POSE_LEGACY = {'punch':'jab_active','punch2':'cross_active','kick':'kick_active','kick2':'kick_active','special-start':'special_charge','kameha':'special_fire'};
+  const rp = POSE_LEGACY[pose] || pose;
+  const A = {
+    idle:{nx:50,ny:31,hr:0}, jab_start:{nx:53,ny:29,hr:8}, jab_active:{nx:55,ny:28,hr:12},
+    jab_recover:{nx:51,ny:30,hr:4}, cross_start:{nx:47,ny:29,hr:-8}, cross_active:{nx:45,ny:28,hr:-12},
+    kick_start:{nx:48,ny:27,hr:-10}, kick_active:{nx:46,ny:26,hr:-15},
+    special_charge:{nx:50,ny:33,hr:5}, special_fire:{nx:52,ny:30,hr:8}, win:{nx:50,ny:25,hr:-8},
+  };
+  const a = A[rp] || A.idle;
+  const htx = a.nx-50, hty = a.ny-45;
+  const hxf = `translate(${htx},${hty}) rotate(${a.hr},${a.nx},${a.ny})`;
+  const bt = ['jab_start','jab_active','jab_recover'].includes(rp)?'punch':['cross_start','cross_active'].includes(rp)?'cross':['kick_start','kick_active'].includes(rp)?'kick':['special_charge','special_fire'].includes(rp)?'kameha':rp;
+  
+  const hairShade = level >= 3 ? '#cbd5e1' : (level >= 1 ? '#f59e0b' : '#020617');
+  const hairHi = level >= 3 ? '#f8fafc' : (level >= 1 ? '#fef08a' : '#334155');
+  const backHairSVG = level >= 2 ? `
+    <g class="anime-back-hair" stroke="${strokeCol}" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M24,18 C2,44 -8,84 2,132 C17,103 25,79 31,50 Z" fill="${hairCol}"/>
+      <path d="M76,18 C98,44 108,84 98,132 C83,103 75,79 69,50 Z" fill="${hairCol}"/>
+      <path d="M36,16 C20,52 19,86 31,122 C42,88 45,58 45,26 Z" fill="${hairShade}" opacity=".9"/>
+      <path d="M64,16 C80,52 81,86 69,122 C58,88 55,58 55,26 Z" fill="${hairShade}" opacity=".9"/>
+    </g>
+  ` : '';
+  const frontHairSVG = `
+    <g class="anime-front-hair" stroke="${strokeCol}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M21,22 C11,18 4,9 -3,-7 C12,0 22,2 30,8 C26,-9 30,-24 39,-39 C43,-18 47,-6 50,5 C55,-17 63,-34 75,-47 C77,-23 73,-7 67,8 C78,1 89,-7 101,-21 C101,-3 92,12 78,23 C70,16 61,13 50,13 C39,13 29,16 21,22 Z" fill="${hairCol}"/>
+      <path d="M33,9 C38,-6 42,-20 49,-32 C49,-15 50,-4 51,10 Z" fill="${hairHi}" opacity=".62"/>
+      <path d="M52,10 C58,-10 65,-25 75,-40 C74,-19 70,-5 64,11 Z" fill="${hairHi}" opacity=".46"/>
+      <path d="M23,20 C30,15 39,13 50,13 C61,13 70,15 78,23 C70,20 61,19 50,19 C38,19 29,20 23,20 Z" fill="${hairShade}" opacity=".78"/>
+      <path d="M19,24 C9,25 1,18 -8,8 C7,10 18,13 27,18 Z" fill="${hairCol}"/>
+      <path d="M81,24 C91,25 99,18 108,8 C93,10 82,13 73,18 Z" fill="${hairCol}"/>
+    </g>
+  `;
+
+  const gi = '#f97316', giDark = '#c2410c', giDeep = '#9a3412';
+  const blue = '#1e3a8a', blueDark = '#172554', skin = '#fcd34d', skinDark = '#d97706';
+  const trim = '#facc15', bootRed = '#b91c1c', ink = '#111827';
+
+  let bodySVG = '';
+  if (bt === 'idle') {
+    bodySVG = `
+      <g class="hero-body idle">
+        <ellipse cx="50" cy="142" rx="48" ry="8" fill="#020617" opacity=".22"/>
+        <path d="M29,50 C24,50 19,57 16,68 C13,79 14,90 20,92 C25,94 28,85 29,75 C30,66 34,59 39,56 C38,52 34,50 29,50 Z" fill="${skin}"/>
+        <path d="M19,70 C15,78 15,88 20,92 C25,93 27,86 28,80 C25,84 21,84 20,78 C19,75 19,72 19,70 Z" fill="${skinDark}" opacity=".65"/>
+        <path d="M15,81 C11,82 8,86 9,91 C10,97 16,100 22,96 C27,92 26,85 21,82 C19,81 17,80 15,81 Z" fill="${ink}"/>
+        <path d="M12,87 C16,85 20,86 24,89 M13,93 C17,94 20,94 23,92" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+        <path d="M16,72 C21,70 26,72 30,75 L27,84 C22,82 18,80 14,78 Z" fill="${blue}"/>
+        <path d="M71,50 C76,50 81,57 84,68 C87,79 86,90 80,92 C75,94 72,85 71,75 C70,66 66,59 61,56 C62,52 66,50 71,50 Z" fill="${skin}"/>
+        <path d="M81,70 C85,78 85,88 80,92 C75,93 73,86 72,80 C75,84 79,84 80,78 C81,75 81,72 81,70 Z" fill="${skinDark}" opacity=".65"/>
+        <path d="M85,81 C89,82 92,86 91,91 C90,97 84,100 78,96 C73,92 74,85 79,82 C81,81 83,80 85,81 Z" fill="${ink}"/>
+        <path d="M88,87 C84,85 80,86 76,89 M87,93 C83,94 80,94 77,92" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+        <path d="M84,72 C79,70 74,72 70,75 L73,84 C78,82 82,80 86,78 Z" fill="${blue}"/>
+
+        <path d="M31,40 C38,35 62,35 69,40 C74,51 70,73 61,86 C55,91 45,91 39,86 C30,72 26,52 31,40 Z" fill="${gi}"/>
+        <path d="M39,39 L50,66 L61,39 C57,37 43,37 39,39 Z" fill="${blueDark}"/>
+        <path d="M35,40 C41,49 45,57 50,66 C44,63 37,58 31,51 C31,46 33,42 35,40 Z" fill="#fb923c"/>
+        <path d="M65,41 C62,58 58,72 50,88 C59,87 67,78 70,63 C72,52 70,45 65,41 Z" fill="${giDark}"/>
+        <path d="M42,50 C45,55 47,60 50,66 M58,49 C55,56 52,62 50,67" fill="none" stroke="${giDeep}" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+        <path d="M34,79 C43,83 57,83 66,79 L64,91 C55,96 44,96 36,91 Z" fill="${blue}"/>
+        <path d="M45,87 C51,89 57,88 63,84 C61,91 55,94 47,94 Z" fill="${blueDark}" opacity=".8"/>
+        <path d="M55,84 C62,86 67,90 69,96 C63,96 58,93 55,88 Z" fill="${blueDark}"/>
+
+        <path d="M36,88 C29,101 23,117 24,137 C31,142 41,140 45,134 C44,120 47,105 51,92 C46,90 41,89 36,88 Z" fill="${gi}"/>
+        <path d="M27,111 C24,120 24,131 26,137 C31,140 36,139 39,135 C34,133 32,124 35,111 Z" fill="${giDark}"/>
+        <path d="M39,96 C36,110 36,123 38,135 M45,102 C41,113 41,123 43,131" fill="none" stroke="${giDeep}" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>
+        <path d="M19,135 C27,132 38,133 46,136 L43,149 C34,153 21,151 14,147 C14,142 16,138 19,135 Z" fill="${blueDark}"/>
+        <path d="M18,137 C27,137 36,138 44,141 L42,145 C32,144 23,143 15,145 Z" fill="${trim}"/>
+        <path d="M14,144 C23,149 33,150 43,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M64,88 C71,101 77,117 76,137 C69,142 59,140 55,134 C56,120 53,105 49,92 C54,90 59,89 64,88 Z" fill="${gi}"/>
+        <path d="M73,111 C76,120 76,131 74,137 C69,140 64,139 61,135 C66,133 68,124 65,111 Z" fill="${giDark}"/>
+        <path d="M61,96 C64,110 64,123 62,135 M55,102 C59,113 59,123 57,131" fill="none" stroke="${giDeep}" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>
+        <path d="M54,136 C63,132 74,132 82,136 C86,139 88,143 86,148 C77,152 65,152 57,148 Z" fill="${blueDark}"/>
+        <path d="M56,140 C64,137 74,137 85,143 L84,147 C74,144 65,144 56,146 Z" fill="${trim}"/>
+        <path d="M57,146 C67,150 78,150 86,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    `;
+  } else if (bt === 'punch') {
+    bodySVG = `
+      <g class="hero-body punch">
+        <ellipse cx="60" cy="143" rx="56" ry="8" fill="#020617" opacity=".22"/>
+        <path d="M35,50 C25,52 20,61 20,72 C20,83 26,91 34,88 C39,85 37,76 34,69 C31,62 34,56 42,55 Z" fill="${skin}"/>
+        <path d="M23,69 C21,79 25,87 34,88 C31,82 30,76 32,70 C29,72 26,72 23,69 Z" fill="${skinDark}" opacity=".62"/>
+        <path d="M31,80 C25,81 22,86 23,91 C25,97 33,98 38,93 C42,88 39,82 34,80 Z" fill="${ink}"/>
+        <path d="M24,87 C29,85 34,86 39,89 M27,94 C31,95 35,94 38,92" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+        <path d="M22,70 C27,69 32,70 36,74 L34,84 C29,82 24,80 21,76 Z" fill="${blue}"/>
+
+        <path d="M29,42 C42,36 68,39 82,47 C80,63 72,78 58,88 C49,90 39,86 34,80 C29,66 27,52 29,42 Z" fill="${gi}"/>
+        <path d="M39,40 C49,50 55,60 59,80 C49,72 39,59 32,47 C34,44 36,42 39,40 Z" fill="#fb923c"/>
+        <path d="M65,43 C61,56 58,70 58,88 C68,83 77,73 82,50 C77,47 71,45 65,43 Z" fill="${giDark}"/>
+        <path d="M44,42 L57,74 L70,45 C60,38 50,38 44,42 Z" fill="${blueDark}"/>
+        <path d="M40,80 C50,85 62,85 72,79 L71,91 C60,97 46,96 36,89 Z" fill="${blue}"/>
+        <path d="M56,86 C62,87 68,85 72,80 C70,88 64,94 56,94 Z" fill="${blueDark}"/>
+        <path d="M46,53 C51,59 54,67 56,75 M69,50 C64,61 62,72 60,84" fill="none" stroke="${giDeep}" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+
+        <path d="M76,45 C89,37 106,35 121,37 C132,39 137,45 135,51 C133,58 121,59 108,56 C96,54 84,57 76,64 C72,59 72,50 76,45 Z" fill="${skin}"/>
+        <path d="M105,38 C119,38 133,41 135,49 C128,47 117,48 106,49 C96,50 87,54 78,61 C77,55 87,45 105,38 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M116,49 C124,52 132,52 136,48 C135,55 128,59 116,58 Z" fill="${skinDark}" opacity=".6"/>
+        <path d="M94,36 C100,35 105,36 109,39 L107,51 C101,49 96,48 91,48 Z" fill="${blue}"/>
+        <path d="M130,35 C137,35 143,40 144,47 C145,55 139,61 130,61 C121,61 115,56 115,48 C115,40 121,35 130,35 Z" fill="${ink}"/>
+        <path d="M119,45 C126,43 136,43 142,47 M119,52 C126,53 135,53 142,50 M124,39 C126,45 126,54 124,59" fill="none" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+
+        <path d="M39,90 C29,103 20,117 17,135 C25,142 36,142 44,136 C44,123 49,108 56,94 C51,91 45,90 39,90 Z" fill="${gi}"/>
+        <path d="M21,115 C17,125 17,132 20,137 C26,139 31,138 36,134 C31,132 30,123 35,111 Z" fill="${giDark}"/>
+        <path d="M21,135 C31,132 42,133 50,138 L45,150 C35,153 22,151 14,147 C15,141 17,138 21,135 Z" fill="${blueDark}"/>
+        <path d="M19,138 C29,137 39,139 48,143 L46,146 C35,144 24,143 15,145 Z" fill="${trim}"/>
+        <path d="M14,145 C23,150 35,150 45,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M65,90 C77,101 89,116 93,136 C87,143 76,143 68,137 C67,123 60,108 54,94 C58,91 62,90 65,90 Z" fill="${gi}"/>
+        <path d="M82,112 C89,121 92,131 90,137 C84,140 78,139 73,134 C78,130 78,121 72,111 Z" fill="${giDark}"/>
+        <path d="M70,137 C80,133 91,133 100,137 C104,141 105,145 102,149 C92,152 79,151 72,148 Z" fill="${blueDark}"/>
+        <path d="M72,141 C81,138 92,138 103,144 L101,148 C91,144 80,144 72,146 Z" fill="${trim}"/>
+        <path d="M72,147 C82,150 94,151 102,148" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    `;
+  } else if (bt === 'kick') {
+    bodySVG = `
+      <g class="hero-body kick">
+        <ellipse cx="61" cy="143" rx="60" ry="8" fill="#020617" opacity=".22"/>
+        <path d="M31,50 C20,53 13,62 13,74 C13,82 18,87 25,84 C29,82 28,75 26,68 C25,61 31,56 40,55 Z" fill="${skin}"/>
+        <path d="M14,72 C14,81 19,86 25,84 C22,80 21,74 23,68 C19,71 16,72 14,72 Z" fill="${skinDark}" opacity=".62"/>
+        <path d="M15,78 C10,80 8,85 10,90 C13,96 21,96 26,90 C29,85 25,79 20,78 Z" fill="${ink}"/>
+        <path d="M11,85 C15,83 21,84 26,87 M13,91 C17,92 22,91 25,89" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".72"/>
+        <path d="M15,68 C20,67 25,69 29,73 L27,82 C22,80 17,78 13,75 Z" fill="${blue}"/>
+
+        <path d="M59,42 C68,34 79,35 86,44 C86,54 80,62 70,63 C63,61 59,54 57,47 Z" fill="${skin}"/>
+        <path d="M70,38 C77,38 83,43 85,49 C80,47 74,48 67,52 C65,48 66,42 70,38 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M76,55 C80,55 84,53 86,49 C84,57 78,62 70,63 Z" fill="${skinDark}" opacity=".55"/>
+        <path d="M78,41 C84,44 88,49 89,54 L80,62 C76,57 73,54 70,51 Z" fill="${blue}"/>
+        <path d="M85,49 C91,46 98,49 101,55 C104,62 100,69 92,70 C84,71 80,66 81,59 C81,55 82,51 85,49 Z" fill="${ink}"/>
+        <path d="M85,58 C90,56 95,57 100,60 M84,64 C89,65 94,65 99,62" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".72"/>
+
+        <path d="M26,41 C38,34 57,35 69,43 C67,58 63,76 55,88 C46,89 35,84 30,76 C26,63 24,50 26,41 Z" fill="${gi}"/>
+        <path d="M34,39 C42,50 48,61 52,82 C43,76 34,61 28,47 C29,44 31,41 34,39 Z" fill="#fb923c"/>
+        <path d="M61,41 C59,56 57,72 55,88 C64,82 69,63 69,45 Z" fill="${giDark}"/>
+        <path d="M38,40 L50,67 L61,42 C52,36 45,36 38,40 Z" fill="${blueDark}"/>
+        <path d="M35,80 C45,84 57,84 66,78 L65,90 C55,96 42,95 33,88 Z" fill="${blue}"/>
+        <path d="M50,85 C57,87 63,84 66,79 C65,88 58,94 50,94 Z" fill="${blueDark}"/>
+
+        <path d="M37,89 C31,104 29,121 32,138 C39,142 49,139 54,132 C51,119 52,103 59,91 C51,88 44,87 37,89 Z" fill="${gi}"/>
+        <path d="M33,109 C30,122 31,134 34,139 C39,140 44,138 48,134 C43,132 41,121 45,108 Z" fill="${giDark}"/>
+        <path d="M28,135 C37,132 49,133 57,137 L53,150 C43,153 30,151 22,147 C22,142 24,138 28,135 Z" fill="${blueDark}"/>
+        <path d="M26,138 C36,137 47,139 55,143 L54,146 C43,144 33,143 23,145 Z" fill="${trim}"/>
+        <path d="M23,145 C32,150 44,150 53,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M55,84 C73,74 95,62 121,54 C131,56 137,62 136,70 C116,79 89,85 64,95 C58,94 55,90 55,84 Z" fill="${gi}"/>
+        <path d="M74,72 C91,64 111,55 124,55 C117,63 97,73 72,84 C67,86 63,89 60,94 C58,90 63,79 74,72 Z" fill="#fb923c"/>
+        <path d="M100,70 C114,67 127,63 136,69 C126,77 105,82 80,88 C88,81 94,76 100,70 Z" fill="${giDark}"/>
+        <path d="M73,78 C88,74 103,67 119,59 M83,86 C99,81 115,77 133,69" fill="none" stroke="${giDeep}" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>
+        <path d="M126,47 C139,46 151,52 154,61 C150,68 140,72 126,70 C122,64 122,54 126,47 Z" fill="${blueDark}"/>
+        <path d="M132,48 C141,50 150,54 154,61 C146,61 137,59 125,56 C126,52 128,50 132,48 Z" fill="${trim}"/>
+        <path d="M125,66 C135,72 145,70 153,63" fill="none" stroke="${bootRed}" stroke-width="2.3" stroke-linecap="round"/>
+      </g>
+    `;
+  } else if (bt === 'cross') {
+    bodySVG = `
+      <g class="hero-body cross">
+        <ellipse cx="43" cy="143" rx="56" ry="8" fill="#020617" opacity=".22"/>
+        <path d="M71,50 C76,50 81,57 84,68 C87,79 86,90 80,92 C75,94 72,85 71,75 C70,66 66,59 61,56 C62,52 66,50 71,50 Z" fill="${skin}"/>
+        <path d="M81,70 C85,78 85,88 80,92 C75,93 73,86 72,80 C75,84 79,84 80,78 C81,75 81,72 81,70 Z" fill="${skinDark}" opacity=".65"/>
+        <path d="M85,81 C89,82 92,86 91,91 C90,97 84,100 78,96 C73,92 74,85 79,82 C81,81 83,80 85,81 Z" fill="${ink}"/>
+        <path d="M88,87 C84,85 80,86 76,89 M87,93 C83,94 80,94 77,92" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+        <path d="M84,72 C79,70 74,72 70,75 L73,84 C78,82 82,80 86,78 Z" fill="${blue}"/>
+
+        <path d="M27,42 C36,35 62,37 72,44 C73,59 66,76 56,88 C49,92 38,91 32,85 C25,70 22,55 27,42 Z" fill="${gi}"/>
+        <path d="M36,40 L50,68 L64,42 C56,36 44,36 36,40 Z" fill="${blueDark}"/>
+        <path d="M31,42 C38,52 44,62 50,70 C43,67 35,60 27,51 C27,46 29,43 31,42 Z" fill="#fb923c"/>
+        <path d="M65,43 C62,57 59,72 57,88 C66,82 73,67 72,46 Z" fill="${giDark}"/>
+        <path d="M36,80 C46,85 58,85 68,80 L66,92 C57,98 44,97 35,91 Z" fill="${blue}"/>
+
+        <path d="M32,46 C47,38 70,36 90,37 C107,38 120,44 119,52 C118,60 104,62 88,58 C73,55 53,59 41,67 C34,60 30,52 32,46 Z" fill="${skin}"/>
+        <path d="M55,38 C75,37 105,40 120,49 C111,46 97,46 84,47 C69,49 54,55 40,64 C38,58 43,45 55,38 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M100,46 C110,48 118,52 119,58 C115,62 107,64 99,61 Z" fill="${skinDark}" opacity=".6"/>
+        <path d="M36,46 C43,44 50,45 56,49 L52,59 C45,57 39,55 34,52 Z" fill="${blue}"/>
+        <path d="M114,31 C122,31 128,38 128,47 C128,56 121,62 113,62 C105,62 98,56 98,47 C98,38 105,31 114,31 Z" fill="${ink}"/>
+        <path d="M103,41 C111,39 121,39 127,43 M104,48 C111,49 120,49 127,46 M109,35 C111,41 111,51 109,57" fill="none" stroke="#f8fafc" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+
+        <path d="M33,90 C23,103 14,117 11,135 C19,142 30,142 38,136 C38,123 43,108 50,94 C45,91 39,90 33,90 Z" fill="${gi}"/>
+        <path d="M15,115 C11,125 11,132 14,137 C20,139 25,138 30,134 C25,132 24,123 29,111 Z" fill="${giDark}"/>
+        <path d="M15,135 C25,132 36,133 44,138 L39,150 C29,153 16,151 8,147 C9,141 11,138 15,135 Z" fill="${blueDark}"/>
+        <path d="M13,138 C23,137 33,139 42,143 L40,146 C29,144 18,143 9,145 Z" fill="${trim}"/>
+        <path d="M8,145 C17,150 29,150 39,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M59,90 C71,101 83,116 87,136 C81,143 70,143 62,137 C61,123 54,108 48,94 C52,91 56,90 59,90 Z" fill="${gi}"/>
+        <path d="M76,112 C83,121 86,131 84,137 C78,140 72,139 67,134 C72,130 72,121 66,111 Z" fill="${giDark}"/>
+        <path d="M64,137 C74,133 85,133 94,137 C98,141 99,145 96,149 C86,152 73,151 66,148 Z" fill="${blueDark}"/>
+        <path d="M66,141 C75,138 86,138 97,144 L95,148 C85,144 74,144 66,146 Z" fill="${trim}"/>
+        <path d="M66,147 C76,150 88,150 96,147" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    `;
+  } else if (bt === 'kameha') {
+    bodySVG = `
+      <defs>
+        <radialGradient id="mailHeroKi" cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="42%" stop-color="#93c5fd"/>
+          <stop offset="100%" stop-color="#2563eb" stop-opacity=".35"/>
+        </radialGradient>
+      </defs>
+      <g class="hero-body kameha">
+        <ellipse cx="50" cy="144" rx="57" ry="8" fill="#020617" opacity=".24"/>
+        <path d="M28,46 C39,37 61,37 72,46 C73,62 66,78 59,89 C52,93 42,92 35,88 C28,75 24,60 28,46 Z" fill="${gi}"/>
+        <path d="M37,43 L50,69 L63,43 C55,38 45,38 37,43 Z" fill="${blueDark}"/>
+        <path d="M32,47 C39,55 45,63 50,70 C43,68 36,63 28,55 C28,51 30,48 32,47 Z" fill="#fb923c"/>
+        <path d="M66,47 C63,62 60,78 55,91 C65,86 72,72 72,49 Z" fill="${giDark}"/>
+        <path d="M35,80 C44,85 57,85 66,80 L65,92 C56,98 43,97 34,91 Z" fill="${blue}"/>
+        <path d="M34,88 C24,101 15,118 15,138 C22,144 33,144 41,137 C41,125 47,109 54,94 C48,90 40,88 34,88 Z" fill="${gi}"/>
+        <path d="M19,113 C15,125 16,135 20,140 C27,141 33,139 37,134 C31,132 29,122 34,110 Z" fill="${giDark}"/>
+        <path d="M9,136 C19,132 32,132 43,138 L38,151 C27,154 13,151 6,147 C5,143 6,139 9,136 Z" fill="${blueDark}"/>
+        <path d="M8,139 C20,137 31,139 41,143 L39,147 C27,144 16,144 7,146 Z" fill="${trim}"/>
+        <path d="M7,146 C17,151 29,151 39,148" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M66,88 C76,101 85,118 85,138 C78,144 67,144 59,137 C59,125 53,109 46,94 C52,90 60,88 66,88 Z" fill="${gi}"/>
+        <path d="M81,113 C85,125 84,135 80,140 C73,141 67,139 63,134 C69,132 71,122 66,110 Z" fill="${giDark}"/>
+        <path d="M57,138 C68,132 81,132 91,136 C94,140 95,144 93,148 C82,153 68,153 58,149 Z" fill="${blueDark}"/>
+        <path d="M59,142 C70,137 82,137 92,144 L91,148 C80,144 69,144 58,147 Z" fill="${trim}"/>
+        <path d="M58,147 C69,151 82,151 92,148" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M28,51 C41,55 55,60 67,68 C70,72 69,78 64,80 C48,76 34,69 22,60 C20,54 23,50 28,51 Z" fill="${skin}"/>
+        <path d="M26,54 C39,58 52,64 65,76 C53,73 38,68 21,61 C21,58 22,55 26,54 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M53,67 C59,69 64,72 68,76 C67,80 62,82 56,80 Z" fill="${skinDark}" opacity=".55"/>
+        <path d="M21,54 C27,54 32,57 36,61 L32,70 C26,67 22,65 18,62 Z" fill="${blue}"/>
+
+        <path d="M72,51 C59,55 45,60 33,68 C30,72 31,78 36,80 C52,76 66,69 78,60 C80,54 77,50 72,51 Z" fill="${skin}"/>
+        <path d="M74,54 C61,58 48,64 35,76 C47,73 62,68 79,61 C79,58 78,55 74,54 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M47,67 C41,69 36,72 32,76 C33,80 38,82 44,80 Z" fill="${skinDark}" opacity=".55"/>
+        <path d="M79,54 C73,54 68,57 64,61 L68,70 C74,67 78,65 82,62 Z" fill="${blue}"/>
+
+        <circle cx="50" cy="73" r="23" fill="url(#mailHeroKi)" opacity=".9"/>
+        <circle cx="50" cy="73" r="12" fill="#ffffff" opacity=".95"/>
+        <path d="M31,72 C39,68 60,68 69,72" fill="none" stroke="#dbeafe" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+        <path d="M38,58 C42,66 45,73 47,83 M61,58 C58,66 55,74 53,84" fill="none" stroke="#bfdbfe" stroke-width="1.7" stroke-linecap="round" opacity=".75"/>
+        <path d="M38,45 C42,55 47,63 50,69 C54,60 59,52 64,45" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+      </g>
+    `;
+  } else if (bt === 'win') {
+    bodySVG = `
+      <g class="hero-body win">
+        <ellipse cx="50" cy="142" rx="46" ry="8" fill="#020617" opacity=".2"/>
+        <path d="M32,42 C41,36 59,36 68,42 C72,56 68,76 60,88 C53,92 44,92 38,88 C30,76 27,56 32,42 Z" fill="${gi}"/>
+        <path d="M40,40 L50,66 L60,40 C54,37 46,37 40,40 Z" fill="${blueDark}"/>
+        <path d="M63,43 C60,58 58,73 55,90 C65,84 70,66 68,44 Z" fill="${giDark}"/>
+        <path d="M35,80 C44,84 56,84 65,80 L63,92 C55,96 44,96 36,91 Z" fill="${blue}"/>
+        <path d="M37,90 C31,104 29,122 31,138 C38,142 48,140 53,134 C50,121 51,106 57,92 C50,89 43,88 37,90 Z" fill="${gi}"/>
+        <path d="M32,112 C29,124 30,134 33,139 C39,139 44,137 48,133 C43,130 42,121 45,110 Z" fill="${giDark}"/>
+        <path d="M22,136 C31,133 43,133 52,138 L48,150 C38,153 25,151 18,147 C18,142 20,138 22,136 Z" fill="${blueDark}"/>
+        <path d="M21,139 C31,137 42,139 50,143 L49,147 C38,144 28,144 19,146 Z" fill="${trim}"/>
+        <path d="M18,146 C28,151 39,151 48,148" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M63,90 C69,104 71,122 69,138 C62,142 52,140 47,134 C50,121 49,106 43,92 C50,89 57,88 63,90 Z" fill="${gi}"/>
+        <path d="M68,112 C71,124 70,134 67,139 C61,139 56,137 52,133 C57,130 58,121 55,110 Z" fill="${giDark}"/>
+        <path d="M48,138 C57,133 69,133 78,136 C82,140 83,145 80,149 C70,152 58,152 50,148 Z" fill="${blueDark}"/>
+        <path d="M50,141 C59,138 70,138 80,144 L79,148 C69,144 59,144 50,146 Z" fill="${trim}"/>
+        <path d="M50,147 C60,151 71,151 80,148" fill="none" stroke="${bootRed}" stroke-width="2.2" stroke-linecap="round"/>
+
+        <path d="M34,49 C25,55 18,65 17,77 C20,82 26,83 31,79 C31,69 35,61 42,55 C41,50 38,48 34,49 Z" fill="${skin}"/>
+        <path d="M18,74 C16,80 20,84 26,83 C24,78 25,72 29,66 C24,70 21,73 18,74 Z" fill="${skinDark}" opacity=".55"/>
+        <path d="M22,75 C17,76 14,81 16,86 C18,92 27,92 32,86 C35,81 30,75 25,75 Z" fill="${ink}"/>
+        <path d="M17,82 C22,80 27,81 32,84 M20,88 C24,89 28,88 31,86" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".72"/>
+        <path d="M20,66 C25,65 30,68 33,72 L29,80 C24,78 20,76 16,73 Z" fill="${blue}"/>
+
+        <path d="M66,48 C77,36 84,19 88,1 C95,0 100,5 100,12 C96,31 88,47 77,59 C71,59 67,55 66,48 Z" fill="${skin}"/>
+        <path d="M85,4 C91,1 99,6 100,12 C96,12 91,15 87,22 C84,17 83,10 85,4 Z" fill="#fde68a" opacity=".55"/>
+        <path d="M88,0 C93,-5 101,-3 103,3 C105,11 99,17 91,16 C84,15 81,9 84,4 C85,2 86,1 88,0 Z" fill="${ink}"/>
+        <path d="M87,6 C92,4 98,5 102,8 M88,12 C93,13 98,12 102,10" fill="none" stroke="#f8fafc" stroke-width="1.4" stroke-linecap="round" opacity=".72"/>
+        <path d="M73,47 C78,42 82,37 85,31 L93,38 C90,45 86,51 80,57 Z" fill="${blue}"/>
+      </g>
+    `;
+  }
+
+  const st = (bt === 'kick') ? 'kick' : (bt === 'punch' || bt === 'cross') ? 'punch' : (bt === 'kameha') ? 'kameha' : 'full';
+  let bodyStickerSVG = '';
+  if (st === 'kick') {
+    bodyStickerSVG = `
+      <g class="body-sticker kick-foundation">
+        <path d="M24,38 C36,27 65,27 82,42 C88,59 80,84 63,99 C50,106 32,100 24,86 C17,67 16,49 24,38 Z" fill="#fff7ed"/>
+        <path d="M50,79 C72,62 103,49 139,43 C153,45 162,55 160,68 C139,83 96,93 61,104 C51,101 46,91 50,79 Z" fill="#fff7ed"/>
+        <path d="M32,87 C22,105 19,130 24,150 C35,157 55,153 64,138 C60,119 63,101 72,88 Z" fill="#fff7ed"/>
+        <path d="M9,50 C22,39 42,37 52,49 C50,66 39,83 22,92 C10,89 5,78 9,50 Z" fill="#fff7ed"/>
+        <path d="M58,34 C73,25 93,33 102,53 C98,68 82,76 67,68 C56,62 52,45 58,34 Z" fill="#fff7ed"/>
+        <path d="M43,31 C49,27 56,27 62,32 L62,50 C57,56 46,56 41,50 Z" fill="${skin}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M24,38 C36,29 61,30 78,43 C74,64 66,86 55,99 C44,101 31,95 25,84 C18,66 17,49 24,38 Z" fill="${gi}" opacity=".72"/>
+        <path d="M40,36 L51,69 L64,38 C56,30 47,30 40,36 Z" fill="${blueDark}" opacity=".82"/>
+        <path d="M52,79 C77,63 107,51 139,45 C151,49 158,56 157,66 C134,77 96,88 62,100 C54,96 50,88 52,79 Z" fill="${gi}" opacity=".7"/>
+        <path d="M24,88 C21,107 22,130 27,147 C38,151 52,148 60,136 C55,120 57,102 65,89 Z" fill="${gi}" opacity=".68"/>
+      </g>
+    `;
+  } else if (st === 'punch') {
+    bodyStickerSVG = `
+      <g class="body-sticker punch-foundation">
+        <path d="M25,39 C43,28 73,32 88,47 C87,67 75,91 58,101 C42,103 27,93 21,77 C16,59 17,45 25,39 Z" fill="#fff7ed"/>
+        <path d="M72,37 C93,24 128,27 143,41 C148,55 138,69 117,67 C96,65 82,72 70,80 C60,68 61,48 72,37 Z" fill="#fff7ed"/>
+        <path d="M32,88 C19,105 11,130 16,151 C28,158 50,155 58,138 C55,120 62,100 72,86 Z" fill="#fff7ed"/>
+        <path d="M62,88 C82,101 98,122 107,146 C97,157 73,156 63,140 C62,121 52,104 45,91 Z" fill="#fff7ed"/>
+        <path d="M42,31 C48,27 56,27 62,32 L62,49 C56,56 45,56 40,49 Z" fill="${skin}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M25,40 C42,31 70,34 84,48 C81,70 70,89 57,99 C43,100 29,91 24,77 C18,60 18,47 25,40 Z" fill="${gi}" opacity=".72"/>
+        <path d="M41,36 L57,75 L72,40 C60,31 49,31 41,36 Z" fill="${blueDark}" opacity=".84"/>
+        <path d="M74,38 C93,28 124,30 140,42 C139,54 126,60 109,58 C94,57 82,63 72,74 C66,62 66,47 74,38 Z" fill="${skin}" opacity=".72"/>
+      </g>
+    `;
+  } else if (st === 'kameha') {
+    bodyStickerSVG = `
+      <g class="body-sticker kameha-foundation">
+        <path d="M20,40 C37,29 63,30 79,42 C88,60 80,87 62,101 C48,106 29,99 21,84 C14,65 13,49 20,40 Z" fill="#fff7ed"/>
+        <path d="M2,58 C21,45 41,48 52,64 C45,82 31,97 11,105 C-1,95 -4,76 2,58 Z" fill="#fff7ed"/>
+        <path d="M68,55 C88,42 110,45 122,61 C119,80 103,96 82,104 C68,94 64,73 68,55 Z" fill="#fff7ed"/>
+        <path d="M22,87 C9,105 3,132 11,151 C25,159 48,154 57,136 C54,118 63,101 75,88 Z" fill="#fff7ed"/>
+        <path d="M67,87 C84,103 95,128 91,150 C76,158 55,153 48,136 C54,118 50,101 39,88 Z" fill="#fff7ed"/>
+        <path d="M42,31 C48,27 56,27 62,32 L62,50 C57,56 46,56 41,50 Z" fill="${skin}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M22,40 C38,31 61,32 76,43 C81,64 73,88 60,100 C47,102 31,96 23,83 C16,65 16,49 22,40 Z" fill="${gi}" opacity=".72"/>
+        <path d="M40,36 L50,70 L64,38 C55,31 47,31 40,36 Z" fill="${blueDark}" opacity=".86"/>
+      </g>
+    `;
+  } else {
+    bodyStickerSVG = `
+      <g class="body-sticker full-foundation">
+        <path d="M24,38 C38,27 64,28 78,41 C86,61 78,87 62,101 C50,107 31,101 24,86 C17,67 16,48 24,38 Z" fill="#fff7ed"/>
+        <path d="M12,50 C25,38 42,38 52,51 C51,69 39,88 21,98 C8,94 3,77 12,50 Z" fill="#fff7ed"/>
+        <path d="M68,50 C82,38 99,39 108,52 C108,73 94,91 78,99 C66,94 60,72 68,50 Z" fill="#fff7ed"/>
+        <path d="M30,86 C17,105 14,130 20,151 C33,158 54,153 62,137 C57,118 61,100 70,87 Z" fill="#fff7ed"/>
+        <path d="M60,86 C75,104 81,130 76,151 C63,158 42,153 35,137 C41,118 39,100 30,87 Z" fill="#fff7ed"/>
+        <path d="M42,31 C48,27 56,27 62,32 L62,50 C57,56 46,56 41,50 Z" fill="${skin}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M25,39 C39,30 62,31 76,42 C81,62 73,87 61,99 C49,102 33,96 25,84 C18,66 18,49 25,39 Z" fill="${gi}" opacity=".74"/>
+        <path d="M40,36 L50,69 L64,38 C55,31 47,31 40,36 Z" fill="${blueDark}" opacity=".84"/>
+      </g>
+    `;
+  }
+
+  bodyStickerSVG = bodyStickerSVG.replace(/fill="#fff7ed"/g, 'fill="#020617" opacity=".12"');
+
+  const neckBridgeSVG = `
+    <g class="neck-bridge">
+      <path d="M39,31 C45,37 55,37 61,31 L63,61 C58,70 42,70 37,61 Z" fill="${skin}" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M40,47 C47,55 53,55 60,47 L57,64 C53,68 47,68 43,64 Z" fill="${skinDark}" opacity=".42"/>
+      <path d="M35,54 C40,62 45,69 50,76 C55,69 61,62 66,54" fill="none" stroke="#ffedd5" stroke-width="2.5" stroke-linecap="round" opacity=".95"/>
+      <path d="M35,55 C41,63 46,70 50,76 C54,69 60,62 66,55" fill="none" stroke="${giDeep}" stroke-width="1.5" stroke-linecap="round" opacity=".75"/>
+    </g>
+  `;
+
+  const bodyOverlaySVG = `
+    <g class="body-tailoring" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M31,42 C39,51 45,59 50,69 C55,58 60,50 67,42" stroke="#fed7aa" stroke-width="2.2" opacity=".72"/>
+      <path d="M35,80 C44,86 57,86 66,80" stroke="#082f49" stroke-width="2.1" opacity=".55"/>
+      <path d="M37,93 C34,107 34,123 37,137 M63,93 C66,107 66,123 63,137" stroke="#7c2d12" stroke-width="1.5" opacity=".52"/>
+      <path d="M26,58 C31,63 35,66 40,67 M73,58 C68,63 64,66 59,67" stroke="#ffedd5" stroke-width="1.5" opacity=".6"/>
+    </g>
+  `;
+
+  return `<svg viewBox="-20 -60 184 220" xmlns="http://www.w3.org/2000/svg">
+    <g transform="${hxf}">
+      ${backHairSVG}
+    </g>
+    <g>
+      ${bodyStickerSVG}
+      ${bodySVG}
+      ${neckBridgeSVG}
+      ${bodyOverlaySVG}
+    </g>
+    <g transform="${hxf}">
+      ${hairGlow}
+      ${frontHairSVG}
+      <rect x="25" y="10" width="50" height="35" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+      <path d="M25,10 L50,30 L75,10" fill="none" stroke="${mColor}" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M35,30 L45,34" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+      <path d="M65,30 L55,34" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="43" cy="36" r="2.5" fill="#1f2937"/>
+      <circle cx="57" cy="36" r="2.5" fill="#1f2937"/>
+    </g>
+  </svg>`;
+}
+
+const svgBossIdle = `<svg viewBox="-55 -55 310 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bossAura" cx="50%" cy="48%" r="58%">
+      <stop offset="0%" stop-color="#fee2e2" stop-opacity=".72"/>
+      <stop offset="45%" stop-color="#ef4444" stop-opacity=".24"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bossFace" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <filter id="bossGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.7  0 1 0 0 0.05  0 0 1 0 0.08  0 0 0 .9 0" result="redGlow"/>
+      <feMerge><feMergeNode in="redGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="100" cy="100" rx="138" ry="146" fill="url(#bossAura)"/>
+  <path d="M-18,114 C-30,82 -28,38 -8,8 C10,-18 42,-28 100,-30 C158,-28 190,-18 208,8 C228,38 230,82 218,114 C207,94 192,75 178,67 C167,56 162,42 161,25 C144,41 124,46 100,47 C76,46 56,41 39,25 C38,42 33,56 22,67 C8,75 -7,94 -18,114 Z" fill="#020617" opacity=".56"/>
+  <path d="M24,28 C24,15 36,5 51,5 H149 C164,5 176,15 176,28 V145 C176,160 164,170 149,170 H51 C36,170 24,160 24,145 Z" fill="url(#bossFace)" stroke="#f8fafc" stroke-width="5" filter="url(#bossGlow)"/>
+  <path d="M29,35 L100,91 L171,35 V56 L100,110 L29,56 Z" fill="#e2e8f0"/>
+  <path d="M33,37 L52,37 L100,76 L148,37 L167,37 L167,61 L100,113 L33,61 Z" fill="#ea4335"/>
+  <path d="M33,61 L52,76 V143 H33 Z" fill="#4285f4"/>
+  <path d="M167,61 L148,76 V143 H167 Z" fill="#34a853"/>
+  <path d="M52,76 L100,113 L148,76 V99 L100,137 L52,99 Z" fill="#fbbc04" opacity=".92"/>
+  <path d="M52,76 L100,113 L148,76" fill="none" stroke="#7f1d1d" stroke-width="5" stroke-linejoin="round" opacity=".45"/>
+  <path d="M54,106 C65,96 78,96 88,105 L83,115 C73,111 65,111 58,118 Z" fill="#020617"/>
+  <path d="M146,106 C135,96 122,96 112,105 L117,115 C127,111 135,111 142,118 Z" fill="#020617"/>
+  <path d="M61,105 L86,116" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <path d="M139,105 L114,116" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <path d="M75,137 C87,128 113,128 126,137 C116,153 88,153 75,137 Z" fill="#111827"/>
+  <path d="M87,141 C95,145 106,145 114,141" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <path d="M42,32 L58,58 L48,84 M158,32 L140,60 L152,96 M72,18 L92,44 L82,66 M128,19 L116,48 L128,70" fill="none" stroke="#020617" stroke-width="3" stroke-linecap="round" opacity=".22"/>
+  <path d="M19,74 C2,72 -15,80 -24,95 C-10,90 3,92 18,101" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+  <path d="M181,74 C198,72 215,80 224,95 C210,90 197,92 182,101" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+  <path d="M-22,146 C15,174 57,187 100,187 C143,187 185,174 222,146" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round" opacity=".42"/>
+  <text x="100" y="160" font-family="Impact, sans-serif" font-size="24" fill="#7f1d1d" text-anchor="middle" letter-spacing="1">999+</text>
+</svg>`;
+
+const svgBossHit = `<svg viewBox="-55 -55 310 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bossHitAura" cx="50%" cy="48%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".82"/>
+      <stop offset="40%" stop-color="#93c5fd" stop-opacity=".34"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="bossHitGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="100" cy="100" rx="142" ry="150" fill="url(#bossHitAura)"/>
+  <path d="M-22,110 C-32,74 -22,31 8,0 C38,-31 76,-34 100,-33 C124,-34 162,-31 192,0 C222,31 232,74 222,110 C206,90 190,82 173,78 C165,62 161,44 162,27 C143,42 122,51 100,51 C78,51 57,42 38,27 C39,44 35,62 27,78 C10,82 -6,90 -22,110 Z" fill="#020617" opacity=".5"/>
+  <g transform="rotate(5 100 92)" filter="url(#bossHitGlow)">
+    <path d="M26,31 C26,17 38,7 53,7 H147 C162,7 174,17 174,31 V145 C174,160 162,169 147,169 H53 C38,169 26,160 26,145 Z" fill="#fee2e2" stroke="#f8fafc" stroke-width="5"/>
+    <path d="M35,39 L53,39 L100,76 L147,39 L165,39 L165,62 L100,112 L35,62 Z" fill="#dc2626"/>
+    <path d="M35,62 L53,77 V143 H35 Z" fill="#2563eb"/>
+    <path d="M165,62 L147,77 V143 H165 Z" fill="#16a34a"/>
+    <path d="M53,77 L100,112 L147,77 V98 L100,137 L53,98 Z" fill="#facc15"/>
+    <path d="M43,52 L58,70 L51,92 M68,24 L88,54 L78,80 M134,32 L121,62 L136,92 M156,100 L136,116 L150,141" fill="none" stroke="#7f1d1d" stroke-width="4" stroke-linecap="round"/>
+    <path d="M58,104 L88,119 M142,105 L112,119" stroke="#020617" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="75" cy="117" r="9" fill="#ffffff" stroke="#020617" stroke-width="4"/>
+    <circle cx="125" cy="117" r="9" fill="#ffffff" stroke="#020617" stroke-width="4"/>
+    <circle cx="76" cy="118" r="3" fill="#ef4444"/>
+    <circle cx="124" cy="118" r="3" fill="#ef4444"/>
+    <path d="M82,143 C95,132 108,132 121,143 C114,152 90,152 82,143 Z" fill="#020617"/>
+    <text x="100" y="163" font-family="Impact, sans-serif" font-size="22" fill="#991b1b" text-anchor="middle">ERROR</text>
+  </g>
+  <path d="M-24,65 L18,72 M183,70 L225,54 M-14,160 L37,144 M164,156 L224,172" stroke="#bfdbfe" stroke-width="5" stroke-linecap="round" opacity=".78"/>
+  <path d="M-11,91 L29,104 M171,91 L212,106" stroke="#ef4444" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+</svg>`;
+const svgMinion = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M40,70 L50,100 L60,70 Z" fill="#ef4444"/>
+  <path d="M45,70 L50,90 L55,70 Z" fill="#fde047"/>
+  <path d="M20,40 L-5,20 L10,60 Z" fill="#9ca3af" stroke="#6b7280" stroke-width="2"/>
+  <path d="M80,40 L105,20 L90,60 Z" fill="#9ca3af" stroke="#6b7280" stroke-width="2"/>
+  <rect x="20" y="30" width="60" height="40" rx="4" fill="#ffffff" stroke="#9ca3af" stroke-width="3"/>
+  <path d="M20,30 L50,50 L80,30" fill="none" stroke="#ef4444" stroke-width="4" stroke-linejoin="round"/>
+  <rect x="35" y="55" width="30" height="8" rx="2" fill="#1f2937"/>
+  <circle cx="43" cy="59" r="2.5" fill="#ef4444"/>
+  <circle cx="57" cy="59" r="2.5" fill="#ef4444"/>
+</svg>`;
+
+var ASSETS = {
+  hero_idle: new Image(),
+  hero_jab_start: new Image(), hero_jab_active: new Image(), hero_jab_recover: new Image(),
+  hero_cross_start: new Image(), hero_cross_active: new Image(),
+  hero_kick_start: new Image(), hero_kick_active: new Image(),
+  hero_special_charge: new Image(), hero_special_fire: new Image(),
+  hero_win: new Image(),
+  boss_idle: new Image(), boss_hit: new Image(), minion: new Image()
+};
+
+function updateHeroSprites() {
+  ASSETS.hero_idle.src          = makeSvgUri(getHeroSVG(pStage, 'idle'));
+  ASSETS.hero_jab_start.src     = makeSvgUri(getHeroSVG(pStage, 'jab_start'));
+  ASSETS.hero_jab_active.src    = makeSvgUri(getHeroSVG(pStage, 'jab_active'));
+  ASSETS.hero_jab_recover.src   = makeSvgUri(getHeroSVG(pStage, 'jab_recover'));
+  ASSETS.hero_cross_start.src   = makeSvgUri(getHeroSVG(pStage, 'cross_start'));
+  ASSETS.hero_cross_active.src  = makeSvgUri(getHeroSVG(pStage, 'cross_active'));
+  ASSETS.hero_kick_start.src    = makeSvgUri(getHeroSVG(pStage, 'kick_start'));
+  ASSETS.hero_kick_active.src   = makeSvgUri(getHeroSVG(pStage, 'kick_active'));
+  ASSETS.hero_special_charge.src= makeSvgUri(getHeroSVG(pStage, 'special_charge'));
+  ASSETS.hero_special_fire.src  = makeSvgUri(getHeroSVG(pStage, 'special_fire'));
+  ASSETS.hero_win.src           = makeSvgUri(getHeroSVG(pStage, 'win'));
+}
+// Initial load
+updateHeroSprites();
+
+ASSETS.boss_idle.src = makeSvgUri(svgBossIdle);
+ASSETS.boss_hit.src = makeSvgUri(svgBossHit);
+ASSETS.minion.src = makeSvgUri(svgMinion);
+
+var trail=[],shards=[],lbls=[],rings=[],projs=[],dsk=[];
+var flashA=0,flashC='#fff',aT=0,iT=0;
+var gamePhase=1,emailWave=[],waveKilled=0,waveSpawnT=0;
+var bossEntrance=false,bossEntranceF=0;
+var WAVE_TOTAL=8;
+var pAtkTargetX=590,pAtkTargetY=137;
+var bossKneel=false,bossKneelF=0,bossAfterKneel=false;
+var kneelKilled=0,kneelSpawned=0,kneelSpawnTimer=0;
+var KNEEL_WAVE=5;
+
+var HITS=[null,
+  {t:'-15',c:'#f87171',s:11},
+  {t:'DOUBLE!',c:'#fbbf24',s:14},
+  {t:'TRIPLE!!!',c:'#f97316',s:16},
+  {t:'COMBO×4⚡',c:'#ef4444',s:18},
+  {t:'COMBO×5🔥',c:'#c026d3',s:20},
+];
+
+function lbl(x,y,t,c,s){lbls.push({x:x,y:y,txt:t,col:c,sz:s||12,life:1,vy:-1.4});}
+function syncLbl(){var el=document.getElementById('stage-label');el.textContent=STAGES[pStage].name;el.style.color=STAGES[pStage].col;}
+function triggerCutin(text,col,kind){
+  cutinT=58;
+  cutinText=text;
+  cutinColor=col||'#facc15';
+  cutinKind=kind||'hero';
+}
+function bossOffsetX(){
+  var stalk=Math.sin(bBobT*.75)*10;
+  var lunge=bossIntentT>0?-22*(bossIntentT/30):0;
+  return stalk+lunge;
+}
+function maybeTriggerMinionPhase(delay){
+  if(bHP<=0||bossKneel||bossAfterKneel||bossRageSummoned||bHP>BOSS_MINION_TRIGGER)return false;
+  bossRageSummoned=true;
+  if(delay){setTimeout(triggerKneel,delay);}else{triggerKneel();}
+  return true;
+}
+
+/* ── Burst ── */
+function burst(x,y,col,big){
+  flashA=big?.36:.2; flashC=col;
+  rings.push({x:x,y:y,r:5,life:1,col:col});
+  if(big)rings.push({x:x,y:y,r:5,life:1,col:'#fff'});
+  var n=big?22:10;
+  for(var i=0;i<n;i++){
+    var a=Math.random()*Math.PI*2,spd=(big?4:2.5)+Math.random()*(big?8:5);
+    shards.push({x:x+(Math.random()-.5)*44,y:y+(Math.random()-.5)*22,
+      vx:Math.cos(a)*spd,vy:Math.sin(a)*spd-3,col:i%4===0?'#fff':col,
+      life:1,w:10+Math.random()*(big?28:18),h:5+Math.random()*(big?12:8),
+      rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*.3,type:'r'});
+  }
+  for(var j=0;j<n*1.5;j++){
+    var a2=Math.random()*Math.PI*2,s2=(big?4:3)+Math.random()*(big?10:7);
+    shards.push({x:x,y:y,vx:Math.cos(a2)*s2,vy:Math.sin(a2)*s2-3.5,
+      col:j%3===0?'#fff':col,life:1,sz:2+Math.random()*4,type:'d'});
+  }
+}
+function trail2(x,y,col){trail.push({x:x,y:y,r:3+Math.random()*4,col:col,life:1});}
+
+/* ── Attack / Combo System ── */
+function pushCombo(key) {
+  comboBuffer.push(key);
+  comboTimer = 54; // janela para encadear o proximo golpe
+  if(comboBuffer.length > 6) comboBuffer.shift();
+  
+  var seq = comboBuffer.join('');
+  if(seq.endsWith('ZZ')) {
+    comboText = '1-2!';
+    comboTextTimer = 32;
+  }
+  if(seq.endsWith('ZZX')) {
+    comboText = 'SOCO SOCO CHUTE!';
+    comboTextTimer = 44;
+  }
+  if(seq.endsWith('ZZXC')) {
+    if(pKi>=20) {
+       pSpec=true; pSpecF=0; pSpecHit=false;
+       pKi -= 20;
+       comboBuffer = [];
+       attackChain = 0;
+       triggerCutin('KAMEHAMEHA','#38bdf8','hero');
+       comboText = 'COMBO ESPECIAL!';
+       comboTextTimer = 64;
+       return true;
+    }
+    comboText = 'KI BAIXO!';
+    comboTextTimer = 42;
+  }
+  if((seq.endsWith('DOWNRIGHTC') || key === 'C') && pKi>=50) {
+     pSpec=true; pSpecF=0; pSpecHit=false;
+     pKi -= 50;
+     comboBuffer = [];
+     attackChain = 0;
+     triggerCutin('KAMEHAMEHA','#38bdf8','hero');
+     comboText = 'ESPECIAL!';
+     comboTextTimer = 54;
+     return true;
+  }
+  return false;
+}
+
+function triggerSpecialCombo(name, dmg) {
+  comboText = name; comboTextTimer = 60;
+  comboBuffer = [];
+  pState = 'kick'; pAtk=true; pAtkF=0;
+  flashA=.4; flashC='#f97316';
+  // auto-hit boss
+  bHP=Math.max(0,bHP-dmg);bFlash=15;bShake=2.5;
+  burst(BOSS_X, BOSS_Y+40, '#f97316', true);
+  lbl(BOSS_X-40, BOSS_Y-20, '-'+dmg, '#f97316', 20);
+  checkPhase();
+  if(bHP<=0){setTimeout(triggerWin,200);}
+  else{maybeTriggerMinionPhase(200);}
+}
+
+function getAttackPose(baseType, frame) {
+  if (frame <= 4)  return baseType + '_start';
+  if (frame <= 13) return baseType + '_active';
+  // cross and kick have no dedicated recover — reuse start (limb pulling back)
+  if (baseType === 'cross' || baseType === 'kick') return baseType + '_start';
+  return baseType + '_recover';
+}
+
+function attack(keyType){
+  if(gs==='intro'){gs='rising';introF=0;return;}
+  if(gs==='win'||gs==='lose'){reset();return;}
+  if(gs!=='fight')return;
+  if(pAtk||pSpec)return;
+  
+  var isSpecial = pushCombo(keyType || 'Z');
+  if(isSpecial) return;
+  if(keyType === 'C'){
+    lbl(charX-35,charY-105,'SEM KI','#93c5fd',12);
+    return;
+  }
+
+  pAtk=true;pAtkF=0;
+  var chainSlot = attackChain % 4;
+  if(keyType === 'X') {
+    pAttackBase = 'kick';
+  } else if(keyType === 'C') {
+    pAttackBase = 'special';
+  } else {
+    pAttackBase = chainSlot % 2 === 0 ? 'jab' : 'cross';
+  }
+  pState = 'idle';
+  attackChain++;
+  lastAttack = keyType;
+
+  // Enche o KI com ataques!
+  pKi = Math.min(100, pKi + 8);
+  
+  var prevSt=pStage;
+  // Transforma com base no KI e não no número de hits do combo
+  pStage = pKi >= 90 ? 3 : pKi >= 60 ? 2 : pKi >= 30 ? 1 : 0;
+  
+  if (pStage !== prevSt) {
+    updateHeroSprites(); // Cabelo muda de cor ao vivo!
+    flashA=Math.max(flashA,.52+pStage*.08);
+    flashC=pStage>=3?'#93c5fd':'#fde047';
+    lbl(charX-55,charY-108,pStage>=3?'⚡ SUPER SAIYAJIN BLUE!':'✨ SUPER SAIYAJIN!',flashC,pStage>=3?18:16);
+    burst(charX,charY-40,flashC,true);
+    triggerCutin(pStage>=3?'ULTRA INSTINTO':'TRANSFORMACAO',flashC,'hero');
+  }
+  
+  if(gamePhase===1||bossKneel){
+    var bestI=-1,bestD=9999;
+    emailWave.forEach(function(e,i){
+      if(!e.alive)return;
+      var d=Math.hypot(e.x-charX,e.y-charY);
+      if(d<bestD){bestD=d;bestI=i;}
+    });
+    if(bestI>=0){pAtkTargetX=emailWave[bestI].x;pAtkTargetY=emailWave[bestI].y;}
+    else{pAtkTargetX=BOSS_X;pAtkTargetY=BOSS_Y+77;}
+  } else {
+    pAtkTargetX=BOSS_X;pAtkTargetY=BOSS_Y+77;
+  }
+  
+  // NOVA FÍSICA: Ao atacar, o personagem teleporta para o alvo e FICA lá!
+  // O px (posição física base) avança permanentemente para a direção do ataque.
+  px = clamp(pAtkTargetX - 90, 80, W-80);
+}
+
+/* ── Boss shoot ── */
+function bossShoot(){
+  var ph=BPHASES[bPhase];
+  bossIntentT=30;
+  if(bPhase>=2&&cutinT<=0&&Math.random()<.45)triggerCutin('OLHOS NO INBOX',ph.bord,'boss');
+  var bvx=BOSS_X+bossOffsetX(),bvy=BOSS_Y+90+Math.sin(bBobT)*8;
+  var cnt=bPhase>=2?5:bPhase>=1?3:1;
+  var baseA=Math.atan2(charY-bvy,charX-bvx);
+  var spread=bPhase>=2?.22:.3;
+  for(var i=0;i<cnt;i++){
+    var a=cnt===1?baseA:baseA+(i-(cnt-1)/2)*spread;
+    var spd=bPhase>=3?8:bPhase>=2?6:4.5;
+    var s=SENDERS[Math.floor(Math.random()*SENDERS.length)];
+    projs.push({x:bvx-90,y:bvy,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,s:s,fl:0});
+  }
+}
+
+function checkPhase(){
+  var np=bPhase;
+  if(bHP<=100&&bPhase<3)np=3;
+  else if(bHP<=200&&bPhase<2)np=2;
+  else if(bHP<=400&&bPhase<1)np=1;
+  if(np!==bPhase){
+    bPhase=np;bAtkT=Math.min(bAtkT,50);
+    burst(BOSS_X,BOSS_Y+77,BPHASES[np].bord,true);
+    lbl(BOSS_X-55,BOSS_Y-10,'FASE '+(np+1)+'!',BPHASES[np].bord,16);
+  }
+}
+
+function triggerKneel(){
+  if(bossKneel||bossAfterKneel||bHP<=0)return;
+  bossRageSummoned=true;
+  bossKneel=true;bossKneelF=0;
+  flashA=.42;flashC='#a855f7';
+  lbl(BOSS_X-75,BOSS_Y-18,'70%: CAPANGAS!','#a855f7',14);
+  triggerCutin('CAPANGAS DO INBOX','#a855f7','boss');
+  burst(BOSS_X,BOSS_Y+77,'#a855f7',true);
+  emailWave=[];kneelKilled=0;kneelSpawned=0;kneelSpawnTimer=55;
+  pAtkTargetX=BOSS_X;pAtkTargetY=BOSS_Y+77;
+}
+
+function triggerWin(){
+  gs='win';winF=0;
+  burst(BOSS_X,BOSS_Y+77,'#4ade80',true);
+  flashA=.55;flashC='#4ade80';
+}
+
+/* ── Reset ── */
+function reset(){
+  gs='intro';introF=0;winF=0;loseF=0;
+  px=BASE_X;py=FLOOR;pCombo=0;pStage=0;pHP=100;pInv=0;
+  pAtk=false;pAtkF=0;pSpec=false;pSpecF=0;pSpecHit=false;
+  charX=BASE_X;charY=FLOOR;
+  bHP=BOSS_MAX_HP;bPhase=0;bFlash=0;bShake=0;bAtkT=165;bBobT=0;
+  bossRageSummoned=false;bossIntentT=0;cutinT=0;cutinText='';
+  trail=[];shards=[];lbls=[];rings=[];projs=[];dsk=[];
+  flashA=0;keys={l:false,r:false,up:false,down:false};pVX=0;pVY=0;pKi=0;
+  gamePhase=1;emailWave=[];waveKilled=0;waveSpawnT=0;
+  bossEntrance=false;bossEntranceF=0;
+  pAtkTargetX=590;pAtkTargetY=137;
+  bossKneel=false;bossKneelF=0;bossAfterKneel=false;
+  kneelKilled=0;kneelSpawned=0;kneelSpawnTimer=0;
+  comboBuffer=[];comboTimer=0;attackChain=0;comboText='';comboTextTimer=0;
+  document.getElementById('stage-label').textContent='Sentado na mesa…';
+  document.getElementById('stage-label').style.color='#9ca3af';
+}
+
+/* ══ DRAW ══ */
+
+function drawBg(){
+  /* sky gradient */
+  var g=ctx.createLinearGradient(0,0,0,FLOOR+14);
+  g.addColorStop(0,pStage>=3?'#0c0520':pStage>=2?'#0e1235':'#080c14');
+  g.addColorStop(.55,pStage>=2?'#0b1028':'#060910');
+  g.addColorStop(1,'#050810');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,FLOOR+14);
+  /* lunar arena and story backdrop */
+  ctx.save();
+  var neb=ctx.createRadialGradient(W*.18,70,0,W*.18,70,240);
+  neb.addColorStop(0,pStage>=3?'rgba(59,130,246,.18)':'rgba(99,102,241,.12)');
+  neb.addColorStop(.45,'rgba(124,58,237,.06)');
+  neb.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=neb;ctx.fillRect(0,0,W,FLOOR+30);
+  var moonG=ctx.createRadialGradient(W-96,70,2,W-96,70,74);
+  moonG.addColorStop(0,'rgba(248,250,252,.78)');
+  moonG.addColorStop(.55,'rgba(148,163,184,.28)');
+  moonG.addColorStop(1,'rgba(148,163,184,0)');
+  ctx.fillStyle=moonG;ctx.beginPath();ctx.arc(W-96,70,74,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(226,232,240,.08)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(W-110,57,20,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(W-72,92,12,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+  /* stars */
+  ctx.save();
+  [[45,28,1.2],[123,55,1],[78,14,1.5],[234,42,1],[312,18,1.2],[189,68,.9],[456,31,1.3],[567,22,1],[643,48,1.1],[701,15,1],[38,82,.9],[150,95,1],[290,75,1],[410,88,1.2],[520,60,.8],[620,35,1],[680,72,1.1],[320,105,.9],[140,48,1],[500,92,1.2],[245,30,.8],[390,65,1]].forEach(function(s,i){
+    ctx.globalAlpha=(0.2+0.8*Math.abs(Math.sin(aT*.35+i*1.7)))*(pStage>=2?1:.5);
+    ctx.fillStyle=pStage>=3?'#bfdbfe':pStage>=2?'#fde68a':'#e2e8f0';
+    ctx.beginPath();ctx.arc(s[0],s[1],s[2],0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;ctx.restore();
+  /* speed lines SSJ */
+  if(pStage>=2){
+    ctx.save();ctx.strokeStyle=pStage>=3?'rgba(147,197,253,.055)':'rgba(251,191,36,.045)';ctx.lineWidth=1;
+    for(var j=0;j<7;j++){
+      var lx=((aT*65+j*(W/7))%W+W)%W;
+      ctx.globalAlpha=0.3+0.7*Math.abs(Math.sin(aT*1.8+j));
+      ctx.beginPath();ctx.moveTo(lx,0);ctx.lineTo(lx-20,FLOOR+14);ctx.stroke();
+    }
+    ctx.globalAlpha=1;ctx.restore();
+  }
+  /* floor */
+  ctx.fillStyle='#060910';ctx.fillRect(0,FLOOR+14,W,H-FLOOR-14);
+  ctx.strokeStyle='rgba(255,255,255,.028)';ctx.lineWidth=1;
+  for(var gx=0;gx<=W;gx+=55){ctx.beginPath();ctx.moveTo(gx,FLOOR+14);ctx.lineTo(gx,H);ctx.stroke();}
+  ctx.save();
+  var dust=ctx.createLinearGradient(0,FLOOR+14,0,H);
+  dust.addColorStop(0,'rgba(71,85,105,.24)');
+  dust.addColorStop(1,'rgba(15,23,42,.04)');
+  ctx.fillStyle=dust;ctx.fillRect(0,FLOOR+14,W,H-FLOOR-14);
+  ctx.strokeStyle='rgba(203,213,225,.12)';ctx.lineWidth=1.2;
+  [[78,374,42,9],[190,396,65,12],[336,370,52,10],[548,386,76,13],[662,362,38,8]].forEach(function(c){
+    ctx.beginPath();ctx.ellipse(c[0],c[1],c[2],c[3],0,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='rgba(2,6,23,.13)';ctx.fill();
+  });
+  ctx.restore();
+  /* floor arena glow in boss fight */
+  if(gs==='fight'&&gamePhase>=2&&!bossEntrance){
+    var fg=ctx.createLinearGradient(0,FLOOR+14,0,FLOOR+80);
+    fg.addColorStop(0,bPhase>=3?'rgba(124,58,237,.1)':bossKneel?'rgba(168,85,247,.07)':'rgba(15,118,110,.06)');
+    fg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=fg;ctx.fillRect(0,FLOOR+14,W,66);
+  }
+  /* floor line glowing */
+  var flc=pStage>=3?'rgba(147,197,253,.85)':pStage>=2?'rgba(251,191,36,.75)':pStage>=1?'rgba(15,118,110,.6)':'rgba(26,37,53,.9)';
+  ctx.strokeStyle=flc;ctx.lineWidth=pStage>=1?2:1.5;
+  if(pStage>=1){ctx.shadowColor=flc;ctx.shadowBlur=pStage>=3?20:12;}
+  ctx.beginPath();ctx.moveTo(0,FLOOR+14);ctx.lineTo(W,FLOOR+14);ctx.stroke();
+  ctx.shadowBlur=0;
+}
+
+function drawDesk(){
+  var dx=BASE_X,dy=FLOOR+2;
+  ctx.fillStyle='#2d1f10';ctx.fillRect(dx-52,dy,10,36);ctx.fillRect(dx+42,dy,10,36);
+  ctx.fillStyle='#4a3220';ctx.strokeStyle='#5c3f28';ctx.lineWidth=1;
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(dx-58,dy-18,120,18,3);else ctx.rect(dx-58,dy-18,120,18);
+  ctx.fill();ctx.stroke();
+  for(var i=3;i>=0;i--){
+    ctx.fillStyle=i===0?'#fff':'rgba(255,255,255,'+(0.5+i*.1)+')';
+    ctx.strokeStyle='#cbd5e1';ctx.lineWidth=.8;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(dx-36+i*2,dy-37+i*2,62,18,2);else ctx.rect(dx-36+i*2,dy-37+i*2,62,18);
+    ctx.fill();ctx.stroke();
+  }
+}
+
+function drawAura(hx,hy,st){
+  if(st===0)return;
+  var col=st>=3?'147,197,253':st>=2?'245,158,11':'251,191,36';
+  var c1=st>=3?'rgba(147,197,253,':st>=2?'rgba(245,158,11,':'rgba(251,191,36,';
+  
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  
+  // Flaming Aura (Multiple paths moving dynamically)
+  for(var i=0; i<3; i++) {
+     var t = aT*3 + i*2;
+     var w = 60 + (st*15) + Math.sin(t)*15;
+     var h = 120 + (st*25) + Math.cos(t*1.3)*20;
+     
+     var g = ctx.createRadialGradient(hx, hy+30, 10, hx, hy-20, w);
+     g.addColorStop(0, c1+'0.8)');
+     g.addColorStop(0.4, c1+'0.4)');
+     g.addColorStop(1, c1+'0)');
+     
+     ctx.fillStyle = g;
+     ctx.beginPath();
+     // Desenhar chama que envolve o corpo!
+     ctx.moveTo(hx, hy+50);
+     ctx.quadraticCurveTo(hx-w, hy+20, hx-w*0.5, hy-h + Math.sin(t)*20);
+     ctx.quadraticCurveTo(hx, hy-h-30, hx+w*0.5, hy-h + Math.cos(t)*20);
+     ctx.quadraticCurveTo(hx+w, hy+20, hx, hy+50);
+     ctx.fill();
+  }
+  
+  // Lightning sparks for SSJ2 and SSJ3
+  if(st>=2){
+    ctx.strokeStyle=st>=3?'rgba(255,255,255,0.9)':'rgba(59,130,246,0.8)';
+    ctx.lineWidth=2.5;
+    for(var k=0;k<3;k++){
+      if(Math.sin(aT*12+k)<0)continue; // Flicker/Strobe effect
+      var sx = hx + (Math.random()-0.5)*110;
+      var sy = hy - 40 + (Math.random()-0.5)*140;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx+(Math.random()-0.5)*40, sy+(Math.random()-0.5)*40);
+      ctx.lineTo(sx+(Math.random()-0.5)*50, sy+(Math.random()-0.5)*50);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawSpritePlaceholder(img, x, y, w, h, label, color) {
+  if (img && img.complete && img.naturalWidth !== 0) {
+     ctx.drawImage(img, x-w/2, y-h, w, h);
+     return;
+  }
+  // Fallback Placeholder if user hasn't downloaded PNGs yet
+  ctx.fillStyle = color || '#333';
+  if(ctx.roundRect) ctx.roundRect(x-w/2, y-h, w, h, 8); else ctx.rect(x-w/2, y-h, w, h);
+  ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign='center';
+  ctx.fillText(label, x, y-h/2);
+}
+
+function drawChar(hx,fy,atk,st,inv){
+  if(inv>0&&Math.floor(inv/4)%2===0)return;
+  var hy=fy-68;
+  
+  // Sombra
+  var sd=Math.max(0,fy-FLOOR);
+  ctx.save();ctx.globalAlpha=lerp(.35,.08,sd/60);
+  ctx.fillStyle='#000';
+  ctx.beginPath();ctx.ellipse(hx,FLOOR+6,lerp(28,16,sd/60),5,0,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  
+  drawAura(hx,hy,st);
+  
+  // Decide which sprite to show
+  var sprite = ASSETS.hero_idle;
+  var label = "[HERO IDLE]";
+
+  if(pSpec && pSpecF < 32) {
+      sprite = ASSETS.hero_special_charge; label = "[HERO CHARGE]";
+  } else if(pSpec && pSpecF >= 32) {
+      sprite = ASSETS.hero_special_fire; label = "[HERO KAMEHA]";
+  } else if(atk) {
+      var vPose = getAttackPose(pAttackBase, pAtkF);
+      var sprKey = 'hero_' + vPose;
+      sprite = ASSETS[sprKey] || ASSETS.hero_idle;
+      label = '[HERO ' + vPose.toUpperCase() + ']';
+  } else if(gs === 'win') {
+      sprite = ASSETS.hero_win; label = "[HERO WIN]";
+  }
+
+  // Draw the actual PNG or Placeholder
+  drawSpritePlaceholder(sprite, hx, fy, 160, 250, label, '#f97316');
+  
+  // Combo Text UI Floating
+  if(comboTextTimer > 0) {
+      ctx.save(); ctx.globalAlpha = Math.min(1, comboTextTimer/20);
+      ctx.font = 'bold 22px monospace'; ctx.fillStyle = '#fde047';
+      ctx.shadowColor = '#b45309'; ctx.shadowBlur = 10;
+      ctx.textAlign = 'center';
+      ctx.fillText(comboText, hx, fy-180 - (60-comboTextTimer)*0.5);
+      ctx.restore();
+  }
+}
+
+function drawSeated(){
+  drawSpritePlaceholder(ASSETS.hero_idle, BASE_X, FLOOR, 140, 160, "[SEATED]", '#334155');
+}
+
+/* ── BOSS ── */
+function drawBoss(){
+  var ph=BPHASES[bPhase];
+  var bw=200,bh=155;
+  var bob=Math.sin(bBobT)*10;
+  var sx=bShake>0?(Math.random()-.5)*9*bShake:0;
+  var sy=bShake>0?(Math.random()-.5)*6*bShake:0;
+  ctx.save();
+  ctx.translate(BOSS_X+bossOffsetX()+sx,BOSS_Y+bob+bh/2+sy);
+  if(bossKneel){ctx.rotate(0.28+Math.sin(bossKneelF*.09)*.06);}
+
+  /* Goku Black aura */
+  var aCol=bPhase>=3?'rgba(120,0,200,.35)':bPhase>=2?'rgba(140,0,40,.3)':bPhase>=1?'rgba(80,0,130,.22)':'rgba(50,0,90,.18)';
+  var ag=ctx.createRadialGradient(0,16,12,0,16,142+Math.sin(bBobT*2)*18);
+  ag.addColorStop(0,aCol);ag.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath();ctx.arc(0,16,142,0,Math.PI*2);ctx.fillStyle=ag;ctx.fill();
+
+  var sprite = bossKneel ? ASSETS.boss_hit : ASSETS.boss_idle;
+  var label = bossKneel ? "[BOSS HIT]" : "[BOSS IDLE]";
+  
+  // Shadow
+  ctx.save();ctx.globalAlpha=.2;ctx.fillStyle='#000';
+  ctx.beginPath();ctx.ellipse(0,bh/2+12,85,13,0,0,Math.PI*2);ctx.fill();ctx.restore();
+
+  // Draw Boss Sprite or Placeholder
+  drawSpritePlaceholder(sprite, 0, bh/2, 340, 340, label, '#7f1d1d');
+
+  if(bossIntentT>0&&!bossKneel){
+    ctx.save();
+    ctx.globalAlpha=Math.min(.8,bossIntentT/18);
+    ctx.strokeStyle=ph.bord;ctx.lineWidth=4;ctx.shadowColor=ph.bord;ctx.shadowBlur=14;
+    ctx.beginPath();ctx.moveTo(-74,-6);ctx.lineTo(-28,4);ctx.moveTo(28,4);ctx.lineTo(74,-6);ctx.stroke();
+    ctx.restore();
+  }
+
+  /* hp bar */
+  var hbw=bw-24,hbx=-hbw/2,hby=bh/2+15;
+  ctx.fillStyle='rgba(0,0,0,.4)';
+  if(ctx.roundRect)ctx.roundRect(hbx,hby,hbw,7,3);else ctx.rect(hbx,hby,hbw,7);ctx.fill();
+  var bfill=Math.max(0,bHP/BOSS_MAX_HP);
+  if(bfill>0){ctx.fillStyle=ph.bord;if(ctx.roundRect)ctx.roundRect(hbx,hby,hbw*bfill,7,3);else ctx.rect(hbx,hby,hbw*bfill,7);ctx.fill();}
+  ctx.restore();ctx.textAlign='left';
+}
+
+/* ── Projectiles ── */
+function drawProjs(){
+  projs.forEach(function(p){
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));
+    ctx.save();ctx.globalAlpha=.4;
+    var pg=ctx.createRadialGradient(0,0,0,0,0,18);
+    pg.addColorStop(0,'rgba(239,68,68,.6)');pg.addColorStop(1,'rgba(239,68,68,0)');
+    ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fillStyle=pg;ctx.fill();ctx.restore();
+    if(ASSETS.minion && ASSETS.minion.complete) {
+       ctx.drawImage(ASSETS.minion, -25, -25, 50, 50);
+    } else {
+       ctx.fillStyle=p.fl>0?'#fca5a5':'#fff';ctx.strokeStyle='#fca5a5';ctx.lineWidth=1.2;
+       ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-14,-9,28,18,3);else ctx.rect(-14,-9,28,18);
+       ctx.fill();ctx.stroke();
+       ctx.strokeStyle='#fca5a5';ctx.lineWidth=1;
+       ctx.beginPath();ctx.moveTo(-14,-9);ctx.lineTo(0,0);ctx.lineTo(14,-9);ctx.stroke();
+    }
+    ctx.restore();
+  });
+}
+
+/* ── Kamehameha Auto-Aim ── */
+function drawKameha(){
+  if(!pSpec)return;
+  pSpecF++;
+  
+  // Calcula o ângulo na direção do inimigo mais próximo (pAtkTargetX, pAtkTargetY)
+  var tx = pAtkTargetX, ty = pAtkTargetY;
+  var dist = Math.hypot(tx - charX, ty - (charY-35));
+  var angle = Math.atan2(ty - (charY-35), tx - charX);
+  
+  if(pSpecF<32){
+    var cr=(pSpecF/32)*40;
+    var cg=ctx.createRadialGradient(charX,charY-35,0,charX,charY-35,cr);
+    cg.addColorStop(0,'rgba(147,197,253,.95)');cg.addColorStop(1,'rgba(147,197,253,0)');
+    ctx.beginPath();ctx.arc(charX,charY-35,cr,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
+    return;
+  }
+  var beamLen = (pSpecF-32)*18;
+  if(beamLen > dist) beamLen = dist + 20; // Ultrapassa o inimigo um pouco
+  
+  ctx.save();
+  ctx.translate(charX, charY-35);
+  ctx.rotate(angle);
+  
+  var bH=28+Math.sin(pSpecF*.25)*8;
+  var bg=ctx.createLinearGradient(0,0,beamLen,0);
+  bg.addColorStop(0,'rgba(147,197,253,.98)');bg.addColorStop(.4,'rgba(100,210,255,.9)');bg.addColorStop(1,'rgba(147,197,253,0)');
+  ctx.fillStyle=bg;
+  ctx.beginPath();ctx.rect(0,-bH/2,beamLen,bH);ctx.fill();
+  
+  var core=ctx.createLinearGradient(0,0,beamLen,0);
+  core.addColorStop(0,'rgba(255,255,255,.9)');core.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=core;
+  ctx.beginPath();ctx.rect(0,-bH*.3,beamLen,bH*.6);ctx.fill();
+  
+  var tg=ctx.createRadialGradient(beamLen,0,0,beamLen,0,42);
+  tg.addColorStop(0,'rgba(220,245,255,.95)');tg.addColorStop(1,'rgba(147,197,253,0)');
+  ctx.beginPath();ctx.arc(beamLen,0,42,0,Math.PI*2);ctx.fillStyle=tg;ctx.fill();
+  ctx.restore();
+  
+  if(!pSpecHit && beamLen >= dist){
+    pSpecHit=true;
+    if(gamePhase===2 && !bossKneel && Math.hypot(tx-BOSS_X, ty-(BOSS_Y+77)) < 50){
+      bHP=Math.max(0,bHP-120);bFlash=18;bShake=1.8;
+      burst(BOSS_X,BOSS_Y+77,'#93c5fd',true);
+      lbl(BOSS_X-40,BOSS_Y-14,'-120!','#93c5fd',18);
+      checkPhase();
+      if(bHP<=0){setTimeout(triggerWin,200);}
+      else{maybeTriggerMinionPhase(200);}
+    } else {
+      var cleared=0;
+      emailWave.forEach(function(e){
+        if(e.alive && Math.hypot(e.x - tx, e.y - ty) < 90){
+          e.alive=false;
+          if(bossKneel)kneelKilled++;else waveKilled++;
+          cleared++;
+          burst(e.x,e.y,'#93c5fd',false);
+        }
+      });
+      if(cleared>0)lbl(tx,ty-30,cleared>1?cleared+'x DELETADO!':'DELETADO!','#93c5fd',14);
+    }
+  }
+  if(pSpecF>90){pSpec=false;pSpecF=0;pSpecHit=false;syncLbl();}
+}
+
+/* ── HUD bars ── */
+function drawHUD(){
+  /* player */
+  var pbx=14,pby=14,pbw=190,pbh=11;
+  ctx.fillStyle='rgba(0,0,0,.6)';
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pbx-6,pby-6,pbw+12,pbh*2+30,4);else ctx.rect(pbx-6,pby-6,pbw+12,pbh*2+30);ctx.fill();
+  
+  // HP
+  ctx.fillStyle='rgba(255,255,255,.08)';
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pbx,pby,pbw,pbh,3);else ctx.rect(pbx,pby,pbw,pbh);ctx.fill();
+  var pf=Math.max(0,pHP/100);
+  if(pf>0){
+    ctx.fillStyle=pHP>60?'#22c55e':pHP>30?'#f59e0b':'#ef4444';
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pbx,pby,pbw*pf,pbh,3);else ctx.rect(pbx,pby,pbw*pf,pbh);ctx.fill();
+  }
+  
+  // KI
+  var kby = pby + pbh + 4;
+  ctx.fillStyle='rgba(255,255,255,.08)';
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pbx,kby,pbw,pbh,3);else ctx.rect(pbx,kby,pbw,pbh);ctx.fill();
+  var kf = Math.max(0, pKi/100);
+  if(kf>0){
+    ctx.fillStyle='#3b82f6';
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pbx,kby,pbw*kf,pbh,3);else ctx.rect(pbx,kby,pbw*kf,pbh);ctx.fill();
+  }
+
+  ctx.font='bold 10px monospace';ctx.fillStyle='rgba(255,255,255,.6)';ctx.textAlign='left';
+  ctx.fillText('VOCÊ  '+Math.floor(Math.max(0,pHP))+'/100',pbx,kby+pbh+12);
+  ctx.fillStyle='#93c5fd';
+  ctx.fillText('KI    '+Math.floor(pKi)+'%',pbx+120,kby+pbh+12);
+  
+  /* VS */
+  ctx.font='bold 12px monospace';ctx.fillStyle='rgba(255,255,255,.3)';ctx.textAlign='center';
+  ctx.fillText('VS',W/2,pby+12);ctx.textAlign='left';
+
+  if(gs==='fight'&&(gamePhase>=2||bossEntrance||bossKneel)){
+    var ph=BPHASES[bPhase],bx=112,by=H-36,bw=W-224,bh=14;
+    var bf=clamp(bHP/BOSS_MAX_HP,0,1);
+    ctx.save();
+    ctx.fillStyle='rgba(2,6,23,.78)';
+    ctx.strokeStyle='rgba(248,250,252,.12)';
+    ctx.lineWidth=1;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx-10,by-21,bw+20,43,8);else ctx.rect(bx-10,by-21,bw+20,43);ctx.fill();ctx.stroke();
+    ctx.font='bold 11px monospace';ctx.textAlign='left';ctx.fillStyle=ph.bord;
+    ctx.fillText('BOSS '+ph.lbl+' '+ph.cnt,bx,by-7);
+    ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,.58)';
+    ctx.fillText(Math.ceil(bf*100)+'%',bx+bw,by-7);
+    ctx.fillStyle='rgba(255,255,255,.1)';
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,5);else ctx.rect(bx,by,bw,bh);ctx.fill();
+    var gg=ctx.createLinearGradient(bx,by,bx+bw,by);
+    gg.addColorStop(0,'#22c55e');gg.addColorStop(.7,'#facc15');gg.addColorStop(1,ph.bord);
+    ctx.fillStyle=gg;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw*bf,bh,5);else ctx.rect(bx,by,bw*bf,bh);ctx.fill();
+    var mx=bx+bw*.7;
+    ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(mx,by-3);ctx.lineTo(mx,by+bh+3);ctx.stroke();
+    ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.fillStyle='rgba(216,180,254,.8)';
+    ctx.fillText('70% capangas',mx,by+bh+13);
+    ctx.restore();ctx.textAlign='left';
+  }
+}
+
+function drawTrail(){
+  trail.forEach(function(p){
+    ctx.save();ctx.globalAlpha=p.life*.5;
+    var g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+    g.addColorStop(0,p.col);g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.restore();
+  });
+}
+function drawShards(){
+  shards.forEach(function(s){
+    ctx.save();ctx.globalAlpha=s.life*s.life;
+    if(s.type==='r'){
+      ctx.translate(s.x,s.y);ctx.rotate(s.rot);ctx.fillStyle=s.col;ctx.fillRect(-s.w/2,-s.h/2,s.w,s.h);
+      ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(-s.w/2+2,-1,s.w*.5,2);
+    } else {
+      ctx.fillStyle=s.col;ctx.beginPath();ctx.arc(s.x,s.y,s.sz*s.life,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  });
+}
+function drawRings(){
+  rings.forEach(function(r){
+    ctx.save();ctx.globalAlpha=r.life*.48;ctx.strokeStyle=r.col;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.stroke();ctx.restore();
+  });
+}
+function drawLbls(){
+  lbls.forEach(function(l){
+    ctx.save();ctx.globalAlpha=l.life;ctx.font='bold '+l.sz+'px monospace';
+    ctx.strokeStyle='rgba(0,0,0,.7)';ctx.lineWidth=3;ctx.strokeText(l.txt,l.x,l.y);
+    ctx.fillStyle=l.col;ctx.fillText(l.txt,l.x,l.y);ctx.restore();
+  });
+}
+function drawFlash(){
+  if(flashA<=0)return;
+  ctx.save();ctx.globalAlpha=flashA;ctx.fillStyle=flashC;ctx.fillRect(0,0,W,H);ctx.restore();
+}
+function drawCutin(){
+  if(cutinT<=0)return;
+  var a=Math.min(1,cutinT/16);
+  var y=34,h=82;
+  ctx.save();
+  ctx.globalAlpha=a;
+  ctx.fillStyle='rgba(0,0,0,.72)';
+  ctx.fillRect(0,0,W,24);
+  ctx.fillRect(0,H-24,W,24);
+  var g=ctx.createLinearGradient(0,y,W,y+h);
+  g.addColorStop(0,'rgba(2,6,23,.96)');
+  g.addColorStop(.45,cutinKind==='boss'?'rgba(127,29,29,.76)':'rgba(30,64,175,.62)');
+  g.addColorStop(1,'rgba(2,6,23,.96)');
+  ctx.fillStyle=g;ctx.fillRect(0,y,W,h);
+  ctx.strokeStyle=cutinColor;ctx.lineWidth=2;ctx.shadowColor=cutinColor;ctx.shadowBlur=16;
+  ctx.strokeRect(18,y+8,W-36,h-16);
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;
+  for(var i=0;i<24;i++){
+    var yy=y+12+i*(h-24)/24;
+    ctx.beginPath();ctx.moveTo(20,yy);ctx.lineTo(W-20,yy+(Math.sin(aT*12+i)*10));ctx.stroke();
+  }
+  var ex=cutinKind==='boss'?W-178:122;
+  var eyeCol=cutinKind==='boss'?'#ef4444':'#fde047';
+  ctx.fillStyle='rgba(255,255,255,.92)';
+  ctx.beginPath();ctx.roundRect?ctx.roundRect(ex-84,y+23,168,38,8):ctx.rect(ex-84,y+23,168,38);ctx.fill();
+  ctx.strokeStyle='#111827';ctx.lineWidth=3;ctx.stroke();
+  ctx.strokeStyle='#ea4335';ctx.lineWidth=5;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(ex-62,y+25);ctx.lineTo(ex,y+45);ctx.lineTo(ex+62,y+25);ctx.stroke();
+  ctx.fillStyle=eyeCol;ctx.shadowColor=eyeCol;ctx.shadowBlur=18;
+  ctx.beginPath();ctx.ellipse(ex-32,y+50,13,6,-.25,0,Math.PI*2);ctx.ellipse(ex+32,y+50,13,6,.25,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='#111827';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(ex-48,y+43);ctx.lineTo(ex-22,y+52);ctx.moveTo(ex+48,y+43);ctx.lineTo(ex+22,y+52);ctx.stroke();
+  ctx.font='900 24px Impact, monospace';ctx.textAlign=cutinKind==='boss'?'left':'right';
+  ctx.fillStyle='#fff';ctx.shadowColor=cutinColor;ctx.shadowBlur=12;
+  ctx.fillText(cutinText,cutinKind==='boss'?42:W-42,y+55);
+  ctx.restore();ctx.textAlign='left';
+}
+function drawDsk(){
+  dsk.forEach(function(s){
+    ctx.save();ctx.globalAlpha=s.life;ctx.fillStyle=s.col;
+    ctx.translate(s.x,s.y);ctx.rotate(s.rot);
+    if(ctx.roundRect)ctx.roundRect(-s.w/2,-s.h/2,s.w,s.h,2);else ctx.rect(-s.w/2,-s.h/2,s.w,s.h);
+    ctx.fill();ctx.restore();
+  });
+}
+
+function spawnEmailEnemy(){
+  var fromRight=Math.random()>.5;
+  var s=SENDERS[Math.floor(Math.random()*SENDERS.length)];
+  emailWave.push({
+    x:fromRight?W+40:-40,
+    y:55+Math.random()*(FLOOR-130),
+    vx:fromRight?-1.6:1.6,
+    wobbleT:Math.random()*Math.PI*2,
+    s:s,alive:true,fl:0,
+    atkCd:45+Math.random()*95,
+    charge:0,dashT:0,dashVx:0,dashVy:0
+  });
+}
+
+function updateEmailEnemies(mode){
+  var aggro=mode==='boss'||bossKneel||gamePhase>=2;
+  emailWave.forEach(function(e){
+    if(!e.alive)return;
+    e.wobbleT+=.044;
+    var tx=charX,ty=charY-58;
+    var dx=tx-e.x,dy=ty-e.y;
+    var dist=Math.max(1,Math.hypot(dx,dy));
+    if(e.dashT>0){
+      e.x+=e.dashVx;
+      e.y+=e.dashVy;
+      e.dashT--;
+      e.fl=5;
+      trail2(e.x,e.y,'#ef4444');
+      if(e.dashT===0){
+        e.atkCd=aggro?70+Math.random()*70:95+Math.random()*95;
+        e.charge=0;
+      }
+    } else {
+      e.x+=e.vx+(aggro?dx/dist*(1.15+bPhase*.18):dx*.010);
+      e.y+=Math.sin(e.wobbleT)*.75+(aggro?dy/dist*(.85+bPhase*.12):dy*.010);
+      e.atkCd--;
+      e.charge=0;
+      if(aggro&&e.atkCd<28){
+        e.charge=28-e.atkCd;
+        e.fl=4;
+      }
+      if(aggro&&e.atkCd<=0){
+        var sp=7.4+bPhase*.75;
+        e.dashVx=dx/dist*sp;
+        e.dashVy=dy/dist*sp;
+        e.dashT=16;
+        e.atkCd=999;
+        lbl(e.x-22,e.y-28,'ATAQUE!','#ef4444',10);
+      }
+    }
+    if(e.x<62){e.x=62;e.vx=Math.abs(e.vx);}
+    if(e.x>W-62){e.x=W-62;e.vx=-Math.abs(e.vx);}
+    if(e.y<54)e.y=54;
+    if(e.y>FLOOR-55)e.y=FLOOR-55;
+  });
+}
+
+function drawEmailWave(){
+  emailWave.forEach(function(e){
+    if(!e.alive)return;
+    var cw=82,ch=54,cx2=e.x-cw/2,cy2=e.y-ch/2;
+    ctx.save();
+    if(e.charge>0){
+      ctx.save();
+      ctx.globalAlpha=Math.min(.65,e.charge/28);
+      ctx.strokeStyle='#ef4444';ctx.lineWidth=2;ctx.setLineDash([6,5]);
+      ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(charX,charY-58);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    /* card shadow */
+    ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=14;ctx.shadowOffsetY=5;
+    ctx.fillStyle=e.fl>0?'#fef2f2':'#ffffff';
+    if(ctx.roundRect)ctx.roundRect(cx2,cy2,cw,ch,8);else ctx.rect(cx2,cy2,cw,ch);
+    ctx.fill();
+    ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+    ctx.strokeStyle=e.fl>0?'#fca5a5':e.s.avBg;ctx.lineWidth=1.5;
+    if(ctx.roundRect)ctx.roundRect(cx2,cy2,cw,ch,8);else ctx.rect(cx2,cy2,cw,ch);
+    ctx.stroke();
+    /* unread dot */
+    ctx.fillStyle=e.fl>0?'#ef4444':'#3b82f6';
+    ctx.beginPath();ctx.arc(cx2+9,e.y-2,3.5,0,Math.PI*2);ctx.fill();
+    /* avatar */
+    ctx.fillStyle=e.s.avBg;
+    ctx.beginPath();ctx.arc(cx2+26,e.y-2,11,0,Math.PI*2);ctx.fill();
+    ctx.font='bold 8px sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';
+    ctx.fillText(e.s.avL,cx2+26,e.y+2);
+    /* sender + subject */
+    ctx.font='bold 7.5px sans-serif';ctx.fillStyle='#111827';ctx.textAlign='left';
+    ctx.fillText(e.s.name.substring(0,13),cx2+42,cy2+17);
+    ctx.font='6.5px sans-serif';ctx.fillStyle='#6b7280';
+    ctx.fillText('Clique para deletar →',cx2+42,cy2+28);
+    /* chip */
+    ctx.fillStyle=e.s.cBg;
+    if(ctx.roundRect)ctx.roundRect(cx2+42,cy2+34,30,12,3);else ctx.rect(cx2+42,cy2+34,30,12);
+    ctx.fill();
+    ctx.font='6px sans-serif';ctx.fillStyle=e.s.cFg;ctx.textAlign='center';
+    ctx.fillText(e.s.chip,cx2+57,cy2+42);
+    ctx.restore();
+    if(e.fl>0)e.fl--;
+  });
+}
+
+function drawWin(){
+  winF++;
+  ctx.save();ctx.fillStyle='rgba(0,18,8,'+Math.min(.72,winF/60)+')';ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(winF>28){
+    ctx.globalAlpha=Math.min(1,(winF-28)/28);
+    ctx.font='bold 54px monospace';ctx.fillStyle='#4ade80';
+    ctx.shadowColor='#4ade80';ctx.shadowBlur=32;ctx.fillText('INBOX ZERO!',W/2,H/2-28);ctx.shadowBlur=0;
+    ctx.font='bold 17px monospace';ctx.fillStyle='rgba(255,255,255,.7)';
+    ctx.fillText('Você arquivou tudo. A vitória é sua.',W/2,H/2+18);
+    ctx.font='11px monospace';ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.fillText('[SPACE para jogar de novo]',W/2,H/2+52);
+  }
+  ctx.restore();ctx.textAlign='left';ctx.textBaseline='alphabetic';
+}
+function drawLose(){
+  loseF++;
+  ctx.save();ctx.fillStyle='rgba(18,0,0,'+Math.min(.72,loseF/60)+')';ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(loseF>28){
+    ctx.globalAlpha=Math.min(1,(loseF-28)/28);
+    ctx.font='bold 46px monospace';ctx.fillStyle='#ef4444';
+    ctx.shadowColor='#ef4444';ctx.shadowBlur=28;ctx.fillText('VOCÊ PERDEU…',W/2,H/2-26);ctx.shadowBlur=0;
+    ctx.font='17px monospace';ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.fillText('O inbox venceu desta vez.',W/2,H/2+18);
+    ctx.font='11px monospace';ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.fillText('[SPACE para tentar de novo]',W/2,H/2+50);
+  }
+  ctx.restore();ctx.textAlign='left';ctx.textBaseline='alphabetic';
+}
+
+function drawBossHappy(){
+  var bw=200,bh=155;
+  var bob=Math.sin(bBobT)*5;
+  ctx.save();
+  ctx.translate(BOSS_X,BOSS_Y+bob+bh/2);
+  /* teal glow */
+  ctx.save();ctx.globalAlpha=.28+Math.sin(aT*2)*.12;
+  var hg=ctx.createRadialGradient(0,0,10,0,0,118);
+  hg.addColorStop(0,'rgba(74,222,128,.7)');hg.addColorStop(1,'rgba(15,118,110,0)');
+  ctx.beginPath();ctx.arc(0,0,118,0,Math.PI*2);ctx.fillStyle=hg;ctx.fill();
+  ctx.restore();
+  /* envelope branco */
+  var ex=-bw/2,ey=-bh/2;
+  ctx.fillStyle='#ffffff';ctx.strokeStyle='#0f766e';ctx.lineWidth=2.5;
+  if(ctx.roundRect)ctx.roundRect(ex,ey,bw,bh,10);else ctx.rect(ex,ey,bw,bh);
+  ctx.fill();ctx.stroke();
+  /* Gmail M real */
+  ctx.strokeStyle='#EA4335';ctx.lineWidth=5;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(ex+8,ey+3);ctx.lineTo(0,ey+bh*0.38);ctx.lineTo(ex+bw-8,ey+3);ctx.stroke();
+  /* "INBOX ZERO" */
+  ctx.font='bold 15px monospace';ctx.textAlign='center';ctx.fillStyle='#0f766e';
+  ctx.fillText('INBOX ZERO!',0,ey+bh*0.54);
+  /* olhos felizes */
+  var eyeY=ey+bh*0.72;
+  ctx.fillStyle='#1f2937';
+  ctx.beginPath();ctx.arc(-28,eyeY,7,0,Math.PI*2);ctx.arc(28,eyeY,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(-25,eyeY-2,3,0,Math.PI*2);ctx.arc(31,eyeY-2,3,0,Math.PI*2);ctx.fill();
+  /* sorriso */
+  ctx.strokeStyle='#0f766e';ctx.lineWidth=3.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(0,ey+bh*0.87,22,.12,Math.PI-.12);ctx.stroke();
+  /* sparkles */
+  ctx.save();ctx.globalAlpha=.6+Math.sin(aT*3)*.4;ctx.fillStyle='#4ade80';
+  var sp=[[-82,-38],[84,-20],[-70,22],[90,45],[-88,55]];
+  sp.forEach(function(s){
+    ctx.save();ctx.translate(s[0],s[1]);ctx.rotate(aT*1.5);
+    ctx.beginPath();
+    for(var i=0;i<4;i++){ctx.lineTo(Math.cos(i*Math.PI/2)*7,Math.sin(i*Math.PI/2)*7);ctx.lineTo(Math.cos((i+.5)*Math.PI/2)*3,Math.sin((i+.5)*Math.PI/2)*3);}
+    ctx.closePath();ctx.fill();ctx.restore();
+  });
+  ctx.restore();
+  ctx.restore();ctx.textAlign='left';
+}
+
+/* ══ LOOP ══ */
+function loop(){
+  ctx.clearRect(0,0,W,H);
+  drawBg();drawFlash();
+
+  if(gs==='intro'){
+    drawDesk();drawSeated();
+    ctx.save();ctx.globalAlpha=.4+Math.abs(Math.sin(aT*2.5))*.4;
+    ctx.font='bold 12px monospace';ctx.fillStyle='#9ca3af';ctx.textAlign='center';
+    ctx.fillText('[ SPACE para começar ]',W/2,FLOOR+42);
+    ctx.restore();ctx.textAlign='left';
+
+  } else if(gs==='rising'){
+    introF++;
+    var t=introF/55,ease=1-Math.pow(1-t,3);
+    if(introF===28){
+      flashA=.38;flashC='#fbbf24';
+      for(var di=0;di<16;di++){
+        var da=Math.random()*Math.PI*2,dsp=3+Math.random()*8;
+        dsk.push({x:BASE_X+(Math.random()-.5)*80,y:FLOOR+(Math.random()-.5)*30,
+          vx:Math.cos(da)*dsp,vy:Math.sin(da)*dsp-5,
+          rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*.25,
+          w:12+Math.random()*38,h:7+Math.random()*14,
+          col:di%3===0?'#fff':di%3===1?'#4a3220':'#cbd5e1',life:1});
+      }
+    }
+    var rY=lerp(FLOOR-6,FLOOR,1-ease);
+    drawDsk();if(introF<28)drawDesk();
+    drawChar(BASE_X,rY,false,0,0);
+    if(t>.38){
+      var br=(t-.38)/.62*88;
+      var b2=ctx.createRadialGradient(BASE_X,rY-40,0,BASE_X,rY-40,br);
+      b2.addColorStop(0,'rgba(251,191,36,.5)');b2.addColorStop(1,'rgba(251,191,36,0)');
+      ctx.beginPath();ctx.arc(BASE_X,rY-40,br,0,Math.PI*2);ctx.fillStyle=b2;ctx.fill();
+    }
+    if(introF>=55){gs='fight';pStage=1;pCombo=1;syncLbl();}
+
+  } else if(gs==='fight'){
+    /* Jump Physics */
+    if(keys.up && charY >= FLOOR) {
+        pVY = -12.5; // Jump strength
+    }
+    charY += pVY;
+    pVY += 0.6; // Gravity
+    if(charY > FLOOR) {
+        charY = FLOOR;
+        pVY = 0;
+    }
+
+    /* Ki Decay System */
+    if(pKi > 0 && !pAtk) {
+       pKi -= 0.15; // Slow drain when idle
+       var expectedStage = pKi >= 90 ? 3 : pKi >= 60 ? 2 : pKi >= 30 ? 1 : 0;
+       if (expectedStage !== pStage) {
+           pStage = expectedStage;
+           updateHeroSprites(); // Revert hair color when Ki drops
+       }
+    }
+
+    /* Combo Timer Decay */
+    if(comboTimer > 0) comboTimer--;
+    else { comboBuffer = []; attackChain = 0; }
+    if(comboTextTimer > 0) comboTextTimer--;
+
+    /* movement with velocity */
+    if(keys.l)pVX=lerp(pVX,-7,.18);
+    else if(keys.r)pVX=lerp(pVX,7,.18);
+    else pVX=lerp(pVX,0,.22);
+    
+    if(!pAtk&&!pSpec)px=clamp(px+pVX,55,W/2-30);
+    
+    var baseFY=charY; // Use true physics charY instead of locked FLOOR
+
+    if(pAtk){
+      var at=pAtkF/15;
+      charX=lerp(charX, px, Math.sin(at*Math.PI*.5)); // Dash towards PX instantly
+      if(pAtkF%2===0)trail2(charX,charY-30,STAGES[pStage].col);
+    } else {
+      charX+=(px-charX)*.3; // Much faster follow so it feels snappy
+    }
+
+    if(gamePhase===1){
+      /* phase 1: email wave */
+      if(pAtk&&pAtkF===10){
+        var bestI=-1,bestD=999;
+        emailWave.forEach(function(e,i){
+          if(!e.alive)return;
+          var d=Math.hypot(e.x-charX,e.y-charY);
+          if(d<200&&d<bestD){bestD=d;bestI=i;}
+        });
+        if(bestI>=0){
+          emailWave[bestI].alive=false;waveKilled++;
+          burst(emailWave[bestI].x,emailWave[bestI].y,STAGES[pStage].col,false);
+          lbl(emailWave[bestI].x,emailWave[bestI].y-20,'DELETADO!',STAGES[pStage].col,12);
+        }
+      }
+      /* spawn */
+      waveSpawnT--;
+      if(waveSpawnT<=0&&(emailWave.filter(function(e){return e.alive;}).length+waveKilled)<WAVE_TOTAL){
+        spawnEmailEnemy();waveSpawnT=85;
+      }
+      updateEmailEnemies('wave');
+      /* player-email collision -> capangas give damage more aggressively */
+      emailWave.forEach(function(e){
+        if(!e.alive)return;
+        if(pInv===0&&Math.hypot(e.x-charX,e.y-charY)<40){
+          pHP=Math.max(0,pHP-8);pInv=40;flashA=.2;flashC='#ef4444';
+          lbl(charX-18,charY-80,'-8','#f87171',12);
+          if(pHP<=0){gs='lose';loseF=0;}
+        }
+      });
+      drawTrail();drawEmailWave();
+      drawChar(charX,charY,pAtk,pStage,pInv);
+      drawKameha();drawRings();drawShards();drawLbls();drawDsk();drawHUD();
+      /* wave counter */
+      ctx.font='bold 11px monospace';ctx.fillStyle='rgba(255,255,255,.38)';ctx.textAlign='right';
+      ctx.fillText('Emails: '+waveKilled+'/'+WAVE_TOTAL,W-14,H-14);ctx.textAlign='left';
+      /* wave cleared? */
+      if(waveKilled>=WAVE_TOTAL&&!bossEntrance){
+        bossEntrance=true;bossEntranceF=0;flashA=.35;flashC='#ef4444';
+        emailWave=[];gamePhase=2;
+      }
+
+    } else if(bossEntrance){
+      /* boss entrance cinematic */
+      bossEntranceF++;
+      var bt=Math.min(1,bossEntranceF/72);
+      var bease=1-Math.pow(1-bt,3);
+      ctx.save();ctx.translate((1-bease)*(W-BOSS_X+120),0);drawBoss();ctx.restore();
+      if(bossEntranceF===64){flashA=.55;flashC='#ef4444';lbl(W/2-22,H/3,'BOSS!','#ef4444',30);triggerCutin('INBOX 999+ DESPERTOU','#ef4444','boss');}
+      drawTrail();drawChar(charX,charY,pAtk,pStage,pInv);drawHUD();
+      ctx.save();ctx.globalAlpha=.45+Math.abs(Math.sin(aT*5))*.45;
+      ctx.font='bold 14px monospace';ctx.fillStyle='#ef4444';ctx.textAlign='center';
+      ctx.fillText('▶ INBOX BOSS CHEGANDO!',W/2,H-28);
+      ctx.restore();ctx.textAlign='left';
+      if(bossEntranceF>=92){bossEntrance=false;gamePhase=2;bAtkT=120;}
+
+    } else if(bossKneel){
+      /* kneel sub-phase: boss tilted, 5 email minions attack */
+      bossKneelF++;
+      kneelSpawnTimer--;
+      if(kneelSpawnTimer<=0&&kneelSpawned<KNEEL_WAVE){
+        spawnEmailEnemy();kneelSpawned++;kneelSpawnTimer=45;
+      }
+      if(pAtk&&pAtkF===10){
+        var bestKI=-1,bestKD=999;
+        emailWave.forEach(function(e,i){
+          if(!e.alive)return;
+          var d=Math.hypot(e.x-charX,e.y-charY);
+          if(d<200&&d<bestKD){bestKD=d;bestKI=i;}
+        });
+        if(bestKI>=0){
+          emailWave[bestKI].alive=false;kneelKilled++;
+          burst(emailWave[bestKI].x,emailWave[bestKI].y,STAGES[pStage].col,false);
+          lbl(emailWave[bestKI].x,emailWave[bestKI].y-20,'DELETADO!',STAGES[pStage].col,12);
+        }
+      }
+      updateEmailEnemies('boss');
+      emailWave.forEach(function(e){
+        if(!e.alive)return;
+        if(pInv===0&&Math.hypot(e.x-charX,e.y-charY)<36){
+          pHP=Math.max(0,pHP-10);pInv=50;flashA=.2;flashC='#ef4444';
+          lbl(charX-18,charY-80,'-10','#f87171',12);
+          if(pHP<=0){gs='lose';loseF=0;}
+        }
+      });
+      if(kneelKilled>=KNEEL_WAVE){
+        bossKneel=false;bossAfterKneel=true;emailWave=[];
+        bPhase=Math.max(bPhase,3);bAtkT=80;
+        flashA=.48;flashC='#ef4444';
+        lbl(BOSS_X-50,BOSS_Y-18,'MODO RAIVA!','#ef4444',16);
+        burst(BOSS_X,BOSS_Y+77,'#ef4444',true);
+        pAtkTargetX=BOSS_X;pAtkTargetY=BOSS_Y+77;
+      }
+      drawTrail();drawBoss();drawEmailWave();
+      drawChar(charX,charY,pAtk,pStage,pInv);
+      drawKameha();drawRings();drawShards();drawLbls();drawDsk();drawHUD();
+      ctx.font='bold 11px monospace';ctx.fillStyle='rgba(200,150,255,.5)';ctx.textAlign='right';
+      ctx.fillText('Minions: '+kneelKilled+'/'+KNEEL_WAVE,W-14,H-14);ctx.textAlign='left';
+
+    } else {
+      /* phase 2: boss fight */
+      if(pAtk&&pAtkF===10){
+        var dmg=pStage>=3?25:pStage>=2?20:15;
+        bHP=Math.max(0,bHP-dmg);bFlash=12;bShake=1.2;
+        burst(BOSS_X+(Math.random()-.5)*80,BOSS_Y+40+Math.random()*90,STAGES[pStage].col,false);
+        lbl(BOSS_X-28,BOSS_Y-14,'-'+dmg,STAGES[pStage].col,14);
+        checkPhase();
+        if(bHP<=0){triggerWin();}
+        else{maybeTriggerMinionPhase(0);}
+      }
+      bAtkT--;
+      if(bAtkT<=0){bossShoot();bAtkT=BPHASES[bPhase].atkInt+(bPhase<3?Math.floor(Math.random()*35):0);}
+      projs=projs.filter(function(p){
+        p.x+=p.vx;p.y+=p.vy;p.vy+=.07;if(p.fl>0)p.fl--;
+        if(pInv===0&&Math.hypot(p.x-charX,p.y-charY)<26){
+          pHP=Math.max(0,pHP-15);pInv=55;flashA=.24;flashC='#ef4444';
+          lbl(charX-18,charY-80,'-15','#f87171',13);
+          rings.push({x:charX,y:charY-40,r:5,life:1,col:'#ef4444'});
+          if(pHP<=0){gs='lose';loseF=0;}return false;
+        }
+        return p.x>-30&&p.x<W+30&&p.y<H+30;
+      });
+      drawTrail();drawBoss();drawProjs();
+      drawChar(charX,charY,pAtk,pStage,pInv);
+      drawKameha();drawRings();drawShards();drawLbls();drawDsk();drawHUD();
+    }
+
+    if(pAtk){pAtkF++;if(pAtkF>=15){pAtk=false;pAtkF=0;pState='idle';}}
+    if(pInv>0)pInv--;
+
+  } else if(gs==='win'){
+    drawBossHappy();drawChar(charX,charY,false,pStage,0);
+    drawRings();drawShards();drawLbls();drawHUD();drawWin();
+  } else if(gs==='lose'){
+    drawBoss();drawProjs();drawHUD();drawLose();
+  }
+
+  drawCutin();
+
+  /* tick */
+  aT+=.05;iT+=.018;bBobT+=.04;
+  if(cutinT>0)cutinT--;
+  if(bossIntentT>0)bossIntentT--;
+  flashA=Math.max(0,flashA-.042);
+  if(bFlash>0)bFlash--;if(bShake>0)bShake=Math.max(0,bShake-.08);
+  trail=trail.filter(function(p){p.life-=.06;return p.life>0;});
+  shards=shards.filter(function(s){
+    s.x+=s.vx;s.y+=s.vy;s.vy+=.24;s.life-=.025;
+    if(s.type==='r')s.rot+=s.rv;return s.life>0;
+  });
+  dsk=dsk.filter(function(s){s.x+=s.vx;s.y+=s.vy;s.vy+=.2;s.life-=.016;s.rot+=s.rv;return s.life>0;});
+  rings=rings.filter(function(r){r.r+=4.5;r.life-=.05;return r.life>0;});
+  lbls=lbls.filter(function(l){l.y+=l.vy;l.life-=.022;return l.life>0;});
+  requestAnimationFrame(loop);
+}
+
+C.addEventListener('click', function() { attack('Z'); });
+document.addEventListener('keydown',function(ev){
+  if(ev.code==='Space'||ev.code==='KeyZ'){ev.preventDefault();attack('Z');return;}
+  if(ev.code==='KeyX'){ev.preventDefault();attack('X');return;}
+  if(ev.code==='KeyC'){ev.preventDefault();attack('C');return;}
+  if(ev.code==='ArrowUp'||ev.code==='KeyW'){ev.preventDefault();keys.up=true;}
+  if(ev.code==='ArrowDown'||ev.code==='KeyS'){ev.preventDefault();keys.down=true; pushCombo('DOWN');}
+  if(ev.code==='ArrowLeft'||ev.code==='KeyA'){ev.preventDefault();keys.l=true; pushCombo('LEFT');}
+  if(ev.code==='ArrowRight'||ev.code==='KeyD'){ev.preventDefault();keys.r=true; pushCombo('RIGHT');}
+});
+document.addEventListener('keyup',function(ev){
+  if(ev.code==='ArrowUp'||ev.code==='KeyW')keys.up=false;
+  if(ev.code==='ArrowDown'||ev.code==='KeyS')keys.down=false;
+  if(ev.code==='ArrowLeft'||ev.code==='KeyA')keys.l=false;
+  if(ev.code==='ArrowRight'||ev.code==='KeyD')keys.r=false;
+});
+document.getElementById('btn-reset').addEventListener('click',reset);
+loop();
+})();
+</script>
+</body>
+</html>

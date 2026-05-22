@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora do Caos - ELEVE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        eleve: {
+                            500: '#14b8a6', // Teal
+                            600: '#0d9488',
+                            900: '#134e4a', // Dark
+                            accent: '#f59e0b', // Yellow
+                            red: '#ef4444' // Red for bad results
+                        },
+                        brutal: {
+                            dark: '#1e293b'
+                        }
+                    },
+                    boxShadow: {
+                        'brutal': '6px 6px 0px #1e293b',
+                        'brutal-sm': '4px 4px 0px #1e293b',
+                        'brutal-red': '6px 6px 0px #ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+        }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            background: #f59e0b;
+            cursor: pointer;
+            margin-top: -10px;
+            border: 3px solid #1e293b;
+            box-shadow: 2px 2px 0px #1e293b;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 5px;
+            border: 2px solid #1e293b;
+        }
+        .brutal-border { border: 2px solid #1e293b; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6 text-slate-800">
+
+    <!-- Header -->
+    <div class="text-center mb-10 max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-eleve-500 text-white font-bold text-sm mb-6 brutal-border shadow-brutal-sm -rotate-2">
+            <i class="fa-solid fa-calculator"></i> Ferramenta Gratuita ELEVE
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold text-brutal-dark leading-tight mb-4">
+            A Calculadora do <span class="text-eleve-red underline decoration-8 underline-offset-4">Caos</span>
+        </h1>
+        <p class="text-xl text-slate-600 font-medium">
+            Descubra quanto dinheiro (e tempo de vida) você e sua equipe estão jogando no lixo todos os anos apenas procurando e-mails perdidos.
+        </p>
+    </div>
+
+    <!-- Main Tool Container -->
+    <div class="w-full max-w-5xl bg-white brutal-border rounded-2xl shadow-brutal flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Left: Inputs -->
+        <div class="flex-1 p-8 md:p-12 bg-white border-b md:border-b-0 md:border-r border-brutal-dark">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-sliders text-eleve-500"></i> Seus Dados
+            </h2>
+
+            <div class="space-y-8">
+                <!-- Input 1: Salário -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Salário Mensal Médio (R$)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-mono font-bold text-slate-400">R$</span>
+                        <input type="number" id="input-salary" value="5000" class="w-full pl-12 pr-4 py-4 brutal-border rounded-xl font-mono text-xl focus:outline-none focus:ring-4 focus:ring-eleve-500/20 transition-all" oninput="calculateWaste()">
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Coloque o seu salário ou a média da equipe.</p>
+                </div>
+
+                <!-- Input 2: Tamanho da Equipe -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Tamanho da Equipe</label>
+                    <div class="flex items-center gap-4">
+                        <input type="number" id="input-team" value="1" min="1" class="w-24 px-4 py-4 brutal-border rounded-xl font-mono text-xl text-center focus:outline-none focus:ring-4 focus:ring-eleve-500/20 transition-all" oninput="calculateWaste()">
+                        <span class="font-bold text-slate-600">pessoas sofrendo com e-mails</span>
+                    </div>
+                </div>
+
+                <!-- Input 3: Tempo Perdido (Slider) -->
+                <div class="bg-slate-50 p-6 rounded-xl brutal-border border-dashed">
+                    <div class="flex justify-between items-end mb-4">
+                        <label class="block text-sm font-bold text-slate-700 uppercase tracking-wide">Tempo perdido <span class="text-eleve-red">por dia</span></label>
+                        <span id="display-minutes" class="font-mono text-2xl font-black text-eleve-red">45 min</span>
+                    </div>
+                    <input type="range" id="input-minutes" min="5" max="180" value="45" step="5" oninput="calculateWaste()">
+                    <div class="flex justify-between text-xs font-bold text-slate-400 mt-2 font-mono">
+                        <span>5 min</span>
+                        <span>Caos Total (3h)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Results Dashboard -->
+        <div class="flex-1 p-8 md:p-12 bg-brutal-dark text-white relative flex flex-col justify-center">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-eleve-500 rounded-bl-full opacity-20"></div>
+            
+            <h2 class="text-eleve-accent font-bold tracking-widest uppercase text-sm mb-2">O Custo da Desorganização</h2>
+            <p class="text-slate-300 mb-8">Baseado em 20 dias úteis por mês, este é o valor que escorre pelo ralo anualmente:</p>
+
+            <!-- Big Number -->
+            <div class="bg-white text-brutal-dark brutal-border p-6 md:p-8 rounded-xl shadow-brutal-red mb-8 transform rotate-1">
+                <span class="block text-sm font-bold uppercase text-eleve-red mb-1">Prejuízo Financeiro Anual</span>
+                <div class="text-4xl md:text-6xl font-black font-mono tracking-tighter" id="result-money">
+                    R$ 0,00
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <div class="bg-slate-800 brutal-border border-slate-600 p-4 rounded-xl">
+                    <i class="fa-solid fa-calendar-xmark text-eleve-accent text-2xl mb-2"></i>
+                    <span class="block text-xs font-bold text-slate-400 uppercase mb-1">Dias de Vida Perdidos</span>
+                    <span class="text-3xl font-mono font-bold text-white" id="result-days">0</span>
+                    <span class="text-sm text-slate-400">dias/ano</span>
+                </div>
+                <div class="bg-slate-800 brutal-border border-slate-600 p-4 rounded-xl">
+                    <i class="fa-solid fa-money-bill-wave text-eleve-500 text-2xl mb-2"></i>
+                    <span class="block text-xs font-bold text-slate-400 uppercase mb-1">Prejuízo Mensal</span>
+                    <span class="text-2xl font-mono font-bold text-white" id="result-month-money">R$ 0</span>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <a href="#" class="block w-full text-center bg-eleve-accent text-brutal-dark font-black text-xl py-5 rounded-xl brutal-border hover:bg-yellow-400 transition-all shadow-brutal-sm hover:translate-y-1 hover:shadow-none">
+                Quero Parar de Perder Dinheiro
+            </a>
+            <p class="text-center text-xs text-slate-500 mt-4"><i class="fa-solid fa-lock"></i> Conheça o Método ELEVE</p>
+        </div>
+
+    </div>
+
+    <!-- Formula explanation -->
+    <div class="mt-8 max-w-3xl text-center text-sm text-slate-500 font-medium">
+        <p><i class="fa-solid fa-circle-info"></i> Como calculamos? Consideramos o salário dividido por 160h mensais (valor da sua hora). Multiplicamos o tempo perdido diário por 240 dias úteis no ano. O resultado é o custo invisível da desorganização.</p>
+    </div>
+
+    <script>
+        // Formatter for BRL Currency
+        const formatter = new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2
+        });
+
+        function calculateWaste() {
+            // Get values from inputs
+            const salary = parseFloat(document.getElementById('input-salary').value) || 0;
+            const teamSize = parseInt(document.getElementById('input-team').value) || 1;
+            const minutesPerDay = parseInt(document.getElementById('input-minutes').value) || 0;
+
+            // Update slider display
+            document.getElementById('display-minutes').innerText = minutesPerDay + ' min';
+
+            // Base metrics
+            const hoursPerMonth = 160; // 40h/week * 4 weeks
+            const workingDaysPerYear = 240; // 20 days * 12 months
+            
+            // Math
+            const hourlyRate = salary / hoursPerMonth;
+            const hoursWastedPerDay = minutesPerDay / 60;
+            const hoursWastedPerYearPerPerson = hoursWastedPerDay * workingDaysPerYear;
+            
+            // Totals
+            const totalHoursWastedYear = hoursWastedPerYearPerPerson * teamSize;
+            const totalCostYear = totalHoursWastedYear * hourlyRate;
+            const totalCostMonth = totalCostYear / 12;
+
+            // Translate hours to full 24h days for dramatic effect, or 8h work days. 
+            // Let's use 8h work days to show "Working days lost"
+            const workingDaysLost = Math.round(totalHoursWastedYear / 8);
+
+            // Animate or update DOM directly
+            document.getElementById('result-money').innerText = formatter.format(totalCostYear);
+            document.getElementById('result-month-money').innerText = formatter.format(totalCostMonth);
+            document.getElementById('result-days').innerText = workingDaysLost;
+        }
+
+        // Run once on load
+        window.onload = calculateWaste;
+    </script>
+</body>
+</html>

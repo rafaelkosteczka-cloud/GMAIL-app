@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planos — APP-Gmail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dark: #0d0d12;
+      --dark-2: #14141c;
+      --ink: #16222f;
+      --muted: #6b7a8d;
+      --brand: #0f766e;
+      --coral: #f56b5c;
+      --gold: #f4b942;
+      --line-dark: rgba(255,255,255,.1);
+      --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      background: var(--dark);
+      color: #f0f0f0;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .reveal { opacity: 0; transform: translateY(44px); transition: opacity .9s var(--ease-expo), transform .9s var(--ease-expo); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    [data-delay="1"] { transition-delay: .1s; }
+    [data-delay="2"] { transition-delay: .2s; }
+    [data-delay="3"] { transition-delay: .3s; }
+    [data-delay="4"] { transition-delay: .4s; }
+    [data-delay="5"] { transition-delay: .5s; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(15,118,110,.4); } 50% { box-shadow: 0 0 0 14px rgba(15,118,110,0); } }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 5%;
+      background: rgba(13,13,18,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line-dark);
+      animation: fadeIn .6s ease both;
+    }
+    .nav-logo { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #fff; text-decoration: none; }
+    .nav-logo span { color: var(--brand); }
+    .nav-back { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.45); text-decoration: none; transition: color .2s; }
+    .nav-back:hover { color: #fff; }
+
+    /* SECTION COMMONS */
+    .section-wrap { max-width: 1160px; margin: 0 auto; padding: 0 5%; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; display: block; }
+    .eyebrow.light { color: rgba(255,255,255,.35); }
+    .eyebrow.brand { color: var(--brand); }
+    .hdivider { width: 44px; height: 3px; border-radius: 999px; background: var(--brand); margin: 20px auto; }
+
+    /* HERO */
+    #pricing-hero {
+      padding: 148px 5% 80px;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 55% at 50% 0%, #1a2a22 0%, var(--dark) 70%);
+    }
+    .hero-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: #fff;
+      margin-bottom: 16px;
+    }
+    .hero-title .accent { color: var(--brand); font-style: italic; }
+    .hero-sub { font-size: 15px; color: rgba(255,255,255,.45); max-width: 380px; margin: 0 auto 20px; line-height: 1.65; }
+    .once-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 999px;
+      border: 1px solid rgba(244,185,66,.35);
+      background: rgba(244,185,66,.07);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--gold);
+    }
+    .once-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse-glow 2s infinite; }
+
+    /* CARDS */
+    #cards { padding: 56px 0 100px; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+      align-items: start;
+    }
+    .pcard {
+      background: rgba(255,255,255,.04); border: 1px solid var(--line-dark);
+      border-radius: 20px; padding: 32px 28px;
+      display: flex; flex-direction: column;
+      transition: transform .25s var(--ease-expo), box-shadow .25s;
+    }
+    .pcard:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.28); }
+    .pcard--featured {
+      background: rgba(15,118,110,.1); border-color: rgba(15,118,110,.4);
+      box-shadow: 0 0 0 1px rgba(15,118,110,.22), 0 32px 80px rgba(15,118,110,.18);
+      transform: translateY(-10px); position: relative;
+    }
+    .pcard--featured:hover { transform: translateY(-14px); }
+    .pcard--featured::before {
+      content: '★ Mais popular';
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--brand); color: #fff;
+      font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      padding: 4px 16px; border-radius: 999px; white-space: nowrap;
+    }
+    .pcard-name { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-bottom: 10px; }
+    .pcard--featured .pcard-name { color: #4ade80; }
+    .pcard-price {
+      font-family: "Playfair Display", serif;
+      font-size: 3.4rem; font-weight: 800; letter-spacing: -.03em; color: #fff; line-height: 1;
+    }
+    .pcard-price .curr { font-size: 1.3rem; vertical-align: top; margin-top: 10px; display: inline-block; color: rgba(255,255,255,.55); font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; }
+    .pcard-once { font-size: 11px; color: rgba(255,255,255,.28); margin: 4px 0 20px; font-family: "IBM Plex Mono", monospace; }
+    .pcard-desc { font-size: 13px; color: rgba(255,255,255,.45); line-height: 1.65; margin-bottom: 24px; min-height: 56px; }
+    .pcard-divider { height: 1px; background: var(--line-dark); margin-bottom: 22px; }
+    .pcard-features { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 30px; flex: 1; }
+    .pcard-features li { font-size: 13px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+    .pcard-features li.yes { color: rgba(255,255,255,.82); }
+    .pcard-features li.yes::before { content: '✓'; color: #4ade80; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .pcard-features li.no { color: rgba(255,255,255,.2); }
+    .pcard-features li.no::before { content: '—'; color: rgba(255,255,255,.18); flex-shrink: 0; margin-top: 1px; }
+    .pcard-cta {
+      display: block; text-align: center; text-decoration: none;
+      padding: 13px 24px; border-radius: 999px;
+      font-size: 14px; font-weight: 700;
+      transition: all .22s var(--ease-expo); margin-top: auto;
+    }
+    .pcard-cta--ghost { background: rgba(255,255,255,.07); color: rgba(255,255,255,.75); border: 1px solid var(--line-dark); }
+    .pcard-cta--ghost:hover { background: rgba(255,255,255,.13); color: #fff; }
+    .pcard-cta--primary { background: var(--brand); color: #fff; box-shadow: 0 12px 32px rgba(15,118,110,.38); }
+    .pcard-cta--primary:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(15,118,110,.5); }
+
+    /* TRUST */
+    #trust { padding: 0 0 60px; }
+    .trust-strip {
+      display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap;
+      padding: 18px 28px; border-radius: 14px;
+      background: rgba(255,255,255,.025); border: 1px solid var(--line-dark);
+      max-width: 740px; margin: 0 auto;
+    }
+    .trust-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,.4); font-weight: 600; }
+    .trust-sep { color: rgba(255,255,255,.12); }
+
+    /* AFTER PURCHASE */
+    #after-purchase { padding: 80px 0; background: var(--dark-2); }
+    #after-purchase .section-wrap { text-align: center; }
+    .after-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      color: #fff; line-height: 1.15; letter-spacing: -.02em; margin-bottom: 48px;
+    }
+    .after-steps {
+      display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr;
+      align-items: center; max-width: 800px; margin: 0 auto; gap: 0;
+    }
+    .after-step {
+      padding: 28px 18px; background: rgba(255,255,255,.04);
+      border-radius: 16px; border: 1px solid var(--line-dark); text-align: center;
+    }
+    .after-num {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(15,118,110,.18); border: 1px solid rgba(15,118,110,.38);
+      color: #4ade80; font-size: 13px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+    }
+    .after-step-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .after-step-desc { font-size: 12px; color: rgba(255,255,255,.38); line-height: 1.5; }
+    .after-arrow { text-align: center; font-size: 18px; color: rgba(255,255,255,.18); }
+
+    /* FAQ */
+    #faq { padding: 80px 0 100px; }
+    .faq-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      color: #fff; line-height: 1.15; letter-spacing: -.02em;
+      text-align: center; margin-bottom: 40px;
+    }
+    .faq-list { max-width: 660px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .faq-item { background: rgba(255,255,255,.04); border: 1px solid var(--line-dark); border-radius: 14px; overflow: hidden; transition: border-color .2s; }
+    .faq-item.open { border-color: rgba(15,118,110,.32); }
+    .faq-q {
+      padding: 18px 22px; cursor: pointer;
+      font-size: 14px; font-weight: 700; color: rgba(255,255,255,.82);
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      user-select: none; transition: color .15s;
+    }
+    .faq-q:hover { color: #fff; }
+    .faq-q::after { content: '+'; font-size: 20px; font-weight: 300; color: var(--brand); flex-shrink: 0; transition: transform .3s; }
+    .faq-item.open .faq-q::after { transform: rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s var(--ease-expo), padding .3s; padding: 0 22px; font-size: 13px; color: rgba(255,255,255,.48); line-height: 1.7; }
+    .faq-item.open .faq-a { max-height: 160px; padding: 0 22px 18px; }
+
+    /* FOOTER */
+    footer {
+      padding: 28px 5%; background: var(--dark);
+      border-top: 1px solid var(--line-dark);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: rgba(255,255,255,.22);
+    }
+    footer strong { color: rgba(255,255,255,.45); }
+    footer a { color: rgba(255,255,255,.3); text-decoration: none; transition: color .2s; }
+    footer a:hover { color: rgba(255,255,255,.65); }
+
+    @media (max-width: 860px) {
+      .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+      .pcard--featured { transform: translateY(0); }
+      .after-steps { grid-template-columns: 1fr; gap: 12px; max-width: 320px; }
+      .after-arrow { transform: rotate(90deg); }
+    }
+    @media (max-width: 560px) {
+      .trust-sep { display: none; }
+      .trust-strip { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="landing-v2.html" class="nav-logo">APP<span>-Gmail</span></a>
+  <a href="landing-v2.html" class="nav-back">← Voltar</a>
+</nav>
+
+<!-- HERO -->
+<section id="pricing-hero">
+  <div class="section-wrap">
+    <span class="eyebrow brand reveal">Escolha seu plano</span>
+    <h1 class="hero-title reveal" data-delay="1">
+      Inbox zero,<br><em class="accent">do jeito certo.</em>
+    </h1>
+    <p class="hero-sub reveal" data-delay="2">Acesso vitalício ao método, ferramentas e suporte — sem mensalidade.</p>
+    <div class="once-badge reveal" data-delay="3">Compra única · Sem assinatura</div>
+  </div>
+</section>
+
+<!-- CARDS -->
+<section id="cards">
+  <div class="section-wrap">
+    <div class="pricing-grid">
+
+      <!-- Pessoal -->
+      <div class="pcard reveal" data-delay="1">
+        <div class="pcard-name">Pessoal</div>
+        <div class="pcard-price"><span class="curr">R$</span>97</div>
+        <div class="pcard-once">pagamento único</div>
+        <p class="pcard-desc">Método completo para aplicar no seu próprio ritmo. Ferramentas prontas para usar hoje.</p>
+        <div class="pcard-divider"></div>
+        <ul class="pcard-features">
+          <li class="yes">Planilha de organização</li>
+          <li class="yes">Labels e filtros prontos</li>
+          <li class="yes">Script de varredura</li>
+          <li class="yes">Guia PDF passo a passo</li>
+          <li class="yes">Acesso à plataforma</li>
+          <li class="no">Agente de IA configurado</li>
+          <li class="no">Perfis de clientes</li>
+          <li class="no">Dashboard semanal</li>
+          <li class="no">Suporte 30 dias</li>
+          <li class="no">Sessão de mentoria 1h</li>
+        </ul>
+        <a href="https://hotmart.com/product/PLACEHOLDER_PESSOAL" target="_blank" rel="noopener" class="pcard-cta pcard-cta--ghost">
+          Quero o Pessoal
+        </a>
+      </div>
+
+      <!-- Profissional -->
+      <div class="pcard pcard--featured reveal" data-delay="2">
+        <div class="pcard-name">Profissional</div>
+        <div class="pcard-price"><span class="curr">R$</span>297</div>
+        <div class="pcard-once">pagamento único</div>
+        <p class="pcard-desc">Tudo do Pessoal + agente de IA já configurado, perfis de clientes e suporte direto por 30 dias.</p>
+        <div class="pcard-divider"></div>
+        <ul class="pcard-features">
+          <li class="yes">Planilha de organização</li>
+          <li class="yes">Labels e filtros prontos</li>
+          <li class="yes">Script de varredura</li>
+          <li class="yes">Guia PDF passo a passo</li>
+          <li class="yes">Acesso à plataforma</li>
+          <li class="yes">Agente de IA configurado</li>
+          <li class="yes">Perfis de clientes</li>
+          <li class="yes">Dashboard semanal</li>
+          <li class="yes">Suporte por 30 dias</li>
+          <li class="no">Sessão de mentoria 1h</li>
+        </ul>
+        <a href="https://hotmart.com/product/PLACEHOLDER_PRO" target="_blank" rel="noopener" class="pcard-cta pcard-cta--primary">
+          Quero o Profissional
+        </a>
+      </div>
+
+      <!-- Mentoria -->
+      <div class="pcard reveal" data-delay="3">
+        <div class="pcard-name">Mentoria</div>
+        <div class="pcard-price"><span class="curr">R$</span>797</div>
+        <div class="pcard-once">pagamento único</div>
+        <p class="pcard-desc">Implementação junto com você. Uma sessão 1h ao vivo + revisão após 15 dias de uso.</p>
+        <div class="pcard-divider"></div>
+        <ul class="pcard-features">
+          <li class="yes">Planilha de organização</li>
+          <li class="yes">Labels e filtros prontos</li>
+          <li class="yes">Script de varredura</li>
+          <li class="yes">Guia PDF passo a passo</li>
+          <li class="yes">Acesso à plataforma</li>
+          <li class="yes">Agente de IA configurado</li>
+          <li class="yes">Perfis de clientes</li>
+          <li class="yes">Dashboard semanal</li>
+          <li class="yes">Suporte por 30 dias</li>
+          <li class="yes">Sessão de mentoria 1h</li>
+          <li class="yes">Revisão após 15 dias</li>
+          <li class="yes">Atualizações vitalícias</li>
+        </ul>
+        <a href="https://hotmart.com/product/PLACEHOLDER_MENTORIA" target="_blank" rel="noopener" class="pcard-cta pcard-cta--ghost">
+          Quero a Mentoria
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section id="trust">
+  <div class="section-wrap">
+    <div class="trust-strip reveal">
+      <div class="trust-item">⚡ PIX instantâneo</div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">📄 Boleto bancário</div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">💳 Cartão parcelado</div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">🔒 Compra única</div>
+      <span class="trust-sep">·</span>
+      <div class="trust-item">✅ 7 dias de garantia</div>
+    </div>
+  </div>
+</section>
+
+<!-- AFTER PURCHASE -->
+<section id="after-purchase">
+  <div class="section-wrap">
+    <span class="eyebrow brand reveal">Após a compra</span>
+    <h2 class="after-title reveal" data-delay="1">O que acontece a seguir?</h2>
+    <div class="after-steps">
+      <div class="after-step reveal" data-delay="1">
+        <div class="after-num">1</div>
+        <div class="after-step-title">Compra confirmada</div>
+        <div class="after-step-desc">Pagamento processado pela Hotmart com segurança.</div>
+      </div>
+      <div class="after-arrow reveal" data-delay="2">→</div>
+      <div class="after-step reveal" data-delay="3">
+        <div class="after-num">2</div>
+        <div class="after-step-title">E-mail com link</div>
+        <div class="after-step-desc">Você recebe o acesso no seu e-mail em minutos.</div>
+      </div>
+      <div class="after-arrow reveal" data-delay="4">→</div>
+      <div class="after-step reveal" data-delay="5">
+        <div class="after-num">3</div>
+        <div class="after-step-title">Acesso liberado</div>
+        <div class="after-step-desc">Entre na plataforma e organize sua inbox de uma vez.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-wrap">
+    <span class="eyebrow light reveal">Dúvidas</span>
+    <h2 class="faq-title reveal" data-delay="1">Perguntas frequentes</h2>
+    <div class="faq-list reveal" data-delay="2">
+
+      <div class="faq-item">
+        <div class="faq-q">É realmente uma compra única? Sem mensalidade?</div>
+        <div class="faq-a">Sim. Você paga uma vez e tem acesso permanente ao conteúdo adquirido. Não existe cobrança recorrente, assinatura ou taxa mensal.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Funciona com Gmail pessoal e Google Workspace?</div>
+        <div class="faq-a">Funciona com os dois. O plano Pessoal é ideal para uso individual; o Profissional e a Mentoria incluem perfis de clientes pensados para quem gerencia comunicação comercial.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Posso pedir reembolso se não gostar?</div>
+        <div class="faq-a">Sim. Oferecemos 7 dias de garantia incondicional. Se por qualquer motivo não ficar satisfeito, é só solicitar o reembolso dentro do prazo — sem burocracia.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Como funciona a sessão de mentoria?</div>
+        <div class="faq-a">Disponível somente no plano Mentoria. Após a compra, você agenda uma sessão de 1h ao vivo (videochamada) para implementarmos o método juntos na sua inbox real. Após 15 dias, fazemos uma revisão para ajustar o que for necessário.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span><strong>APP-Gmail</strong> — Inbox Zero Sustentável</span>
+  <span>Método desenvolvido pela <strong>Sion Energia</strong> · <a href="landing-v2.html">← Voltar ao site</a></span>
+</footer>
+
+<script>
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
+
+  document.querySelectorAll('.faq-q').forEach(function(q) {
+    q.addEventListener('click', function() { q.closest('.faq-item').classList.toggle('open'); });
+  });
+</script>
+</body>
+</html>

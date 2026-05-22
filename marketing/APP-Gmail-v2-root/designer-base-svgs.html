@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spritesheet Completo - Inbox Fighter</title>
+    <style>
+        body {
+            background-color: #07090f;
+            background-image: radial-gradient(circle at 50% 50%, #111827 0%, #050505 100%);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+            margin: 0;
+        }
+        h1 {
+            text-align: center;
+            background: -webkit-linear-gradient(#4285F4, #EA4335, #FBBC05, #34A853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .instruction {
+            text-align: center;
+            color: #9ca3af;
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #0d1420;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .card-title {
+            color: #93c5fd;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        svg {
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+    </style>
+</head>
+<body>
+
+    <h1>SPRITESHEET VETORIAL COMPLETO</h1>
+    <div class="instruction">
+        <p>Você pediu a logo real do Gmail e os movimentos animados? Aqui está! Eu reprogramei as cores da logo atual do Google (Azul, Vermelho, Amarelo e Verde) e criei as <b>Poses de Ação Principais</b> em SVG. O designer agora tem os movimentos estruturados para exportar.</p>
+    </div>
+
+    <!-- DEFS REUTILIZÁVEIS -->
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <!-- Auras -->
+            <filter id="glowBlue"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowGold"><feGaussianBlur stdDeviation="5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowRed"><feGaussianBlur stdDeviation="6" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            
+            <linearGradient id="giGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#ea580c"/>
+            </linearGradient>
+
+            <!-- CABEÇA GMAIL MODERNA (Logo Oficial) -->
+            <g id="gmailHead">
+                <!-- Fundo Branco Arredondado -->
+                <rect x="-25" y="-18" width="50" height="36" rx="6" fill="#ffffff" stroke="#111" stroke-width="2"/>
+                <!-- Logo M (Google Colors) -->
+                <!-- Perna Esquerda (Azul) -->
+                <path d="M -15 10 L -15 -5 C -15 -8, -13 -10, -10 -10 L -10 10 Z" fill="#4285F4"/>
+                <!-- Perna Direita (Verde) -->
+                <path d="M 15 10 L 15 -5 C 15 -8, 13 -10, 10 -10 L 10 10 Z" fill="#34A853"/>
+                <!-- Diagonal Esquerda (Vermelho) -->
+                <path d="M -15 -5 L 0 5 L 0 -5 L -10 -10 Z" fill="#EA4335"/>
+                <!-- Diagonal Direita (Vermelho e Amarelo) -->
+                <path d="M 15 -5 L 0 5 L 0 -5 L 10 -10 Z" fill="#EA4335"/>
+                <!-- Canto Amarelo -->
+                <path d="M 10 -10 L 15 -5 L 15 -10 Z" fill="#FBBC05"/>
+                <!-- Olhinhos (Pontos pretos) -->
+                <circle cx="-8" cy="2" r="2" fill="#111"/>
+                <circle cx="8" cy="2" r="2" fill="#111"/>
+            </g>
+
+            <!-- CABEÇA BOSS CORROMPIDA -->
+            <g id="bossHead">
+                <rect x="-60" y="-40" width="120" height="80" rx="8" fill="#06020E" stroke="#ef4444" stroke-width="3" filter="url(#glowRed)"/>
+                <!-- M Sangrento -->
+                <path d="M -40 20 L -40 -20 L 0 10 L 40 -20 L 40 20" fill="none" stroke="#8B0000" stroke-width="8" stroke-linejoin="round"/>
+                <!-- Olhos Rasgados -->
+                <path d="M -30 -5 L -10 -10 L -20 5 Z" fill="#facc15" filter="url(#glowGold)"/>
+                <circle cx="-18" cy="-3" r="2" fill="#000"/>
+                <path d="M 30 -5 L 10 -10 L 20 5 Z" fill="#facc15" filter="url(#glowGold)"/>
+                <circle cx="18" cy="-3" r="2" fill="#000"/>
+                <text x="0" y="30" font-family="Impact" font-size="22" fill="#ef4444" text-anchor="middle">999+</text>
+            </g>
+        </defs>
+    </svg>
+
+    <div class="grid">
+        
+        <!-- 1. IDLE -->
+        <div class="card">
+            <div class="card-title">1. Base (Idle)</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <ellipse cx="50" cy="50" rx="30" ry="40" fill="#3b82f6" opacity="0.2" filter="url(#glowBlue)"/>
+                <!-- Braços (Trás) -->
+                <path d="M 50 45 L 35 60 L 40 65 M 50 45 L 65 60 L 60 65" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="40" cy="65" r="3" fill="#111"/> <circle cx="60" cy="65" r="3" fill="#111"/>
+                <!-- Pernas -->
+                <path d="M 45 70 L 40 90 L 35 90 M 55 70 L 60 90 L 65 90" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 33 85 L 42 85 L 40 92 L 32 92 Z M 67 85 L 58 85 L 60 92 L 68 92 Z" fill="#3b82f6"/> <!-- Botas -->
+                <!-- Torso Gi -->
+                <path d="M 40 40 L 60 40 L 55 70 L 45 70 Z" fill="url(#giGrad)" stroke="#111" stroke-width="2"/>
+                <path d="M 43 65 L 57 65 L 57 70 L 43 70 Z" fill="#3b82f6"/> <!-- Faixa -->
+                <!-- Cabeça -->
+                <use href="#gmailHead" x="50" y="25" />
+            </svg>
+        </div>
+
+        <!-- 2. DASH / CORRIDA -->
+        <div class="card">
+            <div class="card-title">2. Dash (Corrida)</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <!-- Linhas de Velocidade -->
+                <path d="M 10 30 L 40 30 M 5 50 L 35 50 M 15 70 L 45 70 M 0 85 L 30 85" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                <!-- Corpo Inclinado -->
+                <g transform="translate(10, 5) rotate(15, 50, 50)">
+                    <!-- Braços (Correndo) -->
+                    <path d="M 50 45 L 30 45 L 30 30 M 50 45 L 70 55 L 80 45" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Pernas (Correndo) -->
+                    <path d="M 45 70 L 30 75 L 20 85 M 55 70 L 65 85 L 80 80" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M 40 40 L 60 40 L 55 70 L 45 70 Z" fill="url(#giGrad)" stroke="#111" stroke-width="2"/>
+                    <!-- Cabeça -->
+                    <use href="#gmailHead" x="55" y="25" />
+                </g>
+            </svg>
+        </div>
+
+        <!-- 3. ATAQUE / PUNCH -->
+        <div class="card">
+            <div class="card-title">3. Punch (Ataque)</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <!-- Braço Traseiro -->
+                <path d="M 45 45 L 30 50 L 35 40" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <!-- Pernas Base Larga -->
+                <path d="M 45 70 L 30 90 L 25 90 M 55 70 L 70 90 L 75 90" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <!-- Torso Gi -->
+                <path d="M 40 40 L 60 40 L 55 70 L 45 70 Z" fill="url(#giGrad)" stroke="#111" stroke-width="2"/>
+                <!-- Braço do Soco Esticado -->
+                <path d="M 55 45 L 90 45" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="92" cy="45" r="4" fill="#111"/> <!-- Punho -->
+                <!-- Manga Burst de Impacto -->
+                <path d="M 92 45 L 85 25 L 95 35 L 110 20 L 100 40 L 120 45 L 100 50 L 110 70 L 95 55 L 85 65 Z" fill="#facc15" stroke="#ef4444" stroke-width="2" transform="translate(-10, 0)"/>
+                <!-- Cabeça -->
+                <use href="#gmailHead" x="45" y="25" />
+            </svg>
+        </div>
+
+        <!-- 4. KAMEHAMEHA -->
+        <div class="card">
+            <div class="card-title">4. Kamehameha</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <!-- Feixe de Energia -->
+                <path d="M 70 40 L 150 30 L 150 60 L 70 50 Z" fill="#60a5fa" opacity="0.8" filter="url(#glowBlue)"/>
+                <path d="M 70 43 L 150 38 L 150 52 L 70 47 Z" fill="#ffffff" filter="url(#glowBlue)"/>
+                <!-- Pernas Firmes -->
+                <path d="M 45 70 L 35 90 L 25 90 M 55 70 L 65 90 L 75 90" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <!-- Torso Gi -->
+                <path d="M 40 40 L 60 40 L 55 70 L 45 70 Z" fill="url(#giGrad)" stroke="#111" stroke-width="2"/>
+                <!-- Braços Lançando -->
+                <path d="M 50 45 L 75 42 M 50 48 L 75 48" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="70" cy="45" r="12" fill="#bfdbfe" opacity="0.8" filter="url(#glowBlue)"/>
+                <!-- Cabeça -->
+                <use href="#gmailHead" x="45" y="25" />
+            </svg>
+        </div>
+
+        <!-- 5. VITÓRIA / SUPER SAIYAJIN -->
+        <div class="card">
+            <div class="card-title">5. Vitória (SSJ)</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <!-- Aura Dourada -->
+                <ellipse cx="50" cy="50" rx="40" ry="45" fill="#facc15" opacity="0.4" filter="url(#glowGold)"/>
+                <!-- Cabelo Dourado Espetado -->
+                <path d="M 25 35 L 15 15 L 35 20 L 40 0 L 50 10 L 60 0 L 65 20 L 85 15 L 75 35 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2" stroke-linejoin="round"/>
+                <!-- Braços para o Alto -->
+                <path d="M 40 45 L 25 20 L 20 25 M 60 45 L 75 20 L 80 25" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <!-- Pernas -->
+                <path d="M 45 70 L 40 90 L 35 90 M 55 70 L 60 90 L 65 90" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+                <!-- Torso Gi -->
+                <path d="M 40 40 L 60 40 L 55 70 L 45 70 Z" fill="url(#giGrad)" stroke="#111" stroke-width="2"/>
+                <!-- Cabeça -->
+                <use href="#gmailHead" x="50" y="25" />
+                <!-- Olhos de Vitória ^ ^ sobrepondo o Gmail -->
+                <path d="M 40 24 L 43 20 L 46 24 M 54 24 L 57 20 L 60 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- 6. BOSS (GMAIL CORROMPIDO) -->
+        <div class="card">
+            <div class="card-title">6. Boss "Inbox 999+"</div>
+            <svg width="150" height="150" viewBox="0 0 100 100">
+                <use href="#bossHead" x="50" y="50" transform="scale(0.8) translate(12, 12)" />
+                <!-- Braços Sombrios do Boss -->
+                <path d="M 15 50 C 5 60, 5 80, 20 90 M 85 50 C 95 60, 95 80, 80 90" fill="none" stroke="#1e1b4b" stroke-width="6" stroke-linecap="round" filter="url(#glowRed)"/>
+                <circle cx="20" cy="90" r="6" fill="#1e1b4b"/>
+                <circle cx="80" cy="90" r="6" fill="#1e1b4b"/>
+            </svg>
+        </div>
+
+    </div>
+
+</body>
+</html>

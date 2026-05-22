@@ -1,0 +1,12 @@
+.env
+.env.*
+.clasp.json
+credentials.json
+token.json
+*.pem
+*.key
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
